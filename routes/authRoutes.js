@@ -7,9 +7,9 @@ const catchAsync= require("../utils/catchAsync.js");
 router.route('/status')
     .get((req, res)=>{
         if(req.user){
-            res.json(true);
+            res.json({isLoggedIn: true, user: req.user});
         }else{
-            res.json(false);
+            res.json({isLoggedIn: false});
         }
     })
 
