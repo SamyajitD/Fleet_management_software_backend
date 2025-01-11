@@ -56,7 +56,7 @@ const sessionConfig= {
 }
 
 const corsOptions= {
-  origin: 'http://localhost:54710',
+  origin: '*',
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }
