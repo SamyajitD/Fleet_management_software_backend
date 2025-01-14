@@ -9,7 +9,7 @@ router.route('/new')
 router.route('/all-truck-no')
     .get(catchAsync(driverController.allTruckNo));
 
-router.route('/get-driver/:vehicalNo')
+router.route('/get-driver/:vehicleNo')
     .get(catchAsync(driverController.getDriverByVehicleNo));
 
 module.exports = router;
