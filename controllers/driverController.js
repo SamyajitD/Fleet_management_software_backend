@@ -26,7 +26,7 @@ module.exports.allTruckNo = async(req, res) => {
 module.exports.getDriverByVehicleNo = async(req, res) => {
     try {
         const { vehicleNo } = req.params;
-        const driver = await Driver.findOne({ vehicleNo });
+        const driver = await Driver.findOne({ vehicleNo: vehicleNo });
 
         if (!driver) {
             return res.status(404).json({ message: `No driver found with vehicle number ${vehicleNo}` });
