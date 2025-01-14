@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const ledgerSchema = new mongoose.Schema({
-    vehicleNumber: {
+    vehicleNo: {
         type: String,
         required: true,
         index: true
@@ -25,8 +25,9 @@ const ledgerSchema = new mongoose.Schema({
     },
 
     itemIds: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Item'
+        type: String
+            // type: Schema.Types.ObjectId,
+            // ref: 'Item'
     }]
 });
 
