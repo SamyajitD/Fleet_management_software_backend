@@ -73,14 +73,6 @@ passport.deserializeUser(Employee.deserializeUser());
 
 passport.use(new LocalStrategy(Employee.authenticate()));
 
-// app.get('/api/vehicles', async(req, res)=>{
-//   try{
-//     const drivers= (await Driver.find()).name;
-//     res.json(drivers);
-//   }catch(err){
-//     res.json(err);
-//   }
-// })
 
 app.use('/api/auth', authRoutes);
 app.use('/api/parcel', parcelRoutes);
