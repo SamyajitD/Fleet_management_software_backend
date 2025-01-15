@@ -24,7 +24,6 @@ const generateLR = (parcel) => {
     return `
         <!DOCTYPE html>
         <html>
-
         <head>
             <title>Friends Transport Corporation</title>
             <style>
@@ -38,32 +37,22 @@ const generateLR = (parcel) => {
                     font-family: Arial, sans-serif;
                     line-height: 1.6;
                     padding: 20px;
-                    min-height: 100vh;
-                    position: relative;
                 }
 
                 @page {
                     size: A4;
-                    margin: 0;
+                    margin: 6mm;
                 }
 
                 @media print {
-
-                    html,
-                    body {
+                    html, body {
                         width: 210mm;
-                        height: 297mm;
+                        height: max-content;
                         background: white;
                     }
 
-                    body {
-                        padding: 6mm;
-                    }
-
-                    .page-container {
-                        page-break-after: always;
-                        min-height: 257mm;
-                        position: relative;
+                    thead {
+                        display: table-header-group;
                     }
                 }
 
@@ -87,33 +76,42 @@ const generateLR = (parcel) => {
                 .content {
                     display: flex;
                     gap: 15px;
-                    margin-bottom: 30px;
                 }
 
                 .left-column {
                     flex: 3;
+                    min-width: 0;
                 }
 
                 .right-column {
-                    flex: 1;
+                    width: 220px;
+                    flex: none;
                     padding: 8px;
                     border: 1px solid #ccc;
                     border-radius: 5px;
                     font-size: 14px;
+                    height: fit-content;
+                    position: sticky;
+                    top: 0;
                 }
 
                 .table-container {
                     width: 100%;
-                    margin: 0 auto;
+                    margin: 0 auto 20px;
                     border-radius: 8px;
                     overflow: hidden;
                     border: 1px solid #333;
+                    break-inside: avoid-page;
                 }
 
                 table {
                     width: 100%;
                     border-collapse: separate;
                     border-spacing: 0;
+                }
+
+                tr {
+                    break-inside: avoid;
                 }
 
                 table th,
@@ -159,16 +157,15 @@ const generateLR = (parcel) => {
                     margin-top: 20px;
                     padding-top: 10px;
                     border-top: 1px solid #ccc;
+                    break-inside: avoid;
                 }
 
                 .bottom-box {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
+                    margin-top: 30px;
                     padding: 15px 20px;
                     border-top: 2px solid #333;
                     background-color: white;
+                    break-inside: avoid;
                 }
 
                 .locations {
@@ -188,68 +185,81 @@ const generateLR = (parcel) => {
                     color: #666;
                     margin-bottom: 10px;
                 }
+
+                /* New wrapper for main content */
+                .main-wrapper {
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 100%;
+                }
+
+                .bill-content {
+                    flex: 1;
+                    margin-bottom: 30px;
+                }
             </style>
         </head>
-
         <body>
-            <div class="page-container">
-                <div class="header">
-                    <h1>FRIENDS TRANSPORTS CORPORATION</h1>
-                    <p class="address">1651/2, Something, again something, Hyderabad</p>
-                    <h2>LR Receipt</h2>
-                </div>
-
-                <div class="content">
-                    <div class="left-column">
-                        <p><strong>List of Item(s):</strong></p>
-                        <div class="table-container">
-                            <table style="font-size: 14px">
-                                <thead>
-                                    <tr>
-                                        <th>Item Name</th>
-                                        <th>Description</th>
-                                        <th>Quantity</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${allitems}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="charges-row">
-                            <div>
-                                <strong>Charges:</strong> ₹1000
-                            </div>
-                            <div>
-                                <strong>Signature:</strong> _________________
-                            </div>
-                        </div>
+            <div class="main-wrapper">
+                <div class="bill-content">
+                    <div class="header">
+                        <h1>FRIENDS TRANSPORTS CORPORATION</h1>
+                        <p class="address">1651/2, Something, again something, Hyderabad</p>
+                        <h2>LR Receipt</h2>
                     </div>
 
-                    <div class="right-column">
-                        <div class="details-section">
-                            <strong>Tracking ID: ${parcel.trackingId}<br></strong>
-                            <strong>Date: ${formatToIST(parcel.placedAt)} </strong>
+                    <div class="content">
+                        <div class="left-column">
+                            <p><strong>List of Item(s):</strong></p>
+                            <div class="table-container">
+                                <table style="font-size: 14px">
+                                    <thead>
+                                        <tr>
+                                            <th>Item Name</th>
+                                            <th>Description</th>
+                                            <th>Quantity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${allitems}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="charges-row">
+                                <div>
+                                    <strong>Charges:</strong> ₹1000
+                                </div>
+                                <div>
+                                    <strong>Signature:</strong> _________________
+                                </div>
+                            </div>
                         </div>
 
-                        <hr>
+                        <div class="right-column">
+                            <div class="details-section">
+                                <strong>Tracking ID: ${parcel.trackingId}<br></strong>
+                                <strong>Date: ${formatToIST(parcel.placedAt)} </strong>
+                            </div>
 
-                        <div class="details-section">
-                            <strong>Sender Details:</strong>
-                            Name: ${parcel.sender.name}<br>
-                            Phone: ${parcel.sender.phoneNo}<br>
-                            Email: ${parcel.sender.email}
-                        </div>
+                            <hr>
 
-                        <hr>
+                            <div class="details-section">
+                                <strong>Sender Details:</strong>
+                                Name: ${parcel.sender.name}<br>
+                                Phone: ${parcel.sender.phoneNo}<br>
+                                Email: ${parcel.sender.email}
+                            </div>
 
-                        <div class="details-section">
-                            <strong>Receiver Details:</strong>
-                            Name: ${parcel.receiver.name}<br>
-                            Phone: ${parcel.receiver.phoneNo}<br>
-                            Email: ${parcel.receiver.email}<br>
-                            Address: ${parcel.receiver.address}
+                            <hr>
+
+                            <div class="details-section">
+                                <strong>Receiver Details:</strong>
+                                Name: ${parcel.receiver.name}<br>
+                                Phone: ${parcel.receiver.phoneNo}<br>
+                                Email: ${parcel.receiver.email}<br>
+                                Address: ${parcel.receiver.address}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -268,7 +278,6 @@ const generateLR = (parcel) => {
                 </div>
             </div>
         </body>
-
         </html>
     `;
 };
