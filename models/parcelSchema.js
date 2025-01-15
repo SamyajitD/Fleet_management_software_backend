@@ -31,6 +31,12 @@ const parcelSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
         required: true
+    },
+
+    placedAt:{
+        type: Date,
+        default: Date.now,
+        required: true
     }
 });
 

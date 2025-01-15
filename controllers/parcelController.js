@@ -1,10 +1,10 @@
+const puppeteer = require('puppeteer');
 const Parcel = require("../models/parcelSchema.js");
 const Client = require("../models/clientSchema.js");
-const Item = require("../models/itemSchema.js");
-const generateUniqueId = require("../utils/uniqueIdGenerator.js");
-const Item = require("../models/itemSchema.js");
-const generateUniqueId = require("../utils/uniqueIdGenerator.js");
-const generateQRCode = require("../utils/qrCodeGenerator.js");
+const Item= require("../models/itemSchema.js");
+const generateUniqueId= require("../utils/uniqueIdGenerator.js");
+const generateQRCode= require("../utils/qrCodeGenerator.js");
+const generateLR= require("../utils/LRreceiptFormat.js");
 
 module.exports.newParcel = async(req, res) => {
     try {
@@ -99,5 +99,31 @@ module.exports.generateQRCodes = async(req, res) => {
 
     } catch (err) {
         res.status(500).json({ message: "An error occurred while tracking your parcel", error: err.message });
+    }
+}
+
+module.exports.generateLR= async(req, res)=>{
+    try{
+        const {id}= req.params;
+        const parcel= await Parcel.findOne({trackingId: id}).populate('items sender receiver');
+
+        const browser= await puppeteer.launch();
+        const page= await browser.newPage();
+
+        const htmlContent= generateLR(parcel);
+        await page.setContent(htmlContent, {waitUntil: 'load'});
+
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true,
+        });
+
+        await browser.close();
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${id}.pdf"`);
+        res.end(pdfBuffer);
+    }catch(err){
+        return res.status(500).json({message: "Failed to generate LR Receipt", error: err.message});
     }
 }

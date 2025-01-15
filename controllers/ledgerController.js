@@ -9,6 +9,7 @@ module.exports.newLedger = async(req, res) => {
 
         for(let id of scannedIds){
             const item= await Item.findOne({itemId: id});
+            if(!item) continue;
             itemIds.push(item._id);
         }
 
