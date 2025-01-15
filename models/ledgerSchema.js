@@ -6,6 +6,7 @@ const ledgerSchema = new mongoose.Schema({
         type: String,
         required: true,
         index: true
+            // unique: true
     },
 
     charges: {

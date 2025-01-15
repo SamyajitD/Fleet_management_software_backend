@@ -10,4 +10,10 @@ router.route('/new')
 router.route('/generate-ledger-receipt/:id')
     .get(catchAsync(ledgerController.generatePDF))
 
+router.route('/all-ledger')
+    .get(catchAsync(ledgerController.allLedger));
+
+router.route('/track/:id')
+    .get(catchAsync(ledgerController.trackLedger));
+
 module.exports = router;
