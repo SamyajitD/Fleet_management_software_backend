@@ -12,7 +12,8 @@ module.exports.newParcel = async(req, res)=>{
             const newItem = new Item({
                 name: item.name,
                 description: item.description,
-                quantity: item.quantity
+                quantity: item.quantity,
+                itemId: generateUniqueId(14)
             });
             const savedItem = await newItem.save();
             itemEntries.push(savedItem._id);
@@ -24,7 +25,7 @@ module.exports.newParcel = async(req, res)=>{
         const newSender = await sender.save();
         const newReceiver = await receiver.save();
 
-        const trackingId= generateUniqueId();
+        const trackingId= generateUniqueId(12);
 
         const newParcel = new Parcel({
             items: itemEntries,
