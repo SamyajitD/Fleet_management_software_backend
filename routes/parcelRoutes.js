@@ -13,4 +13,7 @@ router.route('/track/:id')
 router.route('/generate-qr/:id')
     .get(catchAsync(parcelController.generateQRCodes))
 
+router.route('/all-parcel-no')
+    .post(catchAsync(parcelController.allParcelNo)); // all type of parcel no both completed/incompleted (default : both)
+
 module.exports = router;

@@ -63,6 +63,23 @@ module.exports.trackParcel = async(req, res) => {
     }
 }
 
+module.exports.allParcelNo = async(req, res) => {
+    try {
+        const allParcelId = await Parcel.find({
+                completed: req.body.status !== undefined ? req.body.status : { $in: [true, false] }
+            },
+            'trackingId');
+        if (allParcelId) {
+            return res.status(200).send(allParcelId);
+        } else {
+            return res.json("No Parcel number found");
+        }
+    } catch (err) {
+        res.status(500).json({ message: "Failed to fetch parcel numbers", err });
+    }
+}
+
+
 module.exports.generateQRCodes = async(req, res) => {
     try {
         const { id } = req.params;
@@ -82,7 +99,5 @@ module.exports.generateQRCodes = async(req, res) => {
 
     } catch (err) {
         res.status(500).json({ message: "An error occurred while tracking your parcel", error: err.message });
-    } catch (err) {
-        return res.status(500).json({ message: "Failed to generate QR code for the items", error: err.message });
     }
 }
