@@ -34,11 +34,17 @@ module.exports.newParcel = async(req, res) => {
             items: itemEntries,
             sender: newSender._id,
             receiver: newReceiver._id,
-            completed: req.body.completed !== undefined ? req.body.completed : false,
             trackingId
         });
 
         await newParcel.save();
+
+        for (const id of itemEntries) {
+            const item= await Item.findById(id);
+            item.parcelId= newParcel._id;
+            await item.save();
+        }
+
         res.status(201).json({ message: "Parcel created successfully", parcel: newParcel });
 
     } catch (err) {

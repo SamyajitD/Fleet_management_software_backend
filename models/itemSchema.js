@@ -7,6 +7,12 @@ const itemSchema = new mongoose.Schema({
         unique: true
     },
 
+    //tracking id
+    parcelId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Parcel'
+    },
+
     name: {
         type: String,
         required: true

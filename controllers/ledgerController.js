@@ -1,23 +1,25 @@
+const puppeteer = require('puppeteer');
 const Ledger = require("../models/ledgerSchema.js");
 const Item = require("../models/itemSchema.js");
+const generateLedger= require("../utils/ledgerPdfFormat.js");
 
 module.exports.newLedger = async(req, res) => {
 
     try {
         const scannedIds= req.body.codes;
-        let itemIds= [];
+        let items= [];
 
         for(let id of scannedIds){
             const item= await Item.findOne({itemId: id});
             if(!item) continue;
-            itemIds.push(item._id);
+            items.push(item._id);
         }
 
         const newLedger = new Ledger({
             vehicleNo: req.body.vehicleNo,
             charges: 1000,
             dispatchedAt: new Date(),
-            itemIds
+            items
         });
 
         await newLedger.save();
@@ -26,3 +28,36 @@ module.exports.newLedger = async(req, res) => {
         res.status(500).json({ message: "Failed to create a new driver", err });
     }
 };
+
+module.exports.generatePDF= async(req, res)=>{
+    try{
+        const {id}= req.params;
+        const ledger= await Ledger.findById(id).populate({
+            path: 'items',
+            populate: {
+                path: 'parcelId',
+                populate:{
+                    path: 'sender'
+                }
+            }
+        });
+        const browser= await puppeteer.launch();
+        const page= await browser.newPage();
+
+        const htmlContent= generateLedger(ledger);
+        await page.setContent(htmlContent, {waitUntil: 'load'});
+
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true,
+        });
+
+        await browser.close();
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${id}.pdf"`);
+        res.end(pdfBuffer);
+    }catch(err){
+        return res.status(500).json({message: "Failed to generate Ledger PDF", error: err.message});
+    }
+}
