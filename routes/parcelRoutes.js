@@ -14,9 +14,9 @@ router.route('/generate-qr/:id')
     .get(catchAsync(parcelController.generateQRCodes))
 
 router.route('/all-parcel-no')
-    .post(catchAsync(parcelController.allParcelNo));
+    .get(catchAsync(parcelController.allParcelNo));
 
 router.route('/generate-lr-receipt/:id')
     .get(catchAsync(parcelController.generateLR))
 
-module.exports= router;
+module.exports = router;
