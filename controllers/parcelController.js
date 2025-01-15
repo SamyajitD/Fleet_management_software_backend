@@ -2,6 +2,7 @@ const Parcel = require("../models/parcelSchema.js");
 const Client = require("../models/clientSchema.js");
 const Item= require("../models/itemSchema.js");
 const generateUniqueId= require("../utils/uniqueIdGenerator.js");
+const generateQRCode= require("../utils/qrCodeGenerator.js");
 
 module.exports.newParcel = async(req, res)=>{
     try{
@@ -45,15 +46,37 @@ module.exports.newParcel = async(req, res)=>{
 module.exports.trackParcel= async(req, res)=>{
     try{
         const {id}= req.params;
-        const parcel= await Parcel.find({trackingId: id}).populate('items');
+        const parcel= await Parcel.findOne({trackingId: id}).populate('items');
 
         if(!parcel){
             res.json({message: `Can't find any Parcel with Tracking Id. ${id}`});
         }
 
-        res.status(200).json({message: "Successfully fetched your parcel", parcel});
+        return res.status(200).json({message: "Successfully fetched your parcel", parcel});
 
     }catch(err){
-        res.status(500).json({ message: "An error occurred while tracking your parcel", error: err.message });
+        return res.status(500).json({ message: "An error occurred while tracking your parcel", error: err.message });
+    }
+}
+
+module.exports.generateQRCodes= async(req, res)=>{
+    try{
+        const {id}= req.params;
+        const parcel= await Parcel.findOne({trackingId: id}).populate('items');
+
+        if(!parcel){
+            res.json({message: `Parcel not found. Tracking ID: ${id}`});
+        }
+
+        let qrCodes= [];
+        for(let item of parcel['items']){
+            let qrObj= await generateQRCode(item.itemId);
+            qrCodes.push(qrObj);
+        }
+
+        return res.status(200).json({message: "Successfully generated QR codes for the parcel items", qrCodes});
+
+    }catch(err){
+        return res.status(500).json({message: "Failed to generate QR code for the items", error: err.message});
     }
 }

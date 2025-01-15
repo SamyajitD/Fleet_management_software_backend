@@ -4,13 +4,19 @@ const Item = require("../models/itemSchema.js");
 module.exports.newLedger = async(req, res) => {
 
     try {
-        // console.log(codes)
+        const scannedIds= req.body.codes;
+        let itemIds= [];
+
+        for(let id of scannedIds){
+            const item= await Item.findOne({itemId: id});
+            itemIds.push(item._id);
+        }
+
         const newLedger = new Ledger({
             vehicleNo: req.body.vehicleNo,
-            charges: 1000, // Hardcoded value
-            isComplete: false, // Default value
-            dispatchedAt: new Date(), // Current date
-            itemIds: req.body.codes
+            charges: 1000,
+            dispatchedAt: new Date(),
+            itemIds
         });
 
         await newLedger.save();

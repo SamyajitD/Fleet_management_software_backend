@@ -10,4 +10,7 @@ router.route('/new')
 router.route('/track/:id')
     .get(catchAsync(parcelController.trackParcel));
 
+router.route('/generate-qr/:id')
+    .post(catchAsync(parcelController.generateQRCodes))
+
 module.exports= router;
