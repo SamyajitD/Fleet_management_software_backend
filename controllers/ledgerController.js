@@ -4,7 +4,7 @@ const Item = require("../models/itemSchema.js");
 const generateLedger = require("../utils/ledgerPdfFormat.js");
 const { all } = require('../routes/parcelRoutes.js');
 
-module.exports.newLedger = async(req, res) => {
+module.exports.newLedger = async (req, res) => {
 
     try {
         const scannedIds = req.body.codes;
@@ -24,13 +24,13 @@ module.exports.newLedger = async(req, res) => {
         });
 
         await newLedger.save();
-        return res.status(200).json({ message: "Successfully created ledger entry", ledger: newLedger });
+        return res.status(200).json({ message: "Successfully created ledger entry", body: newLedger });
     } catch (err) {
         return res.status(500).json({ message: "Failed to create a new driver", err });
     }
 };
 
-module.exports.generatePDF = async(req, res) => {
+module.exports.generatePDF = async (req, res) => {
     try {
         const { id } = req.params;
         const ledger = await Ledger.findById(id).populate({
@@ -63,33 +63,32 @@ module.exports.generatePDF = async(req, res) => {
     }
 }
 
-module.exports.allLedger = async(req, res) => {
+module.exports.allLedger = async (req, res) => {
     try {
         const allVehicleNo = await Ledger.find({
-                isComplete: req.body.status !== undefined ? req.body.status : { $in: [true, false] }
-            },
+            isComplete: req.body.status !== undefined ? req.body.status : { $in: [true, false] }
+        },
             'vehicleNo');
         if (allVehicleNo) {
-            return res.status(200).send(allVehicleNo);
+            return res.status(200).json({ message: "Successfull", body: allVehicleNo });
         } else {
-            return res.status(500).json("No Vehicle number found");
+            return res.status(204).json({ message: "No Vehicle number found", body: [] });
         }
     } catch (err) {
-        res.status(500).json({ message: "Failed to fetch vehicle numbers", err });
+        return res.status(500).json({ message: "Failed to fetch vehicle numbers", err });
     }
 }
 
-module.exports.trackLedger = async(req, res) => {
+module.exports.trackLedger = async (req, res) => {
     try {
         const { id } = req.params;
         const ledger = await Ledger.findOne({ vehicleNo: id, isComplete: false }).populate('items');
 
         if (!ledger) {
-            return res.status(500).json({ message: `Can't find any Ledger with Vehicle No. ${id}` });
+            return res.status(204).json({ message: `Can't find any Ledger with Vehicle No. ${id}`, body: {} });
         }
 
-        // res.status(200).json({ message: "Successfully fetched your Ledger", ledger });
-        return res.status(200).json({ message: "Successfully fetched your Ledger", ledger });
+        return res.status(200).json({ message: "Successfully fetched your Ledger", body: ledger });
 
     } catch (err) {
         return res.status(500).json({ message: "An error occurred while tracking your Ledger", error: err.message });

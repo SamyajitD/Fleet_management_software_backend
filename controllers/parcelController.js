@@ -6,7 +6,7 @@ const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
 const generateLR = require("../utils/LRreceiptFormat.js");
 
-module.exports.newParcel = async(req, res) => {
+module.exports.newParcel = async (req, res) => {
     try {
         const { items, senderDetails, receiverDetails } = req.body;
 
@@ -45,39 +45,39 @@ module.exports.newParcel = async(req, res) => {
             await item.save();
         }
 
-        return res.status(201).json({ message: "Parcel created successfully", parcel: newParcel });
+        return res.status(200).json({ message: "Parcel created successfully", body: newParcel });
 
     } catch (err) {
         return res.status(500).json({ message: "An error occurred while creating the parcel", error: err.message });
     }
 };
 
-module.exports.trackParcel = async(req, res) => {
+module.exports.trackParcel = async (req, res) => {
     try {
         const { id } = req.params;
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items');
 
         if (!parcel) {
-            return res.status(500).json({ message: `Can't find any Parcel with Tracking Id. ${id}` });
+            return res.status(204).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body:{} });
         }
 
-        return res.status(200).json({ message: "Successfully fetched your parcel", parcel });
+        return res.status(200).json({ message: "Successfully fetched your parcel", body: parcel });
 
     } catch (err) {
         return res.status(500).json({ message: "An error occurred while tracking your parcel", error: err.message });
     }
 }
 
-module.exports.allParcelNo = async(req, res) => {
+module.exports.allParcelNo = async (req, res) => {
     try {
         const allParcelId = await Parcel.find({
-                completed: req.body.status !== undefined ? req.body.status : { $in: [true, false] }
-            },
+            completed: req.body.status !== undefined ? req.body.status : { $in: [true, false] }
+        },
             'trackingId');
         if (allParcelId) {
-            return res.status(200).send(allParcelId);
+            return res.status(200).json({ message: "Succesful", body: allParcelId});
         } else {
-            return res.json("No Parcel number found");
+            return res.status(204).json({ message: "No Parcel number found", body:[] });
         }
     } catch (err) {
         return res.status(500).json({ message: "Failed to fetch parcel numbers", err });
@@ -85,13 +85,13 @@ module.exports.allParcelNo = async(req, res) => {
 }
 
 
-module.exports.generateQRCodes = async(req, res) => {
+module.exports.generateQRCodes = async (req, res) => {
     try {
         const { id } = req.params;
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items');
 
         if (!parcel) {
-            return res.status(500).json({ message: `Parcel not found. Tracking ID: ${id}` });
+            return res.status(204).json({ message: `Parcel not found. Tracking ID: ${id}`, body: [] });
         }
 
         let qrCodes = [];
@@ -100,14 +100,14 @@ module.exports.generateQRCodes = async(req, res) => {
             qrCodes.push(qrObj);
         }
 
-        return res.status(200).json({ message: "Successfully generated QR codes for the parcel items", qrCodes });
+        return res.status(200).json({ message: "Successfully generated QR codes for the parcel items", body: qrCodes });
 
     } catch (err) {
         return res.status(500).json({ message: "An error occurred while tracking your parcel", error: err.message });
     }
 }
 
-module.exports.generateLR = async(req, res) => {
+module.exports.generateLR = async (req, res) => {
     try {
         const { id } = req.params;
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver');

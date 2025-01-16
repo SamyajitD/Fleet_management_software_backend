@@ -1,6 +1,6 @@
 const Employee = require("../models/employeeSchema.js");
 
-module.exports.register = async(req, res) => {
+module.exports.register = async (req, res) => {
     try {
         const { name, username, phoneNo, role, password } = req.body;
         const emp = new Employee({ name, username, phoneNo, role });
@@ -8,7 +8,7 @@ module.exports.register = async(req, res) => {
 
         req.login(newEmployee, (err) => {
             if (err) return next(err);
-            return res.json('Registered Successfully');
+            return res.status(200).json({ message: 'Registered Successfully', body: {} });
         });
 
     } catch (err) {
