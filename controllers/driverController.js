@@ -4,9 +4,9 @@ module.exports.newDriver = async(req, res) => {
     try {
         const newDriver = new Driver({...req.body });
         await newDriver.save();
-        res.status(201).json({ message: "Successfully created a driver", driver: newDriver });
+        return res.status(201).json({ message: "Successfully created a driver", driver: newDriver });
     } catch (err) {
-        res.status(500).json({ message: "Failed to create a new driver", err });
+        return res.status(500).json({ message: "Failed to create a new driver", err });
     }
 }
 
@@ -19,7 +19,7 @@ module.exports.allTruckNo = async(req, res) => {
             return res.json("No Truck number found");
         }
     } catch (err) {
-        res.status(500).json({ message: "Failed to fetch truck numbers", err });
+        return res.status(500).json({ message: "Failed to fetch truck numbers", err });
     }
 }
 
@@ -32,7 +32,7 @@ module.exports.getDriverByVehicleNo = async(req, res) => {
             return res.status(404).json({ message: `No driver found with vehicle number ${vehicleNo}` });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             message: "Successfully found driver",
             driver: {
                 name: driver.name,
@@ -41,6 +41,6 @@ module.exports.getDriverByVehicleNo = async(req, res) => {
         });
 
     } catch (err) {
-        res.status(500).json({ message: "Failed to fetch driver details", error: err.message });
+        return res.status(500).json({ message: "Failed to fetch driver details", error: err.message });
     }
 }

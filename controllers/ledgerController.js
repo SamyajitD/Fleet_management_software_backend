@@ -26,7 +26,7 @@ module.exports.newLedger = async(req, res) => {
         await newLedger.save();
         return res.status(200).json({ message: "Successfully created ledger entry", ledger: newLedger });
     } catch (err) {
-        res.status(500).json({ message: "Failed to create a new driver", err });
+        return res.status(500).json({ message: "Failed to create a new driver", err });
     }
 };
 
@@ -72,7 +72,7 @@ module.exports.allLedger = async(req, res) => {
         if (allVehicleNo) {
             return res.status(200).send(allVehicleNo);
         } else {
-            return res.json("No Vehicle number found");
+            return res.status(500).json("No Vehicle number found");
         }
     } catch (err) {
         res.status(500).json({ message: "Failed to fetch vehicle numbers", err });
@@ -85,7 +85,7 @@ module.exports.trackLedger = async(req, res) => {
         const ledger = await Ledger.findOne({ vehicleNo: id, isComplete: false }).populate('items');
 
         if (!ledger) {
-            res.json({ message: `Can't find any Ledger with Vehicle No. ${id}` });
+            return res.status(500).json({ message: `Can't find any Ledger with Vehicle No. ${id}` });
         }
 
         // res.status(200).json({ message: "Successfully fetched your Ledger", ledger });
