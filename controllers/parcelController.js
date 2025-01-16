@@ -58,7 +58,7 @@ module.exports.trackParcel = async (req, res) => {
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items');
 
         if (!parcel) {
-            return res.status(204).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body:{} });
+            return res.status(201).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body:{} });
         }
 
         return res.status(200).json({ message: "Successfully fetched your parcel", body: parcel });
@@ -77,7 +77,7 @@ module.exports.allParcelNo = async (req, res) => {
         if (allParcelId) {
             return res.status(200).json({ message: "Succesful", body: allParcelId});
         } else {
-            return res.status(204).json({ message: "No Parcel number found", body:[] });
+            return res.status(201).json({ message: "No Parcel number found", body:[] });
         }
     } catch (err) {
         return res.status(500).json({ message: "Failed to fetch parcel numbers", err });
@@ -91,7 +91,7 @@ module.exports.generateQRCodes = async (req, res) => {
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items');
 
         if (!parcel) {
-            return res.status(204).json({ message: `Parcel not found. Tracking ID: ${id}`, body: [] });
+            return res.status(201).json({ message: `Parcel not found. Tracking ID: ${id}`, body: [] });
         }
 
         let qrCodes = [];

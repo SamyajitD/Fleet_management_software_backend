@@ -72,7 +72,7 @@ module.exports.allLedger = async (req, res) => {
         if (allVehicleNo) {
             return res.status(200).json({ message: "Successfull", body: allVehicleNo });
         } else {
-            return res.status(204).json({ message: "No Vehicle number found", body: [] });
+            return res.status(201).json({ message: "No Vehicle number found", body: [] });
         }
     } catch (err) {
         return res.status(500).json({ message: "Failed to fetch vehicle numbers", err });
@@ -85,7 +85,7 @@ module.exports.trackLedger = async (req, res) => {
         const ledger = await Ledger.findOne({ vehicleNo: id, isComplete: false }).populate('items');
 
         if (!ledger) {
-            return res.status(204).json({ message: `Can't find any Ledger with Vehicle No. ${id}`, body: {} });
+            return res.status(201).json({ message: `Can't find any Ledger with Vehicle No. ${id}`, body: {} });
         }
 
         return res.status(200).json({ message: "Successfully fetched your Ledger", body: ledger });

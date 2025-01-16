@@ -16,7 +16,7 @@ module.exports.allTruckNo = async (req, res) => {
         if (allTruckNo) {
             return res.status(200).json({ message: "Successfull", body: allTruckNo });
         } else {
-            return res.status(204).json({ message: "No Truck number found", body:[] });
+            return res.status(201).json({ message: "No Truck number found", body:[] });
         }
     } catch (err) {
         return res.status(500).json({ message: "Failed to fetch truck numbers", err });
@@ -29,7 +29,7 @@ module.exports.getDriverByVehicleNo = async (req, res) => {
         const driver = await Driver.findOne({ vehicleNo: vehicleNo });
 
         if (!driver) {
-            return res.status(204).json({ message: `No driver found with vehicle number ${vehicleNo}` });
+            return res.status(201).json({ message: `No driver found with vehicle number ${vehicleNo}` });
         }
 
         return res.status(200).json({
