@@ -45,10 +45,10 @@ module.exports.newParcel = async(req, res) => {
             await item.save();
         }
 
-        res.status(201).json({ message: "Parcel created successfully", parcel: newParcel });
+        return res.status(201).json({ message: "Parcel created successfully", parcel: newParcel });
 
     } catch (err) {
-        res.status(500).json({ message: "An error occurred while creating the parcel", error: err.message });
+        return res.status(500).json({ message: "An error occurred while creating the parcel", error: err.message });
     }
 };
 
@@ -58,7 +58,7 @@ module.exports.trackParcel = async(req, res) => {
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items');
 
         if (!parcel) {
-            res.json({ message: `Can't find any Parcel with Tracking Id. ${id}` });
+            return res.status(500).json({ message: `Can't find any Parcel with Tracking Id. ${id}` });
         }
 
         return res.status(200).json({ message: "Successfully fetched your parcel", parcel });
@@ -80,7 +80,7 @@ module.exports.allParcelNo = async(req, res) => {
             return res.json("No Parcel number found");
         }
     } catch (err) {
-        res.status(500).json({ message: "Failed to fetch parcel numbers", err });
+        return res.status(500).json({ message: "Failed to fetch parcel numbers", err });
     }
 }
 
@@ -91,7 +91,7 @@ module.exports.generateQRCodes = async(req, res) => {
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items');
 
         if (!parcel) {
-            res.json({ message: `Parcel not found. Tracking ID: ${id}` });
+            return res.status(500).json({ message: `Parcel not found. Tracking ID: ${id}` });
         }
 
         let qrCodes = [];
@@ -103,7 +103,7 @@ module.exports.generateQRCodes = async(req, res) => {
         return res.status(200).json({ message: "Successfully generated QR codes for the parcel items", qrCodes });
 
     } catch (err) {
-        res.status(500).json({ message: "An error occurred while tracking your parcel", error: err.message });
+        return res.status(500).json({ message: "An error occurred while tracking your parcel", error: err.message });
     }
 }
 
