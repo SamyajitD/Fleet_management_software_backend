@@ -19,11 +19,13 @@ const PORT = process.env.PORT || 8000;
 const ExpressError = require('./utils/expressError.js');
 
 const Employee = require("./models/employeeSchema.js");
+
 const authRoutes = require("./routes/authRoutes.js");
 const ledgerRoutes = require("./routes/ledgerRoutes.js");
 const parcelRoutes = require("./routes/parcelRoutes.js");
 const warehouseRoutes = require("./routes/warehouseRoutes.js")
 const driverRoutes = require("./routes/driverRoutes.js");
+const itemRoutes= require("./routes/itemRoutes.js");
 
 mongoose.connect(dbUrl);
 const db = mongoose.connection;
@@ -80,6 +82,7 @@ app.use('/api/ledger', ledgerRoutes);
 app.use('/api/parcel', parcelRoutes);
 app.use('/api/warehouse', warehouseRoutes);
 app.use('/api/driver', driverRoutes);
+app.use('/api/item', itemRoutes);
 
 app.all('*', (req, res, next) => {
     next(new ExpressError('Page Not Found', 404));
