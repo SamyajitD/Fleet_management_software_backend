@@ -6,4 +6,7 @@ const adminController= require("../controllers/adminController.js")
 router.route('/get-all-employees')
     .get(catchAsync(adminController.fetchAllEmployees));
 
+router.route('/get-all-drivers')
+    .get(catchAsync(adminController.fetchAllDrivers));
+
 module.exports= router;

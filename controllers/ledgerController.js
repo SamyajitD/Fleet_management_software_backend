@@ -98,6 +98,9 @@ module.exports.trackLedger = async(req, res) => {
 module.exports.generateReport = async(req, res) => {
     try {
         const { dateRange } = req.params;
+        const {vehicleNo}= req.query;
+
+        const isForVehicle= vehicleNo!==undefined;
 
         if (!dateRange || dateRange.length !== 16) {
             return res.status(201).json({ message: "Invalid date range format" });
@@ -132,12 +135,31 @@ module.exports.generateReport = async(req, res) => {
         let endDate = convertDate(endString);
         endDate.setHours(23, 59, 59, 999);
 
-        const allLedgers = await Ledger.find({ dispatchedAt: { $gte: startDate, $lte: endDate } });
+        let allLedgers;
+
+        if(isForVehicle){
+            allLedgers = await Ledger.find({
+                $and: [
+                {
+                    dispatchedAt:
+                    {
+                        $gte: startDate,
+                        $lte: endDate
+                    }
+                },
+                {
+                    vehicleNo
+                }
+            ]
+        });
+        }else{
+            allLedgers = await Ledger.find({ dispatchedAt: { $gte: startDate, $lte: endDate } });
+        }
 
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
 
-        const htmlContent = generateLedgerReport(allLedgers, startDate, endDate);
+        const htmlContent = generateLedgerReport(allLedgers, startDate, endDate, isForVehicle);
         await page.setContent(htmlContent, { waitUntil: 'load' });
 
         const pdfBuffer = await page.pdf({
@@ -148,7 +170,7 @@ module.exports.generateReport = async(req, res) => {
         await browser.close();
 
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="Ledger Report - ${formatToIST(startDate).replace(/ at.*$/, '')} to ${formatToIST(endDate).replace(/ at.*$/, '')}.pdf"`);
+        res.setHeader('Content-Disposition', `attachment; filename="Ledger Report ${isForVehicle===true?`(${vehicleNo})`:''} - ${formatToIST(startDate).replace(/ at.*$/, '')} to ${formatToIST(endDate).replace(/ at.*$/, '')}.pdf"`);
 
         return res.end(pdfBuffer);
     } catch (err) {

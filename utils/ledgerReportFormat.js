@@ -1,14 +1,17 @@
 const formatToIST = require("../utils/dateFormatter.js");
 
-const generateLedgerReport = (allLedgers, startDate, endDate) => {
+const generateLedgerReport = (allLedgers, startDate, endDate, isForVehicle) => {
     const ledgerCount= allLedgers.length;
+    const vehicleNameHeading= isForVehicle===true?`<h4>For Vehicle No. : <strong>${allLedgers[0].vehicleNo}</strong></h4>`:'';
+
     const ledgerSections = allLedgers.map((ledger) => {
+        const vehicleDetail= isForVehicle===true?'':`<div><strong>Vehicle No:</strong> ${ledger.vehicleNo}</div>`;
         const itemCount= ledger.items.length;
         return`
             <div class="ledger-section">
                 <div class="ledger-header">
                     <div><strong>Ledger No:</strong> ${ledger._id}</div>
-                    <div><strong>Vehicle No:</strong> ${ledger.vehicleNo}</div>
+                    ${vehicleDetail}
                     <div><strong>Charges:</strong> ₹${ledger.charges}</div>
                     <div><strong>Status:</strong> ${ledger.isComplete ? 'Complete' : 'Incomplete'}</div>
                     <div><strong>Dispatched At:</strong> ${formatToIST(ledger.dispatchedAt)}</div>
@@ -111,6 +114,7 @@ const generateLedgerReport = (allLedgers, startDate, endDate) => {
                 <h1>FRIENDS TRANSPORT CORPORATION</h1>
                 <p class="address">1651/2, Something, again something, Hyderabad</p>
                 <h2>Ledger Report</h2>
+                ${vehicleNameHeading}
                 <p><strong>${formatToIST(startDate).replace(/ at.*$/, '')} to ${formatToIST(endDate).replace(/ at.*$/, '')}</strong></p>
             </div>
             ${ledgerSections}
