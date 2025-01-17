@@ -26,6 +26,7 @@ const parcelRoutes = require("./routes/parcelRoutes.js");
 const warehouseRoutes = require("./routes/warehouseRoutes.js")
 const driverRoutes = require("./routes/driverRoutes.js");
 const itemRoutes= require("./routes/itemRoutes.js");
+const adminRoutes= require("./routes/adminRoutes.js");
 
 mongoose.connect(dbUrl);
 const db = mongoose.connection;
@@ -83,6 +84,7 @@ app.use('/api/parcel', parcelRoutes);
 app.use('/api/warehouse', warehouseRoutes);
 app.use('/api/driver', driverRoutes);
 app.use('/api/item', itemRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.all('*', (req, res, next) => {
     next(new ExpressError('Page Not Found', 404));

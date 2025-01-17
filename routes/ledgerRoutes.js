@@ -16,4 +16,7 @@ router.route('/all-ledger')
 router.route('/track/:id')
     .get(catchAsync(ledgerController.trackLedger));
 
+router.route('/generate-report/:dateRange')
+    .get(catchAsync(ledgerController.generateReport))
+
 module.exports = router;

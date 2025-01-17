@@ -8,7 +8,7 @@ module.exports.register = async (req, res) => {
 
         req.login(newEmployee, (err) => {
             if (err) return next(err);
-            return res.status(200).json({ message: 'Registered Successfully', body: {} });
+            return res.status(200).json({ message: 'Registered Successfully', flag: true });
         });
 
     } catch (err) {

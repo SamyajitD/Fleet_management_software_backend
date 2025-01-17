@@ -45,7 +45,7 @@ module.exports.newParcel = async (req, res) => {
             await item.save();
         }
 
-        return res.status(200).json({ message: "Parcel created successfully", body: newParcel });
+        return res.status(200).json({ message: "Parcel created successfully", body: {flag: true, trackingId} });
 
     } catch (err) {
         return res.status(500).json({ message: "An error occurred while creating the parcel", error: err.message });
@@ -55,7 +55,7 @@ module.exports.newParcel = async (req, res) => {
 module.exports.trackParcel = async (req, res) => {
     try {
         const { id } = req.params;
-        const parcel = await Parcel.findOne({ trackingId: id }).populate('items');
+        const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver');
 
         if (!parcel) {
             return res.status(201).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body:{} });

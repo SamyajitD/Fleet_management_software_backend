@@ -1,17 +1,6 @@
-const generateLedger = (ledger) => {
-    const formatToIST = (utcDate) => {
-        const options = {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-            timeZone: 'Asia/Kolkata'
-        };
+const formatToIST= require("../utils/dateFormatter.js");
 
-        return new Intl.DateTimeFormat('en-US', options).format(new Date(utcDate));
-    };
+const generateLedger = (ledger) => {
 
     let allItems = ledger.items.map(item => `
         <tr>
@@ -70,9 +59,12 @@ const generateLedger = (ledger) => {
                 }
 
                 .header h1 {
-                    color: #333;
                     font-size: 26px;
                     margin-bottom: 5px;
+                }
+
+                h2{
+                    color: #333;
                 }
 
                 .address {
@@ -141,7 +133,7 @@ const generateLedger = (ledger) => {
         </head>
         <body>
             <div class="header">
-                <h1>FRIENDS TRANSPORTS CORPORATION</h1>
+                <h1>FRIENDS TRANSPORT CORPORATION</h1>
                 <p class="address">1651/2, Something, again something, Hyderabad</p>
                 <h2>Ledger</h2>
             </div>
