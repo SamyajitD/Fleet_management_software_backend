@@ -11,12 +11,15 @@ router.route('/generate-ledger-receipt/:id')
     .get(catchAsync(ledgerController.generatePDF))
 
 router.route('/all-ledger')
-    .get(catchAsync(ledgerController.allLedger));
+    .post(catchAsync(ledgerController.allLedger));
 
 router.route('/track/:id')
     .get(catchAsync(ledgerController.trackLedger));
 
 router.route('/generate-report/:dateRange')
     .get(catchAsync(ledgerController.generateReport))
+
+router.route('/track-by-date/:date')
+    .get(catchAsync(ledgerController.getLedgersByDate));
 
 module.exports = router;

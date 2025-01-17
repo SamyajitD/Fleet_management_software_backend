@@ -2,10 +2,11 @@ const puppeteer = require('puppeteer');
 const Ledger = require("../models/ledgerSchema.js");
 const Item = require("../models/itemSchema.js");
 const generateLedger = require("../utils/ledgerPdfFormat.js");
-const generateLedgerReport= require("../utils/ledgerReportFormat.js");
-const formatToIST= require("../utils/dateFormatter.js");
+const generateLedgerReport = require("../utils/ledgerReportFormat.js");
+const formatToIST = require("../utils/dateFormatter.js");
 
-module.exports.newLedger = async (req, res) => {
+module.exports.newLedger = async(req, res) => {
+
     try {
         const scannedIds = req.body.codes;
         let items = [];
@@ -30,7 +31,7 @@ module.exports.newLedger = async (req, res) => {
     }
 };
 
-module.exports.generatePDF = async (req, res) => {
+module.exports.generatePDF = async(req, res) => {
     try {
         const { id } = req.params;
         const ledger = await Ledger.findById(id).populate({
@@ -63,14 +64,13 @@ module.exports.generatePDF = async (req, res) => {
     }
 }
 
-module.exports.allLedger = async (req, res) => {
+module.exports.allLedger = async(req, res) => {
     try {
-        const allVehicleNo = await Ledger.find({
+        const allVehicle = await Ledger.find({
             isComplete: req.body.status !== undefined ? req.body.status : { $in: [true, false] }
-        },
-            'vehicleNo');
-        if (allVehicleNo) {
-            return res.status(200).json({ message: "Successfull", body: allVehicleNo });
+        }).populate('items');
+        if (allVehicle) {
+            return res.status(200).json({ message: "Successfull", body: allVehicle });
         } else {
             return res.status(201).json({ message: "No Vehicle number found", body: [] });
         }
@@ -79,10 +79,10 @@ module.exports.allLedger = async (req, res) => {
     }
 }
 
-module.exports.trackLedger = async (req, res) => {
+module.exports.trackLedger = async(req, res) => {
     try {
         const { id } = req.params;
-        const ledger = await Ledger.findOne({ vehicleNo: id, isComplete: false }).populate('items');
+        const ledger = await Ledger.findOne({ _id: id, isComplete: false }).populate('items');
 
         if (!ledger) {
             return res.status(201).json({ message: `Can't find any Ledger with Vehicle No. ${id}`, body: {} });
@@ -95,16 +95,16 @@ module.exports.trackLedger = async (req, res) => {
     }
 }
 
-module.exports.generateReport= async(req, res)=>{
-    try{
-        const {dateRange}= req.params;
+module.exports.generateReport = async(req, res) => {
+    try {
+        const { dateRange } = req.params;
 
         if (!dateRange || dateRange.length !== 16) {
             return res.status(201).json({ message: "Invalid date range format" });
         }
 
-        const startString= dateRange.slice(0, 8);
-        const endString= dateRange.slice(8);
+        const startString = dateRange.slice(0, 8);
+        const endString = dateRange.slice(8);
 
         const convertDate = (dateString) => {
             const day = parseInt(dateString.slice(0, 2), 10);
@@ -132,7 +132,7 @@ module.exports.generateReport= async(req, res)=>{
         let endDate = convertDate(endString);
         endDate.setHours(23, 59, 59, 999);
 
-        const allLedgers= await Ledger.find({dispatchedAt: {$gte: startDate, $lte: endDate}});
+        const allLedgers = await Ledger.find({ dispatchedAt: { $gte: startDate, $lte: endDate } });
 
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
@@ -151,7 +151,44 @@ module.exports.generateReport= async(req, res)=>{
         res.setHeader('Content-Disposition', `attachment; filename="Ledger Report - ${formatToIST(startDate).replace(/ at.*$/, '')} to ${formatToIST(endDate).replace(/ at.*$/, '')}.pdf"`);
 
         return res.end(pdfBuffer);
-    }catch(err){
-        return res.status(500).json({message: "Failed to generate ledger report", error: err.message});
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to generate ledger report", error: err.message });
+    }
+}
+
+module.exports.getLedgersByDate = async(req, res) => {
+    try {
+        const { date } = req.params;
+        const formattedDate = date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+        // const startDate = new Date(formattedDate);
+        // console.log(date);
+        const startDate = new Date(`${formattedDate}T00:00:00.000Z`);
+        const endDate = new Date(`${formattedDate}T23:59:59.999Z`);
+
+        const ledgers = await Ledger.find({
+            dispatchedAt: {
+                $gte: startDate,
+                $lte: endDate
+            }
+        });
+        // return res.json([startDate, endDate]);
+
+        if (!ledgers) {
+            return res.status(201).json({
+                message: `No ledgers found for date ${date}`,
+                body: []
+            });
+        }
+
+        return res.status(200).json({
+            message: "Successfully fetched ledgers",
+            body: ledgers
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            message: "Failed to fetch ledgers by date",
+            error: err.message
+        });
     }
 }
