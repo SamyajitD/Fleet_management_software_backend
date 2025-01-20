@@ -50,18 +50,21 @@ store.on('error', function(err) {
 const sessionConfig = {
     store,
     name: 'FTC',
-    httpOnly: true,
+    // httpOnly: true,
     secret,
     resave: false,
     saveUninitialized: true,
     cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', 
+        sameSite: 'none',
         expires: Date.now() + (1000 * 60 * 60 * 24 * 30), //30days
         maxAge: (1000 * 60 * 60 * 24 * 30)
     }
 }
 
 const corsOptions = {
-    origin: '*',
+    origin: 'http://localhost:5173',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
 }

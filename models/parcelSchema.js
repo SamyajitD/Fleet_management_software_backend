@@ -42,7 +42,7 @@ const parcelSchema = new mongoose.Schema({
     status: {
         type: String,
         enum:['arrived', 'partial', 'delivered'],
-        default: 'Arrived',
+        default: 'arrived',
         required: true
     },
 

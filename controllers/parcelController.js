@@ -5,6 +5,7 @@ const Item = require("../models/itemSchema.js");
 const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
 const generateLR = require("../utils/LRreceiptFormat.js");
+const Warehouse = require("../models/warehouseSchema.js");
 
 module.exports.newParcel = async (req, res) => {
     try {
@@ -14,7 +15,6 @@ module.exports.newParcel = async (req, res) => {
         for (const item of items) {
             const newItem = new Item({
                 name: item.name,
-                description: item.description,
                 quantity: item.quantity,
                 itemId: generateUniqueId(14)
             });
@@ -70,21 +70,52 @@ module.exports.trackParcel = async (req, res) => {
     }
 }
 
-module.exports.allParcelNo = async (req, res) => {
+module.exports.allParcel = async (req, res) => {
     try {
-        const allParcelId = await Parcel.find({
-            completed: req.body.status !== undefined ? req.body.status : { $in: [true, false] }
-        },
-            'trackingId');
-        if (allParcelId) {
-            return res.status(200).json({ message: "Succesful", body: allParcelId});
-        } else {
-            return res.status(201).json({ message: "No Parcel number found", body:[] });
-        }
+        const newDate = new Date(req.body.date);
+        const startDate = new Date(newDate);
+        const endDate = new Date(newDate);
+        startDate.setHours(0,0,0,0);
+        endDate.setHours(23,59,59,999);
+
+        // if(req.user){
+        //     console.log(req.user)
+        // }else{
+        //     console.log("No user found");
+        // }
+        // const employeeWHcode = req.user.warehouseCode;
+        const employeeWHcode= 'HYO';
+        const allWarehouses = await Warehouse.find().lean();
+
+        let parcels = await Parcel.find({
+            placedAt: { $gte: startDate, $lt: endDate },
+            sourceWarehouse: employeeWHcode
+        })
+        .populate('items sender receiver')
+        .lean();
+
+
+        const parcelsWithWarehouseNames = parcels.map(parcel => {
+            const sourceWH = allWarehouses.find(wh => wh.warehouseID === parcel.sourceWarehouse);
+            const destWH = allWarehouses.find(wh => wh.warehouseID === parcel.destinationWarehouse);
+            
+            return {
+                ...parcel,
+                sourceWarehouseName: sourceWH?.name || 'Unknown',
+                destinationWarehouseName: destWH?.name || 'Unknown'
+            };
+        });
+
+        return res.status(200).json(parcelsWithWarehouseNames);
+        
     } catch (err) {
-        return res.status(500).json({ message: "Failed to fetch parcel numbers", err });
+        console.error('Error:', err); 
+        return res.status(500).json({
+            message: "Error fetching parcels",
+            error: err.message
+        });
     }
-}
+};
 
 
 module.exports.generateQRCodes = async (req, res) => {

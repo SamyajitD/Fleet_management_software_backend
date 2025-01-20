@@ -13,8 +13,8 @@ router.route('/track/:id')
 router.route('/generate-qr/:id')
     .get(catchAsync(parcelController.generateQRCodes))
 
-router.route('/all-parcel-no')
-    .get(catchAsync(parcelController.allParcelNo));
+router.route('/all')
+    .post(catchAsync(parcelController.allParcel));
 
 router.route('/generate-lr-receipt/:id')
     .get(catchAsync(parcelController.generateLR))
