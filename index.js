@@ -11,6 +11,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const MongoDBStore = require("connect-mongo");
 const cors = require('cors');
+const Warehouse= require("./models/warehouseSchema.js");
 
 const dbUrl = process.env.DB_URL;
 const secret = process.env.SECRET;
@@ -76,6 +77,16 @@ passport.serializeUser(Employee.serializeUser());
 passport.deserializeUser(Employee.deserializeUser());
 
 passport.use(new LocalStrategy(Employee.authenticate()));
+
+app.post('/add-warehouse', async(req, res)=>{
+    const warehouses= req.body;
+    for(let warehouse of warehouses){
+        const w= new Warehouse(warehouse);
+        await w.save();
+        console.log(w);
+    }
+    res.send("SUCCESS");
+})
 
 
 app.use('/api/auth', authRoutes);

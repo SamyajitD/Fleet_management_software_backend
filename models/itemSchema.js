@@ -18,11 +18,6 @@ const itemSchema = new mongoose.Schema({
         required: true
     },
 
-    description: {
-        type: String,
-        required: true
-    },
-
     quantity:{
         type: Number,
         required: true
