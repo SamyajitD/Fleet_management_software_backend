@@ -8,7 +8,7 @@ const generateLR = require("../utils/LRreceiptFormat.js");
 
 module.exports.newParcel = async (req, res) => {
     try {
-        const { items, senderDetails, receiverDetails } = req.body;
+        const { items, senderDetails, receiverDetails, sourceWarehouse, destinationWarehouse } = req.body;
 
         const itemEntries = [];
         for (const item of items) {
@@ -34,6 +34,8 @@ module.exports.newParcel = async (req, res) => {
             items: itemEntries,
             sender: newSender._id,
             receiver: newReceiver._id,
+            sourceWarehouse,
+            destinationWarehouse,
             trackingId
         });
 

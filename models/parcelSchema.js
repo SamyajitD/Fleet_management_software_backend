@@ -27,9 +27,22 @@ const parcelSchema = new mongoose.Schema({
         required: true
     },
 
-    completed: {
-        type: Boolean,
-        default: false,
+    sourceWarehouse:{
+        type: String,
+        enum:['HYO', 'HYT', 'BHP', 'SEC'],
+        required: true
+    },
+
+    destinationWarehouse:{
+        type: String,
+        enum:['MNC', 'KMR', 'STD', 'PLY', 'RMG', 'GDV'],
+        required: true
+    },
+
+    status: {
+        type: String,
+        enum:['arrived', 'partial', 'delivered'],
+        default: 'Arrived',
         required: true
     },
 

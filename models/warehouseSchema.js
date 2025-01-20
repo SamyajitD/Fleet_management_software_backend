@@ -9,7 +9,7 @@ const warehouseSchema= new mongoose.Schema({
         type: String,
         required: true
     },
-    contactNo:{|
+    contactNo:{
         type: String,
         required: true
     },

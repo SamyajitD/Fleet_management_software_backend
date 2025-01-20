@@ -19,15 +19,16 @@ const employeeSchema = new mongoose.Schema({
         required: true
     },
 
-    role: {
+    warehouseCode:{
         type: String,
-        enum: ['staff', 'admin'],
+        enum: ['HYO', 'HYT', 'BHP', 'SEC', 'MNC', 'KMR', 'STD', 'PLY', 'RMG', 'GDV'],
         required: true
     },
 
-    createdAt: {
-        type: Date,
-        default: Date.now,
+    role: {
+        type: String,
+        enum: ['admin', 'supervisor', 'staff'],
+        required: true
     }
 });
 

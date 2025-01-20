@@ -23,11 +23,19 @@ const itemSchema = new mongoose.Schema({
         required: true
     },
 
+    dipatchedAt:{
+        type: Date,
+    },
+
+    deliveredAt:{
+        type: Date,
+    },
+
     status:{
         type: String,
-        enum: ['received', 'dispatched', 'delivered'],
-        required: true,
-        default: 'received'
+        enum: ['arrived', 'dispatched', 'delivered'],
+        default: 'arrived',
+        required: true
     }
 });
 

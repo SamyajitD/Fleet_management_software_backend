@@ -7,4 +7,7 @@ const warehouseController= require("../controllers/warehouseController.js");
 router.route('/all-items')
     .get(catchAsync(warehouseController.getAllItems));
 
+router.route('/get-all')
+    .get(catchAsync(warehouseController.fetchAllWarehouse))
+
 module.exports= router;

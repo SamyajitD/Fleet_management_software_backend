@@ -83,7 +83,7 @@ app.post('/add-warehouse', async(req, res)=>{
     for(let warehouse of warehouses){
         const w= new Warehouse(warehouse);
         await w.save();
-        console.log(w);
+        // console.log(w);
     }
     res.send("SUCCESS");
 })

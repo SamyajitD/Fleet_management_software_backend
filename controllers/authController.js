@@ -15,3 +15,18 @@ module.exports.register = async (req, res) => {
         return res.status(500).json({ message: "An error occurred while registering", error: err.message });
     }
 }
+
+module.exports.fetchAllEmployees= async(req, res)=>{
+    try{
+        const temp= await Employee.find();
+        const allEmployees= temp.map((e)=>(e.username));
+
+        if(allEmployees.length===0){
+            return res.status(201).json({message: "No employees", body: {}});
+        }
+
+        return res.status(200).json({message: "Successfully fetched all employees", body: allEmployees});
+    }catch(err){
+        return res.status(500).json({message: "Failed to fetch all Employees", error: err.message});
+    }
+}

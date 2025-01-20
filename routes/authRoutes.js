@@ -21,4 +21,7 @@ router.route('/login')
 router.route('/register')
     .post(catchAsync(authController.register));
 
+router.route('/get-all-usernames')
+    .get(catchAsync(authController.fetchAllEmployees));
+
 module.exports= router;
