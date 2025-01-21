@@ -6,7 +6,6 @@ const ledgerSchema = new mongoose.Schema({
         type: String,
         required: true,
         index: true
-            // unique: true
     },
 
     charges: {
@@ -26,10 +25,20 @@ const ledgerSchema = new mongoose.Schema({
     },
 
     items: [{
-        // type: String
         type: Schema.Types.ObjectId,
         ref: 'Item'
-    }]
+    }],
+
+    scannedBy:{
+        type: Schema.Types.ObjectId,
+        ref: 'Employee',
+        required: true
+    },
+
+    verifiedBy:{
+        type: Schema.Types.ObjectId,
+        ref: 'Employee',
+    }
 });
 
 module.exports = mongoose.model('Ledger', ledgerSchema);

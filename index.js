@@ -32,7 +32,7 @@ db.once("open", () => {
 });
 
 const corsOptions = {
-    origin: '*',
+    origin: 'http://localhost:5174',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
 }

@@ -9,6 +9,8 @@ module.exports.newLedger = async(req, res) => {
 
     try {
         const scannedIds = req.body.codes;
+        const scannedBy= req.body.scannedBy;
+
         let items = [];
 
         for (let id of scannedIds) {
@@ -21,7 +23,8 @@ module.exports.newLedger = async(req, res) => {
             vehicleNo: req.body.vehicleNo,
             charges: 1000,
             dispatchedAt: new Date(),
-            items
+            items,
+            scannedBy
         });
 
         await newLedger.save();
@@ -66,14 +69,12 @@ module.exports.generatePDF = async(req, res) => {
 
 module.exports.allLedger = async(req, res) => {
     try {
-        const allVehicle = await Ledger.find({
-            isComplete: req.body.status !== undefined ? req.body.status : { $in: [true, false] }
-        }).populate('items');
-        if (allVehicle) {
-            return res.status(200).json({ message: "Successfull", body: allVehicle });
-        } else {
+        // console.log("All Ledger");
+        const allLedger = await Ledger.find();
+        if (allLedger.length===0) {
             return res.status(201).json({ message: "No Vehicle number found", body: [] });
-        }
+        } 
+        return res.status(200).json({ message: "Successfull", body: allLedger });
     } catch (err) {
         return res.status(500).json({ message: "Failed to fetch vehicle numbers", err });
     }
@@ -181,18 +182,34 @@ module.exports.generateReport = async(req, res) => {
 module.exports.getLedgersByDate = async(req, res) => {
     try {
         const { date } = req.params;
+        const { id }= req.query;
+
+
         const formattedDate = date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
         // const startDate = new Date(formattedDate);
         // console.log(date);
         const startDate = new Date(`${formattedDate}T00:00:00.000Z`);
         const endDate = new Date(`${formattedDate}T23:59:59.999Z`);
 
-        const ledgers = await Ledger.find({
-            dispatchedAt: {
-                $gte: startDate,
-                $lte: endDate
-            }
-        });
+        let ledgers;
+
+        if(id){
+            ledgers= await Ledger.find({
+                dispatchedAt: {
+                    $gte: startDate,
+                    $lte: endDate
+                },
+                scannedBy: id
+            });
+        }else{
+            ledgers= await Ledger.find({
+                dispatchedAt: {
+                    $gte: startDate,
+                    $lte: endDate
+                }
+            });
+        }
+
         // return res.json([startDate, endDate]);
 
         if (!ledgers) {

@@ -11,7 +11,7 @@ router.route('/generate-ledger-receipt/:id')
     .get(catchAsync(ledgerController.generatePDF))
 
 router.route('/all-ledger')
-    .post(catchAsync(ledgerController.allLedger));
+    .get(catchAsync(ledgerController.allLedger));
 
 router.route('/track/:id')
     .get(catchAsync(ledgerController.trackLedger));

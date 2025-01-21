@@ -77,7 +77,7 @@ module.exports.allParcel = async (req, res) => {
         // console.log('Warehouse code:', req.user?.warehouseCode);
 
         if (!req.user || !req.user.warehouseCode) {
-            return res.status(201).json({
+            return res.status(401).json({
                 message: "Unauthorized: No warehouse access"
             });
         }

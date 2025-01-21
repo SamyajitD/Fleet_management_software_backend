@@ -1,4 +1,4 @@
-const jsonwebtoken = require('jsonwebtoken');
+const jsonwebtoken = require('jsonwebtoken');  // Changed from jwt to jsonwebtoken
 const Employee = require('../models/employeeSchema');
 
 const authenticateToken = async (req, res, next) => {
@@ -26,7 +26,7 @@ const authenticateToken = async (req, res, next) => {
 
 const isAdmin = async (req, res, next) => {
     if (req.user.role !== 'admin') {
-        return res.status(201).json({ message: 'Access denied. Admin only.' });
+        return res.status(403).json({ message: 'Access denied. Admin only.' });
     }
     next();
 };

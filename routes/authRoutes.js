@@ -16,10 +16,11 @@ router.post('/register', async (req, res) => {
             role
         });
         await employee.save();
+        
         const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
         res.status(201).json({ token });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(400).json({ message: error.message });
     }
 });
 
@@ -40,7 +41,8 @@ router.post('/login', async (req, res) => {
                 username: employee.username,
                 name: employee.name,
                 role: employee.role,
-                warehouseCode: employee.warehouseCode
+                warehouseCode: employee.warehouseCode,
+                phoneNo: employee.phoneNo
             }
         });
     } catch (error) {
@@ -56,6 +58,7 @@ router.get('/status', authenticateToken, (req, res) => {
             username: req.user.username,
             role: req.user.role,
             name: req.user.name,
+            phoneNo: req.user.phoneNo,
             warehouseCode: req.user.warehouseCode
         }
     });
