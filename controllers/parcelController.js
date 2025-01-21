@@ -72,19 +72,25 @@ module.exports.trackParcel = async (req, res) => {
 
 module.exports.allParcel = async (req, res) => {
     try {
+        // Add debug logs
+        // console.log('User from token:', req.user);
+        // console.log('Warehouse code:', req.user?.warehouseCode);
+
+        if (!req.user || !req.user.warehouseCode) {
+            return res.status(201).json({
+                message: "Unauthorized: No warehouse access"
+            });
+        }
+
         const newDate = new Date(req.body.date);
         const startDate = new Date(newDate);
         const endDate = new Date(newDate);
         startDate.setHours(0,0,0,0);
         endDate.setHours(23,59,59,999);
 
-        // if(req.user){
-        //     console.log(req.user)
-        // }else{
-        //     console.log("No user found");
-        // }
-        // const employeeWHcode = req.user.warehouseCode;
-        const employeeWHcode= 'HYO';
+        // Use the authenticated user's warehouse code
+        const employeeWHcode = req.user.warehouseCode;
+
         const allWarehouses = await Warehouse.find().lean();
 
         let parcels = await Parcel.find({

@@ -1,27 +1,64 @@
-const express= require("express");
-const router= express.Router();
-const passport= require('passport');
-const authController= require("../controllers/authController.js");
-const catchAsync= require("../utils/catchAsync.js");
+const express = require('express');
+const router = express.Router();
+const jsonwebtoken = require('jsonwebtoken');
+const Employee = require('../models/employeeSchema');
+const { authenticateToken } = require('../middleware/auth');
 
-router.route('/status')
-    .get((req, res)=>{
-        if(req.user){
-            res.json({flag: true, user: req.user});
-        }else{
-            res.json({flag: false});
+router.post('/register', async (req, res) => {
+    try {
+        const { username, password, name, phoneNo, warehouseCode, role } = req.body;
+        const employee = new Employee({ 
+            username, 
+            password, 
+            name, 
+            phoneNo, 
+            warehouseCode, 
+            role
+        });
+        await employee.save();
+        const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
+        res.status(201).json({ token });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.post('/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const employee = await Employee.findOne({ username });
+        
+        if (!employee || !(await employee.comparePassword(password))) {
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
-    })
 
-router.route('/login')
-    .post(passport.authenticate('local', {failureMessage: true}), (req, res)=>{
-        res.json({ message: 'Login Successful', body: {flag: true} });
+        const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
+        res.json({ 
+            token,
+            user: {
+                id: employee._id,
+                username: employee.username,
+                name: employee.name,
+                role: employee.role,
+                warehouseCode: employee.warehouseCode
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.get('/status', authenticateToken, (req, res) => {
+    res.status(200).json({
+        flag: true,
+        user: {
+            id: req.user._id,
+            username: req.user.username,
+            role: req.user.role,
+            name: req.user.name,
+            warehouseCode: req.user.warehouseCode
+        }
     });
+});
 
-router.route('/register')
-    .post(catchAsync(authController.register));
-
-router.route('/get-all-usernames')
-    .get(catchAsync(authController.fetchAllEmployees));
-
-module.exports= router;
+module.exports = router;

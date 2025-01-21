@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const catchAsync = require("../utils/catchAsync.js");
 const parcelController = require("../controllers/parcelController.js");
-const { isLoggedIn, isAdmin } = require("../middleware.js");
+const {authenticateToken}= require("../middleware/auth.js")
 
 router.route('/new')
     .post(catchAsync(parcelController.newParcel));
@@ -14,7 +14,7 @@ router.route('/generate-qr/:id')
     .get(catchAsync(parcelController.generateQRCodes))
 
 router.route('/all')
-    .post(catchAsync(parcelController.allParcel));
+    .post(authenticateToken, catchAsync(parcelController.allParcel));
 
 router.route('/generate-lr-receipt/:id')
     .get(catchAsync(parcelController.generateLR))

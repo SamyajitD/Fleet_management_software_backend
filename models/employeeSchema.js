@@ -1,30 +1,29 @@
 const mongoose = require('mongoose');
-const passportLocalMongoose= require('passport-local-mongoose');
+const bcrypt = require('bcrypt');
 
 const employeeSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
     },
-
-    //emailId
     username: {
         type: String,
         unique: true,
         required: true
     },
-
+    password: {
+        type: String,
+        required: true
+    },
     phoneNo: {
         type: String,
         required: true
     },
-
     warehouseCode:{
         type: String,
         enum: ['HYO', 'HYT', 'BHP', 'SEC', 'MNC', 'KMR', 'STD', 'PLY', 'RMG', 'GDV'],
         required: true
     },
-
     role: {
         type: String,
         enum: ['admin', 'supervisor', 'staff'],
@@ -32,6 +31,15 @@ const employeeSchema = new mongoose.Schema({
     }
 });
 
-employeeSchema.plugin(passportLocalMongoose);
+employeeSchema.pre('save', async function(next) {
+    if (this.isModified('password')) {
+        this.password = await bcrypt.hash(this.password, 10);
+    }
+    next();
+});
+
+employeeSchema.methods.comparePassword = async function(candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model('Employee', employeeSchema);

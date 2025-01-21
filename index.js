@@ -6,19 +6,14 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const mongoose = require("mongoose")
-const session = require('express-session');
-const passport = require('passport');
-const LocalStrategy = require('passport-local');
-const MongoDBStore = require("connect-mongo");
 const cors = require('cors');
-const Warehouse= require("./models/warehouseSchema.js");
+const Warehouse = require("./models/warehouseSchema.js");
 
 const dbUrl = process.env.DB_URL;
-const secret = process.env.SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
 const PORT = process.env.PORT || 8000;
 
 const ExpressError = require('./utils/expressError.js');
-
 const Employee = require("./models/employeeSchema.js");
 
 const authRoutes = require("./routes/authRoutes.js");
@@ -35,51 +30,16 @@ db.on("error", console.error.bind(console, "connection error: "));
 db.once("open", () => {
     console.log("Database Connected");
 });
-app.use(express.urlencoded({ extended: true }));
-
-const store = new MongoDBStore({
-    mongoUrl: dbUrl,
-    secret,
-    touchAfter: 24 * 60 * 60
-});
-
-store.on('error', function(err) {
-    console.log("Error!", err);
-})
-
-const sessionConfig = {
-    store,
-    name: 'FTC',
-    // httpOnly: true,
-    secret,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', 
-        sameSite: 'none',
-        expires: Date.now() + (1000 * 60 * 60 * 24 * 30), //30days
-        maxAge: (1000 * 60 * 60 * 24 * 30)
-    }
-}
 
 const corsOptions = {
-    origin: 'http://localhost:5173',
+    origin: 'http://localhost:5174',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
 }
 
 app.use(express.json());
-app.use(session(sessionConfig));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.serializeUser(Employee.serializeUser());
-passport.deserializeUser(Employee.deserializeUser());
-
-passport.use(new LocalStrategy(Employee.authenticate()));
 
 app.post('/add-warehouse', async(req, res)=>{
     const warehouses= req.body;
@@ -90,7 +50,6 @@ app.post('/add-warehouse', async(req, res)=>{
     }
     res.send("SUCCESS");
 })
-
 
 app.use('/api/auth', authRoutes);
 app.use('/api/ledger', ledgerRoutes);
