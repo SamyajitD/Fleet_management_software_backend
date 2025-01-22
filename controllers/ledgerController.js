@@ -29,7 +29,7 @@ module.exports.newLedger = async(req, res) => {
             ledgerId: generateUniqueId(14),
             vehicleNo: req.body.vehicleNo,
             charges: 1000, // Default charges if not provided
-            // dispatchedAt: new Date(),
+            dispatchedAt: new Date(),
             // deliveredAt: req.body.deliveredAt || null,
             items,
             scannedBy,
