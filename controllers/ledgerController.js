@@ -1,39 +1,51 @@
 const puppeteer = require('puppeteer');
 const Ledger = require("../models/ledgerSchema.js");
 const Item = require("../models/itemSchema.js");
+const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateLedger = require("../utils/ledgerPdfFormat.js");
 const generateLedgerReport = require("../utils/ledgerReportFormat.js");
 const formatToIST = require("../utils/dateFormatter.js");
 const ExcelJS = require('exceljs');
 
 module.exports.newLedger = async(req, res) => {
-
     try {
         const scannedIds = req.body.codes;
         const scannedBy = req.body.scannedBy;
+        // const destinationWarehouse = req.body.destinationWarehouse;
+        // const sourceWarehouse = req.body.sourceWarehouse;
 
         let items = [];
 
         for (let id of scannedIds) {
             const item = await Item.findOne({ itemId: id });
             if (!item) continue;
-            items.push(item.itemId);
+            items.push({
+                itemId: item.itemId,
+                // hamali: req.body.hamali || 0 // Assuming hamali is provided in the request body
+            });
         }
 
         const newLedger = new Ledger({
+            ledgerId: generateUniqueId(14),
             vehicleNo: req.body.vehicleNo,
-            charges: 1000,
-            dispatchedAt: new Date(),
+            charges: req.body.charges || 1000, // Default charges if not provided
+            // dispatchedAt: new Date(),
+            // deliveredAt: req.body.deliveredAt || null,
             items,
-            scannedBy
+            scannedBy,
+            // verifiedBy: req.body.verifiedBy || null,
+            // destinationWarehouse,
+            // sourceWarehouse,
+            isComplete: 'pending' // Default value
         });
 
         await newLedger.save();
-        return res.status(200).json({ message: "Successfully created ledger entry", body: newLedger });
+        res.status(201).json(newLedger);
     } catch (err) {
-        return res.status(500).json({ message: "Failed to create a new driver", err });
+        res.status(500).json({ message: "Failed to create new ledger", error: err.message });
     }
 };
+
 
 module.exports.generatePDF = async(req, res) => {
     try {
@@ -84,18 +96,20 @@ module.exports.allLedger = async(req, res) => {
 module.exports.trackLedger = async(req, res) => {
     try {
         const { id } = req.params;
-        const ledger = await Ledger.findOne({ _id: id, isComplete: false }).populate('items');
+        const ledger = await Ledger.findOne({ ledgerId: id })
+            .populate('items.itemId')
+            .populate('scannedBy')
+            .populate('verifiedBy');
 
         if (!ledger) {
-            return res.status(201).json({ message: `Can't find any Ledger with Vehicle No. ${id}`, body: {} });
+            return res.status(201).json({ message: `Can't find any Ledger with ID ${id}`, body: {} });
         }
 
-        return res.status(200).json({ message: "Successfully fetched your Ledger", body: ledger });
-
+        return res.status(200).json({ message: "Successful", body: ledger });
     } catch (err) {
-        return res.status(500).json({ message: "An error occurred while tracking your Ledger", error: err.message });
+        return res.status(500).json({ message: "Failed to track ledger", error: err.message });
     }
-}
+};
 
 module.exports.generateReport = async(req, res) => {
         try {
@@ -178,58 +192,94 @@ module.exports.generateReport = async(req, res) => {
     }
 }
 
+
 module.exports.getLedgersByDate = async(req, res) => {
     try {
         const { date } = req.params;
-        const { id }= req.query;
-
+        const { id } = req.query;
 
         const formattedDate = date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
-        // const startDate = new Date(formattedDate);
-        // console.log(date);
         const startDate = new Date(`${formattedDate}T00:00:00.000Z`);
         const endDate = new Date(`${formattedDate}T23:59:59.999Z`);
 
         let ledgers;
 
-        if(id){
-            ledgers= await Ledger.find({
+        if (id) {
+            ledgers = await Ledger.find({
                 dispatchedAt: {
                     $gte: startDate,
                     $lte: endDate
                 },
                 scannedBy: id
-            });
-        }else{
-            ledgers= await Ledger.find({
+            }).populate('items.itemId').populate('scannedBy').populate('verifiedBy');
+        } else {
+            ledgers = await Ledger.find({
                 dispatchedAt: {
                     $gte: startDate,
                     $lte: endDate
                 }
-            });
+            }).populate('items.itemId').populate('scannedBy').populate('verifiedBy');
         }
 
-        // return res.json([startDate, endDate]);
-
-        if (!ledgers) {
-            return res.status(201).json({
-                message: `No ledgers found for date ${date}`,
-                body: []
-            });
-        }
-
-        return res.status(200).json({
-            message: "Successfully fetched ledgers",
-            body: ledgers
-        });
-
+        return res.status(200).json({ message: "Successful", body: ledgers });
     } catch (err) {
-        return res.status(500).json({
-            message: "Failed to fetch ledgers by date",
-            error: err.message
-        });
+        return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message });
     }
 }
+
+// module.exports.getLedgersByDate = async(req, res) => {
+//     try {
+//         const { date } = req.params;
+//         const { id }= req.query;
+
+
+//         const formattedDate = date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+//         // const startDate = new Date(formattedDate);
+//         // console.log(date);
+//         const startDate = new Date(`${formattedDate}T00:00:00.000Z`);
+//         const endDate = new Date(`${formattedDate}T23:59:59.999Z`);
+
+//         let ledgers;
+
+//         if(id){
+//             ledgers= await Ledger.find({
+//                 dispatchedAt: {
+//                     $gte: startDate,
+//                     $lte: endDate
+//                 },
+//                 scannedBy: id
+//             });
+//         }else{
+//             ledgers= await Ledger.find({
+//                 dispatchedAt: {
+//                     $gte: startDate,
+//                     $lte: endDate
+//                 }
+//             });
+//         }
+
+//         // return res.json([startDate, endDate]);
+
+//         if (!ledgers) {
+//             return res.status(201).json({
+//                 message: `No ledgers found for date ${date}`,
+//                 body: []
+//             });
+//         }
+
+//         return res.status(200).json({
+//             message: "Successfully fetched ledgers",
+//             body: ledgers
+//         });
+
+//     } catch (err) {
+//         return res.status(500).json({
+//             message: "Failed to fetch ledgers by date",
+//             error: err.message
+//         });
+//     }
+// }
+
 
 module.exports.generateExcel = async(req, res) => {
     try {
@@ -286,9 +336,9 @@ module.exports.generateExcel = async(req, res) => {
                         vehicleNo
                     }
                 ]
-            }).populate('items scannedBy verifiedBy');
+            }).populate('items.itemId').populate('scannedBy').populate('verifiedBy');
         } else {
-            allLedgers = await Ledger.find({ dispatchedAt: { $gte: startDate, $lte: endDate } }).populate('items scannedBy verifiedBy');
+            allLedgers = await Ledger.find({ dispatchedAt: { $gte: startDate, $lte: endDate } }).populate('items.itemId').populate('scannedBy').populate('verifiedBy');
         }
 
         const workbook = new ExcelJS.Workbook();
@@ -299,20 +349,30 @@ module.exports.generateExcel = async(req, res) => {
             { header: 'Charges', key: 'charges', width: 15 },
             { header: 'Is Complete', key: 'isComplete', width: 15 },
             { header: 'Dispatched At', key: 'dispatchedAt', width: 20 },
+            { header: 'Delivered At', key: 'deliveredAt', width: 20 },
             { header: 'Items', key: 'items', width: 30 },
+            { header: 'Hamali', key: 'hamali', width: 15 },
             { header: 'Scanned By', key: 'scannedBy', width: 20 },
             { header: 'Verified By', key: 'verifiedBy', width: 20 },
+            { header: 'Destination Warehouse', key: 'destinationWarehouse', width: 20 },
+            { header: 'Source Warehouse', key: 'sourceWarehouse', width: 20 },
         ];
 
         allLedgers.forEach(ledger => {
-            worksheet.addRow({
-                vehicleNo: ledger.vehicleNo,
-                charges: ledger.charges,
-                isComplete: ledger.isComplete,
-                dispatchedAt: ledger.dispatchedAt,
-                items: ledger.items.map(item => item._id).join(', '),
-                scannedBy: ledger.scannedBy ? ledger.scannedBy._id : '',
-                verifiedBy: ledger.verifiedBy ? ledger.verifiedBy._id : '',
+            ledger.items.forEach(item => {
+                worksheet.addRow({
+                    vehicleNo: ledger.vehicleNo,
+                    charges: ledger.charges,
+                    isComplete: ledger.isComplete,
+                    dispatchedAt: ledger.dispatchedAt,
+                    deliveredAt: ledger.deliveredAt,
+                    items: item.itemId,
+                    hamali: item.hamali,
+                    scannedBy: ledger.scannedBy ? ledger.scannedBy._id : '',
+                    verifiedBy: ledger.verifiedBy ? ledger.verifiedBy._id : '',
+                    destinationWarehouse: ledger.destinationWarehouse,
+                    sourceWarehouse: ledger.sourceWarehouse,
+                });
             });
         });
 

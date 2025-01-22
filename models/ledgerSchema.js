@@ -2,6 +2,12 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const ledgerSchema = new mongoose.Schema({
+    ledgerId: {
+        type: String,
+        required: true,
+        unique: true
+    },
+
     vehicleNo: {
         type: String,
         required: true,
@@ -9,24 +15,37 @@ const ledgerSchema = new mongoose.Schema({
     },
 
     charges: {
-        type: Number,
-        required: true
+        type: Number
+            // required: false
     },
 
     isComplete: {
-        type: Boolean,
-        default: false,
-        required: true
+        type: String,
+        enum: ['dispatched', 'pending', 'completed'],
+        default: 'pending',
+        required: true,
     },
 
     dispatchedAt: {
         type: Date,
-        required: true
+        required: false
+    },
+
+    deliveredAt: {
+        type: Date,
     },
 
     items: [{
-        type: String,
-        ref: 'Item'
+        itemId: {
+            type: String,
+            ref: 'Item',
+            required: true
+        },
+        hamali: {
+            type: Number,
+            required: false,
+            default: 0
+        }
     }],
 
     scannedBy: {
@@ -38,6 +57,18 @@ const ledgerSchema = new mongoose.Schema({
     verifiedBy: {
         type: Schema.Types.ObjectId,
         ref: 'Employee',
+    },
+
+    destinationWarehouse: {
+        type: String,
+        enum: ['MNC', 'KMR', 'STD', 'PLY', 'RMG', 'GDV'],
+        required: false
+    },
+
+    sourceWarehouse: {
+        type: String,
+        enum: ['HYO', 'HYT', 'BHP', 'SEC'],
+        required: false
     }
 });
 
