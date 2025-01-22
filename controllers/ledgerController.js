@@ -28,7 +28,7 @@ module.exports.newLedger = async(req, res) => {
         const newLedger = new Ledger({
             ledgerId: generateUniqueId(14),
             vehicleNo: req.body.vehicleNo,
-            charges: req.body.charges || 1000, // Default charges if not provided
+            charges: 1000, // Default charges if not provided
             // dispatchedAt: new Date(),
             // deliveredAt: req.body.deliveredAt || null,
             items,
