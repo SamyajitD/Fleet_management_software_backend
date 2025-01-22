@@ -40,7 +40,7 @@ module.exports.newLedger = async(req, res) => {
         });
 
         await newLedger.save();
-        res.status(201).json(newLedger);
+        res.status(200).json(newLedger);
     } catch (err) {
         res.status(500).json({ message: "Failed to create new ledger", error: err.message });
     }
