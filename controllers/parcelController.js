@@ -13,6 +13,7 @@ module.exports.newParcel = async (req, res) => {
 
         const itemEntries = [];
         for (const item of items) {
+            let itemId= generateUniqueId(14)
             const newItem = new Item({
                 name: item.name,
                 quantity: item.quantity,
@@ -21,7 +22,7 @@ module.exports.newParcel = async (req, res) => {
             const savedItem = await newItem.save();
             itemEntries.push(savedItem._id);
         }
-
+        
         const sender = new Client(senderDetails);
         const receiver = new Client(receiverDetails);
 

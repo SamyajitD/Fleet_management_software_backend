@@ -4,7 +4,8 @@ const itemSchema = new mongoose.Schema({
     itemId:{
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
 
     //tracking id

@@ -30,13 +30,13 @@ const parcelSchema = new mongoose.Schema({
     sourceWarehouse:{
         type: String,
         enum:['HYO', 'HYT', 'BHP', 'SEC'],
-        required: true
+        required: false
     },
 
     destinationWarehouse:{
         type: String,
         enum:['MNC', 'KMR', 'STD', 'PLY', 'RMG', 'GDV'],
-        required: true
+        required: false
     },
 
     status: {

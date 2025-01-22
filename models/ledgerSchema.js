@@ -45,7 +45,8 @@ const ledgerSchema = new mongoose.Schema({
             type: Number,
             required: false,
             default: 0
-        }
+        },
+        _id: false
     }],
 
     scannedBy: {

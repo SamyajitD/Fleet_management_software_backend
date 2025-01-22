@@ -6,6 +6,7 @@ const generateLedger = require("../utils/ledgerPdfFormat.js");
 const generateLedgerReport = require("../utils/ledgerReportFormat.js");
 const formatToIST = require("../utils/dateFormatter.js");
 const ExcelJS = require('exceljs');
+const path = require('path');
 
 module.exports.newLedger = async(req, res) => {
     try {
@@ -14,13 +15,14 @@ module.exports.newLedger = async(req, res) => {
         // const destinationWarehouse = req.body.destinationWarehouse;
         // const sourceWarehouse = req.body.sourceWarehouse;
 
+
         let items = [];
 
         for (let id of scannedIds) {
             const item = await Item.findOne({ itemId: id });
             if (!item) continue;
             items.push({
-                itemId: item.itemId,
+                itemId: item._id,
                 // hamali: req.body.hamali || 0 // Assuming hamali is provided in the request body
             });
         }
@@ -211,14 +213,14 @@ module.exports.getLedgersByDate = async(req, res) => {
                     $lte: endDate
                 },
                 scannedBy: id
-            }).populate('items.itemId').populate('scannedBy').populate('verifiedBy');
+            })
         } else {
             ledgers = await Ledger.find({
                 dispatchedAt: {
                     $gte: startDate,
                     $lte: endDate
                 }
-            }).populate('items.itemId').populate('scannedBy').populate('verifiedBy');
+            });
         }
 
         return res.status(200).json({ message: "Successful", body: ledgers });
