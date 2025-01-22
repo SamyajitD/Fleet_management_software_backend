@@ -19,6 +19,9 @@ router.route('/track/:id')
 router.route('/generate-report/:dateRange')
     .get(catchAsync(ledgerController.generateReport))
 
+router.route('/generate-excel/:dateRange')
+    .get(catchAsync(ledgerController.generateExcel))
+
 router.route('/track-by-date/:date')
     .get(catchAsync(ledgerController.getLedgersByDate));
 

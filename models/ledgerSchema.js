@@ -25,17 +25,17 @@ const ledgerSchema = new mongoose.Schema({
     },
 
     items: [{
-        type: Schema.Types.ObjectId,
+        type: String,
         ref: 'Item'
     }],
 
-    scannedBy:{
+    scannedBy: {
         type: Schema.Types.ObjectId,
         ref: 'Employee',
         required: true
     },
 
-    verifiedBy:{
+    verifiedBy: {
         type: Schema.Types.ObjectId,
         ref: 'Employee',
     }
