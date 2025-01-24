@@ -15,12 +15,13 @@ module.exports.newLedger = async(req, res) => {
         // const destinationWarehouse = req.body.destinationWarehouse;
         // const sourceWarehouse = req.body.sourceWarehouse;
 
-
         let items = [];
 
         for (let id of scannedIds) {
             const item = await Item.findOne({ itemId: id });
             if (!item) continue;
+            item.status = 'pending';
+            await item.save();
             items.push({
                 itemId: item._id,
                 // hamali: req.body.hamali || 0 // Assuming hamali is provided in the request body
@@ -38,7 +39,7 @@ module.exports.newLedger = async(req, res) => {
             // verifiedBy: req.body.verifiedBy || null,
             // destinationWarehouse,
             // sourceWarehouse,
-            isComplete: 'pending' // Default value
+            status: 'pending' // Default value
         });
 
         await newLedger.save();
@@ -85,7 +86,7 @@ module.exports.generatePDF = async(req, res) => {
 module.exports.allLedger = async(req, res) => {
     try {
         // console.log("All Ledger");
-        const allLedger = await Ledger.find();
+        const allLedger = await Ledger.find().populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest');
         if (allLedger.length === 0) {
             return res.status(201).json({ message: "No Vehicle number found", body: [] });
         }
@@ -99,9 +100,7 @@ module.exports.trackLedger = async(req, res) => {
     try {
         const { id } = req.params;
         const ledger = await Ledger.findOne({ ledgerId: id })
-            .populate('items.itemId')
-            .populate('scannedBy')
-            .populate('verifiedBy');
+            .populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest');
 
         if (!ledger) {
             return res.status(201).json({ message: `Can't find any Ledger with ID ${id}`, body: {} });
@@ -213,14 +212,14 @@ module.exports.getLedgersByDate = async(req, res) => {
                     $lte: endDate
                 },
                 scannedBy: id
-            })
+            }).populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest');
         } else {
             ledgers = await Ledger.find({
                 dispatchedAt: {
                     $gte: startDate,
                     $lte: endDate
                 }
-            });
+            }).populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest');
         }
 
         return res.status(200).json({ message: "Successful", body: ledgers });
@@ -229,58 +228,6 @@ module.exports.getLedgersByDate = async(req, res) => {
     }
 }
 
-// module.exports.getLedgersByDate = async(req, res) => {
-//     try {
-//         const { date } = req.params;
-//         const { id }= req.query;
-
-
-//         const formattedDate = date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
-//         // const startDate = new Date(formattedDate);
-//         // console.log(date);
-//         const startDate = new Date(`${formattedDate}T00:00:00.000Z`);
-//         const endDate = new Date(`${formattedDate}T23:59:59.999Z`);
-
-//         let ledgers;
-
-//         if(id){
-//             ledgers= await Ledger.find({
-//                 dispatchedAt: {
-//                     $gte: startDate,
-//                     $lte: endDate
-//                 },
-//                 scannedBy: id
-//             });
-//         }else{
-//             ledgers= await Ledger.find({
-//                 dispatchedAt: {
-//                     $gte: startDate,
-//                     $lte: endDate
-//                 }
-//             });
-//         }
-
-//         // return res.json([startDate, endDate]);
-
-//         if (!ledgers) {
-//             return res.status(201).json({
-//                 message: `No ledgers found for date ${date}`,
-//                 body: []
-//             });
-//         }
-
-//         return res.status(200).json({
-//             message: "Successfully fetched ledgers",
-//             body: ledgers
-//         });
-
-//     } catch (err) {
-//         return res.status(500).json({
-//             message: "Failed to fetch ledgers by date",
-//             error: err.message
-//         });
-//     }
-// }
 
 
 module.exports.generateExcel = async(req, res) => {
@@ -338,7 +285,7 @@ module.exports.generateExcel = async(req, res) => {
                         vehicleNo
                     }
                 ]
-            }).populate('items.itemId').populate('scannedBy').populate('verifiedBy');
+            }).populate('items.itemId scannedBy verifiedBy');
         } else {
             allLedgers = await Ledger.find({ dispatchedAt: { $gte: startDate, $lte: endDate } }).populate('items.itemId').populate('scannedBy').populate('verifiedBy');
         }
@@ -349,11 +296,11 @@ module.exports.generateExcel = async(req, res) => {
         worksheet.columns = [
             { header: 'Vehicle No', key: 'vehicleNo', width: 15 },
             { header: 'Charges', key: 'charges', width: 15 },
-            { header: 'Is Complete', key: 'isComplete', width: 15 },
+            { header: 'Is Complete', key: 'status', width: 15 },
             { header: 'Dispatched At', key: 'dispatchedAt', width: 20 },
             { header: 'Delivered At', key: 'deliveredAt', width: 20 },
-            { header: 'Items', key: 'items', width: 30 },
-            { header: 'Hamali', key: 'hamali', width: 15 },
+            { header: 'Item Count', key: 'items', width: 30 },
+            { header: 'Total Hamali', key: 'hamali', width: 15 },
             { header: 'Scanned By', key: 'scannedBy', width: 20 },
             { header: 'Verified By', key: 'verifiedBy', width: 20 },
             { header: 'Destination Warehouse', key: 'destinationWarehouse', width: 20 },
@@ -361,20 +308,20 @@ module.exports.generateExcel = async(req, res) => {
         ];
 
         allLedgers.forEach(ledger => {
-            ledger.items.forEach(item => {
-                worksheet.addRow({
-                    vehicleNo: ledger.vehicleNo,
-                    charges: ledger.charges,
-                    isComplete: ledger.isComplete,
-                    dispatchedAt: ledger.dispatchedAt,
-                    deliveredAt: ledger.deliveredAt,
-                    items: item.itemId,
-                    hamali: item.hamali,
-                    scannedBy: ledger.scannedBy ? ledger.scannedBy._id : '',
-                    verifiedBy: ledger.verifiedBy ? ledger.verifiedBy._id : '',
-                    destinationWarehouse: ledger.destinationWarehouse,
-                    sourceWarehouse: ledger.sourceWarehouse,
-                });
+            const totalHamali = ledger.items.reduce((sum, item) => sum + (item.hamali || 0), 0);
+
+            worksheet.addRow({
+                vehicleNo: ledger.vehicleNo,
+                charges: ledger.charges,
+                status: ledger.status,
+                dispatchedAt: ledger.dispatchedAt,
+                deliveredAt: ledger.deliveredAt,
+                items: ledger.items.length,
+                hamali: totalHamali,  // Sum of hamali for all items in this ledger
+                scannedBy: ledger.scannedBy?.name || '',
+                verifiedBy: ledger.verifiedBy?.name || '',
+                destinationWarehouse: ledger.destinationWarehouse,
+                sourceWarehouse: ledger.sourceWarehouse,
             });
         });
 
@@ -387,3 +334,47 @@ module.exports.generateExcel = async(req, res) => {
         return res.status(500).json({ message: "Failed to generate ledger report", error: err.message });
     }
 }
+
+module.exports.editLedger = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        if (!id) {
+            return res.status(400).json({ message: 'Ledger ID is required' });
+        }
+
+        if (!updateData || Object.keys(updateData).length === 0) {
+            return res.status(400).json({ message: 'Update data is required' });
+        }
+
+        let ledger = await Ledger.findOne({ ledgerId: id });
+        if (!ledger) {
+            return res.status(404).json({ message: `Can't find any Ledger with ID ${id}` });
+        }
+
+        if (updateData.items) {
+            updateData.items = updateData.items.map(item => ({
+                itemId: item.itemId,
+                hamali: item.hamali
+            }));
+        }
+
+        const fieldsToUpdate = {};
+        for (const key in updateData) {
+            if (updateData.hasOwnProperty(key)) {
+                fieldsToUpdate[key] = updateData[key];
+            }
+        }
+
+        const updatedLedger = await Ledger.findByIdAndUpdate(
+            ledger._id,
+            { $set: fieldsToUpdate },
+            { new: true, runValidators: true }
+        ).populate('items.itemId scannedBy verifiedBy');
+
+        return res.status(200).json({ message: "Ledger updated successfully", body: updatedLedger });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to update ledger", error: err.message });
+    }
+};

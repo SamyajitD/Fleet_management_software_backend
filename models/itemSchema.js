@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const itemSchema = new mongoose.Schema({
-    itemId:{
+    itemId: {
         type: String,
         required: true,
         unique: true,
@@ -9,7 +9,7 @@ const itemSchema = new mongoose.Schema({
     },
 
     //tracking id
-    parcelId:{
+    parcelId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Parcel'
     },
@@ -19,22 +19,24 @@ const itemSchema = new mongoose.Schema({
         required: true
     },
 
-    quantity:{
+    quantity: {
         type: Number,
         required: true
     },
 
-    dipatchedAt:{
+    dipatchedAt: {
         type: Date,
     },
 
-    deliveredAt:{
+    deliveredAt: {
         type: Date,
     },
 
-    status:{
+    status: {
         type: String,
-        enum: ['arrived', 'dispatched', 'delivered'],
+        enum: ['arrived', 'pending',
+            'dispatched', 'delivered'
+        ],
         default: 'arrived',
         required: true
     }

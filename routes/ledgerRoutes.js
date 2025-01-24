@@ -25,4 +25,7 @@ router.route('/generate-excel/:dateRange')
 router.route('/track-by-date/:date')
     .get(catchAsync(ledgerController.getLedgersByDate));
 
+router.route('/edit/:id')
+    .put(catchAsync(ledgerController.editLedger));
+
 module.exports = router;

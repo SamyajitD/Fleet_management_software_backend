@@ -5,7 +5,8 @@ const ledgerSchema = new mongoose.Schema({
     ledgerId: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
 
     vehicleNo: {
@@ -19,7 +20,7 @@ const ledgerSchema = new mongoose.Schema({
             // required: false
     },
 
-    isComplete: {
+    status: {
         type: String,
         enum: ['dispatched', 'pending', 'completed'],
         default: 'pending',
@@ -46,6 +47,11 @@ const ledgerSchema = new mongoose.Schema({
             required: false,
             default: 0
         },
+        fright: {
+            type: Number,
+            required: false,
+            default: 0
+        },
         _id: false
     }],
 
@@ -56,6 +62,17 @@ const ledgerSchema = new mongoose.Schema({
     },
 
     verifiedBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'Employee',
+    },
+
+    scannedByDest: {
+        type: Schema.Types.ObjectId,
+        ref: 'Employee',
+        required: true
+    },
+
+    verifiedByDest: {
         type: Schema.Types.ObjectId,
         ref: 'Employee',
     },

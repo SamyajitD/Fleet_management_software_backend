@@ -21,8 +21,8 @@ const ledgerRoutes = require("./routes/ledgerRoutes.js");
 const parcelRoutes = require("./routes/parcelRoutes.js");
 const warehouseRoutes = require("./routes/warehouseRoutes.js")
 const driverRoutes = require("./routes/driverRoutes.js");
-const itemRoutes= require("./routes/itemRoutes.js");
-const adminRoutes= require("./routes/adminRoutes.js");
+const itemRoutes = require("./routes/itemRoutes.js");
+const adminRoutes = require("./routes/adminRoutes.js");
 
 mongoose.connect(dbUrl);
 const db = mongoose.connection;
@@ -32,7 +32,7 @@ db.once("open", () => {
 });
 
 const corsOptions = {
-    origin: 'http://localhost:5174',
+    origin: 'http://localhost:5173',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
 }
@@ -41,10 +41,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
 
-app.post('/add-warehouse', async(req, res)=>{
-    const warehouses= req.body;
-    for(let warehouse of warehouses){
-        const w= new Warehouse(warehouse);
+app.post('/add-warehouse', async(req, res) => {
+    const warehouses = req.body;
+    for (let warehouse of warehouses) {
+        const w = new Warehouse(warehouse);
         await w.save();
         // console.log(w);
     }
