@@ -16,6 +16,10 @@ const warehouseSchema= new mongoose.Schema({
     warehouseID:{
         type: String,
         required: true
+    },
+    isSource:{
+        type: Boolean,
+        required: true
     }
 });
 
