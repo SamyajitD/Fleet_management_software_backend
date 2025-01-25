@@ -1,32 +1,63 @@
 const Employee = require("../models/employeeSchema.js");
+const jsonwebtoken = require('jsonwebtoken');
 
 module.exports.register = async (req, res) => {
     try {
-        const { name, username, phoneNo, role, password, warehouseCode } = req.body;
-        const emp = new Employee({ name, username, phoneNo, role, warehouseCode });
-        const newEmployee = await Employee.register(emp, password);
-
-        req.login(newEmployee, (err) => {
-            if (err) return next(err);
-            return res.status(200).json({ message: 'Registered Successfully', flag: true });
+        const { username, password, name, phoneNo, warehouseCode, role } = req.body;
+        const employee = new Employee({ 
+            username, 
+            password, 
+            name, 
+            phoneNo, 
+            warehouseCode, 
+            role
         });
 
-    } catch (err) {
-        return res.status(500).json({ message: "An error occurred while registering", error: err.message });
+        await employee.save();
+        
+        const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
+        res.status(201).json({ token });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
     }
 }
 
-module.exports.fetchAllEmployees= async(req, res)=>{
-    try{
-        const temp= await Employee.find();
-        const allEmployees= temp.map((e)=>(e.username));
-
-        if(allEmployees.length===0){
-            return res.status(201).json({message: "No employees", body: []});
+module.exports.login= async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const employee = await Employee.findOne({ username });
+        
+        if (!employee || !(await employee.comparePassword(password))) {
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        return res.status(200).json({message: "Successfully fetched all employees", body: allEmployees});
-    }catch(err){
-        return res.status(500).json({message: "Failed to fetch all Employees", error: err.message});
+        const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
+        res.json({ 
+            token,
+            user: {
+                id: employee._id,
+                username: employee.username,
+                name: employee.name,
+                role: employee.role,
+                warehouseCode: employee.warehouseCode,
+                phoneNo: employee.phoneNo
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
+}
+
+module.exports.getStatus= (req, res) => {
+    res.status(200).json({
+        flag: true,
+        user: {
+            id: req.user._id,
+            username: req.user.username,
+            role: req.user.role,
+            name: req.user.name,
+            phoneNo: req.user.phoneNo,
+            warehouseCode: req.user.warehouseCode
+        }
+    });
 }

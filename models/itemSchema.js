@@ -8,7 +8,6 @@ const itemSchema = new mongoose.Schema({
         index: true
     },
 
-    //tracking id
     parcelId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Parcel'
@@ -34,9 +33,7 @@ const itemSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ['arrived', 'pending',
-            'dispatched', 'delivered'
-        ],
+        enum: ['arrived', 'pending', 'dispatched', 'delivered'],
         default: 'arrived',
         required: true
     }
