@@ -77,17 +77,18 @@ const ledgerSchema = new mongoose.Schema({
         ref: 'Employee',
     },
 
-    destinationWarehouse: {
-        type: String,
-        enum: ['MNC', 'KMR', 'STD', 'PLY', 'RMG', 'GDV'],
+    sourceWarehouse: {
+        type: Schema.Types.ObjectId,
+        ref: 'Warehouse',
         required: false
     },
 
-    sourceWarehouse: {
-        type: String,
-        enum: ['HYO', 'HYT', 'BHP', 'SEC'],
+    destinationWarehouse: {
+        type: Schema.Types.ObjectId,
+        ref: 'Warehouse',
         required: false
     }
+
 });
 
 module.exports = mongoose.model('Ledger', ledgerSchema);

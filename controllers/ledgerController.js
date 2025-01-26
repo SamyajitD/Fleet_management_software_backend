@@ -6,7 +6,7 @@ const generateLedger = require("../utils/ledgerPdfFormat.js");
 const generateLedgerReport = require("../utils/ledgerReportFormat.js");
 const formatToIST = require("../utils/dateFormatter.js");
 const ExcelJS = require('exceljs');
-const path = require('path');
+const {updateParcelStatus} = require('../utils/updateParcelStatus.js');
 
 module.exports.newLedger = async(req, res) => {
     try {
@@ -22,6 +22,7 @@ module.exports.newLedger = async(req, res) => {
             if (!item) continue;
             item.status = 'pending';
             await item.save();
+            updateParcelStatus(item.parcelId);
             items.push({
                 itemId: item._id,
                 // hamali: req.body.hamali || 0 // Assuming hamali is provided in the request body
@@ -378,6 +379,12 @@ module.exports.editLedger = async (req, res) => {
             { $set: fieldsToUpdate },
             { new: true, runValidators: true }
         ).populate('items.itemId scannedBy verifiedBy');
+
+        if(fieldsToUpdate.items.itemId){
+            for (const item of fieldsToUpdate.items.itemId) {
+                await updateParcelStatus(item.parcelId);
+            }
+        }
 
         return res.status(200).json({ message: "Ledger updated successfully", body: updatedLedger });
     } catch (err) {

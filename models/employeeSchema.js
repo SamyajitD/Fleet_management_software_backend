@@ -20,9 +20,9 @@ const employeeSchema = new mongoose.Schema({
         required: true
     },
     warehouseCode:{
-        type: String,
-        enum: ['HYO', 'HYT', 'BHP', 'SEC', 'MNC', 'KMR', 'STD', 'PLY', 'RMG', 'GDV'],
-        required: true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Warehouse',
+        required: false
     },
     role: {
         type: String,

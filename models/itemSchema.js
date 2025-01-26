@@ -27,15 +27,7 @@ const itemSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-
-    // dipatchedAt: {
-    //     type: Date,
-    // },
-
-    // deliveredAt: {
-    //     type: Date,
-    // },
-
+    
     status: {
         type: String,
         enum: ['arrived', 'pending', 'dispatched', 'delivered'],

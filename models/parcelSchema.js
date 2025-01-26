@@ -28,14 +28,14 @@ const parcelSchema = new mongoose.Schema({
     },
 
     sourceWarehouse:{
-        type: String,
-        enum:['HYO', 'HYT', 'BHP', 'SEC'],
+        type: Schema.Types.ObjectId,
+        ref: 'Warehouse',
         required: false
     },
 
     destinationWarehouse:{
-        type: String,
-        enum:['MNC', 'KMR', 'STD', 'PLY', 'RMG', 'GDV'],
+        type: Schema.Types.ObjectId,
+        ref: 'Warehouse',
         required: false
     },
 

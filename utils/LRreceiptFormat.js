@@ -5,7 +5,6 @@ const generateLR = (parcel) => {
     let allitems = parcel.items.map(item => `
         <tr>
             <td>${item.name}</td>
-            <td>${item.description}</td>
             <td>${item.quantity}</td>
         </tr>
     `).join('');
@@ -207,7 +206,6 @@ const generateLR = (parcel) => {
                                     <thead>
                                         <tr>
                                             <th>Item Name</th>
-                                            <th>Description</th>
                                             <th>Quantity</th>
                                         </tr>
                                     </thead>

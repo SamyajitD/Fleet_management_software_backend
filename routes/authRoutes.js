@@ -15,4 +15,7 @@ router.route('/login')
 router.route('/status')
     .get(authenticateToken, catchAsync(authController.getStatus));
 
+router.route('/forgot-password')
+    .post(catchAsync(authController.forgotPassword));
+
 module.exports = router;

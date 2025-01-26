@@ -5,6 +5,7 @@ const Item= require("../models/itemSchema.js");
 const Parcel= require("../models/parcelSchema.js");
 const Ledger= require("../models/ledgerSchema.js"); 
 const generateUniqueId = require("../utils/uniqueIdGenerator.js");
+const {updateParcelStatus} = require('../utils/updateParcelStatus.js');
 
 module.exports.fetchAllEmployees= async(req, res)=>{
     try{
@@ -348,6 +349,8 @@ module.exports.updateParcel = async (req, res) => {
             return res.status(201).json({ message: `No parcel found with ID: ${trackingId}` });
         }
 
+        await updateParcelStatus(trackingId);
+
         return res.status(200).json({ message: "Successfully updated parcel", body: updatedParcel });
 
     } catch (err) {
@@ -423,6 +426,7 @@ module.exports.deleteLedger = async (req, res) => {
             item.ledgerId= undefined;
             item.status= 'arrived';
             await item.save();
+            await updateParcelStatus(item.parcelId);
         }
 
         await Ledger.deleteOne({ ledgerId });

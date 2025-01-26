@@ -1,5 +1,6 @@
 const Employee = require("../models/employeeSchema.js");
 const jsonwebtoken = require('jsonwebtoken');
+const {sendOTPMessage, verifyOTP} = require('../utils/whatsappMessageSender.js');
 
 module.exports.register = async (req, res) => {
     try {
@@ -49,15 +50,49 @@ module.exports.login= async (req, res) => {
 }
 
 module.exports.getStatus= (req, res) => {
-    res.status(200).json({
-        flag: true,
-        user: {
-            id: req.user._id,
-            username: req.user.username,
-            role: req.user.role,
-            name: req.user.name,
-            phoneNo: req.user.phoneNo,
-            warehouseCode: req.user.warehouseCode
+    try{
+        res.status(200).json({
+            flag: true,
+            user: {
+                id: req.user._id,
+                username: req.user.username,
+                role: req.user.role,
+                name: req.user.name,
+                phoneNo: req.user.phoneNo,
+                warehouseCode: req.user.warehouseCode
+            }
+        });
+    }catch(err){
+        res.status(500).json({ message: "Failed to get user status", error: err.message });
+    }
+}
+
+module.exports.forgotPassword= async (req, res) => {
+    try {
+        const { username } = req.body;
+        const employee = await Employee.findOne({ username });
+
+        if (!employee) {
+            return res.status(201).json({ message: 'User not found', flag: false });
         }
-    });
+
+        await sendOTPMessage(employee.phoneNo);
+        return res.status(200).json({ message: 'Successfully sent OTP', phoneNo: employee.phoneNo,  flag: true });
+        
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to Send OTP', error: err.message });
+    }
+}
+
+module.exports.verifyOTP= async (req, res) => {
+    try {
+        const { phoneNo, otp } = req.body;
+        const result = await verifyOTP(phoneNo, otp);
+        if (result) {
+            return res.status(200).json({ message: 'OTP verified', flag: true });
+        }
+        return res.status(201).json({ message: 'Invalid OTP', flag: false });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to Verify OTP', error: err.message });
+    }
 }

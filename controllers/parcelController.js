@@ -6,10 +6,13 @@ const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
 const generateLR = require("../utils/LRreceiptFormat.js");
 const Warehouse = require("../models/warehouseSchema.js");
+const {updateParcelStatus} = require('../utils/updateParcelStatus.js');
 
 module.exports.newParcel = async (req, res) => {
     try {
-        const { items, senderDetails, receiverDetails, sourceWarehouse, destinationWarehouse } = req.body;
+        const { items, senderDetails, receiverDetails, destinationWarehouse } = req.body;
+
+        const sourceWarehouse= req.user.warehouseCode;
 
         const itemEntries = [];
         for (const item of items) {
@@ -37,7 +40,8 @@ module.exports.newParcel = async (req, res) => {
             receiver: newReceiver._id,
             sourceWarehouse,
             destinationWarehouse,
-            trackingId
+            trackingId,
+            addedBy: req.user._id
         });
 
         await newParcel.save();
@@ -47,6 +51,8 @@ module.exports.newParcel = async (req, res) => {
             item.parcelId = newParcel._id;
             await item.save();
         }
+
+        await updateParcelStatus(trackingId);
 
         return res.status(200).json({ message: "Parcel created successfully", body: {flag: true, trackingId} });
 
