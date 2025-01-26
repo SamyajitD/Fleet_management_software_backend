@@ -44,7 +44,7 @@ async function sendDeliveryMessage(phoneNo, name, trackingId){
         },
         data: JSON.stringify({
             messaging_product: 'whatsapp',
-            to: phoneNo,
+            to: '+91 '+ phoneNo,
             type: 'template',
             template:{
                 name: 'hello_world',
@@ -91,7 +91,7 @@ async function sendOTPMessage(phoneNo){
         },
         data: JSON.stringify({
             messaging_product: 'whatsapp',
-            to: phoneNo,
+            to: '+91 '+ phoneNo,
             type: 'template',
             template: {
                 name: 'hello_world',
