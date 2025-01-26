@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const jsonwebtoken = require('jsonwebtoken');
-const Employee = require('../models/employeeSchema');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, verifyOTPToken } = require('../middleware/auth');
 const catchAsync= require("../utils/catchAsync.js");
 const authController= require("../controllers/authController.js");
 
@@ -15,7 +13,13 @@ router.route('/login')
 router.route('/status')
     .get(authenticateToken, catchAsync(authController.getStatus));
 
-router.route('/forgot-password')
-    .post(catchAsync(authController.forgotPassword));
+router.route('/get-otp')
+    .post(catchAsync(authController.getOTP));
+
+router.route('/verify-otp')
+    .post(catchAsync(authController.verifyOTP));
+
+router.route('/reset-password')
+    .post(verifyOTPToken, catchAsync(authController.resetPassword));
 
 module.exports = router;

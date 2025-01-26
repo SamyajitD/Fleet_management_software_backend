@@ -67,7 +67,7 @@ module.exports.getStatus= (req, res) => {
     }
 }
 
-module.exports.forgotPassword= async (req, res) => {
+module.exports.getOTP= async (req, res) => {
     try {
         const { username } = req.body;
         const employee = await Employee.findOne({ username });
@@ -83,16 +83,41 @@ module.exports.forgotPassword= async (req, res) => {
         res.status(500).json({ message: 'Failed to Send OTP', error: err.message });
     }
 }
-
-module.exports.verifyOTP= async (req, res) => {
+module.exports.verifyOTP = async (req, res) => {
     try {
         const { phoneNo, otp } = req.body;
         const result = await verifyOTP(phoneNo, otp);
         if (result) {
-            return res.status(200).json({ message: 'OTP verified', flag: true });
+            const token = jwt.sign(
+                { phoneNo, isOTPVerified: true },
+                process.env.JWT_SECRET,
+                { expiresIn: '2m' }
+            );
+            return res.status(200).json({ 
+                message: 'OTP verified',
+                token,
+                flag: true 
+            });
         }
-        return res.status(201).json({ message: 'Invalid OTP', flag: false });
+        return res.status(401).json({ message: 'Invalid OTP', flag: false });
     } catch (err) {
         res.status(500).json({ message: 'Failed to Verify OTP', error: err.message });
+    }
+};
+
+module.export.resetPassword = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const employee = await Employee.findOne({ username });
+
+        if (!employee) {
+            return res.status(201).json({ message: 'User not found', flag: false });
+        }
+
+        employee.password = password;
+        await employee.save();
+        return res.status(200).json({ message: 'Password reset successful', flag: true });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to reset password', error: err.message });
     }
 }

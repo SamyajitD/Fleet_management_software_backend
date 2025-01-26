@@ -1,4 +1,5 @@
 const Parcel = require('../models/parcelSchema.js');
+const {sendDeliveredMessage} = require('../utils/whatsappMessageSender.js');
 
 async function updateParcelStatus(trackingId) {
     const parcel = await Parcel.findOne({trackingId}).populate('items');
@@ -24,6 +25,8 @@ async function updateParcelStatus(trackingId) {
 
     if(allDelivered) {
         parcel.status = 'delivered';
+        await sendDeliveredMessage(parcel.sender.phoneNo, parcel.sender.name, parcel.trackingId);
+        await sendDeliveredMessage(parcel.receiver.phoneNo, parcel.receiver.name, parcel.trackingId);
     } else if(allArrived) {
         parcel.status = 'arrived';
     } else if(isPartial) {

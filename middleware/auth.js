@@ -38,4 +38,21 @@ const isSupervisor = async (req, res, next) => {
     next();
 };
 
-module.exports = { authenticateToken, isAdmin, isSupervisor };
+const verifyOTPToken = async (req, res, next) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(201).json({ message: 'Please verify OTP first' });
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (!decoded.isOTPVerified) {
+            return res.status(201).json({ message: 'Invalid verification' });
+        }
+        req.phoneNo = decoded.phoneNo;
+        next();
+    } catch (err) {
+        res.status(201).json({ message: 'Invalid token' });
+    }
+};
+
+module.exports = { authenticateToken, isAdmin, isSupervisor, verifyOTPToken };

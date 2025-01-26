@@ -76,6 +76,7 @@ async function sendDeliveryMessage(phoneNo, name, trackingId){
         })
     })
     console.log(respose.data); 
+    console.log({name, phoneNo, trackingId});
 }
 
 async function sendOTPMessage(phoneNo){
