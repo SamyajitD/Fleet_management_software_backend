@@ -47,7 +47,7 @@ const ledgerSchema = new mongoose.Schema({
             required: false,
             default: 0
         },
-        fright: {
+        freight: {
             type: Number,
             required: false,
             default: 0

@@ -42,6 +42,12 @@ module.exports.newLedger = async(req, res) => {
             status: 'pending' // Default value
         });
 
+        for (const id of items) {
+            const item = await Item.findOne({itemId: id});
+            item.ledgerId = newLedger._id;
+            await item.save();
+        }
+
         await newLedger.save();
         res.status(200).json(newLedger);
     } catch (err) {

@@ -15,14 +15,14 @@ router.route('/get-all-drivers')
 router.route('/get-all-warehouses')
     .get(catchAsync(adminController.fetchAllWarehouses));
     
-router.route('/get-all-parcels')
-    .get(catchAsync(adminController.fetchAllParcels));
+// router.route('/get-all-parcels')
+//     .get(catchAsync(adminController.fetchAllParcels));
 
-router.route('/get-all-items')
-    .get(catchAsync(adminController.fetchAllItems));
+// router.route('/get-all-items')
+    // .get(catchAsync(adminController.fetchAllItems));
 
-router.route('/get-all-ledgers')
-    .get(catchAsync(adminController.fetchAllLedgers));
+// router.route('/get-all-ledgers')
+//     .get(catchAsync(adminController.fetchAllLedgers));
     
 router.route('/manage/driver')
     .post(catchAsync(adminController.addDriver))
@@ -40,16 +40,16 @@ router.route('/manage/warehouse')
     .delete(catchAsync(adminController.deleteWarehouse));
 
 router.route('/manage/parcel')
-    .put(catchAsync(adminController.updateParcel))
+    .put(catchAsync(adminController.updateParcel)) //to be updated
     .delete(catchAsync(adminController.deleteParcel));
 
-router.route('/manage/item')
-    .post(catchAsync(adminController.addItem))
-    .put(catchAsync(adminController.updateItem))
-    .delete(catchAsync(adminController.deleteItem));
+// router.route('/manage/item')
+//     .post(catchAsync(adminController.addItem))
+//     .put(catchAsync(adminController.updateItem))
+//     .delete(catchAsync(adminController.deleteItem));
 
 router.route('/manage/ledger')
-    .put(catchAsync(adminController.updateLedger))
+    // .put(catchAsync(adminController.updateLedger)) //already there in ledger controller
     .delete(catchAsync(adminController.deleteLedger));
 
 module.exports= router;

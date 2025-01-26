@@ -13,6 +13,11 @@ const itemSchema = new mongoose.Schema({
         ref: 'Parcel'
     },
 
+    ledgerId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Ledger'
+    },
+
     name: {
         type: String,
         required: true
@@ -23,13 +28,13 @@ const itemSchema = new mongoose.Schema({
         required: true
     },
 
-    dipatchedAt: {
-        type: Date,
-    },
+    // dipatchedAt: {
+    //     type: Date,
+    // },
 
-    deliveredAt: {
-        type: Date,
-    },
+    // deliveredAt: {
+    //     type: Date,
+    // },
 
     status: {
         type: String,

@@ -309,9 +309,38 @@ module.exports.fetchAllLedgers= async(req, res)=>{
 module.exports.updateParcel = async (req, res) => {
     try {
         const { trackingId, updates } = req.body;
+        const {del, add}= updates.items;
+
+        if(del.length!==0){
+            for(const id of del){
+                const item= await Item.findOne({itemId: id});
+
+                if(item.ledgerId){  
+                    const ledger= await Ledger.findOneAndUpdate({ledgerId: item.ledgerId},  {$pull: {items: {itemId: item._id}}});
+                    await ledger.save();
+                }
+
+                const parcel= await Parcel.findOneAndUpdate({trackingId}, {$pull: {items: item._id}});
+                await parcel.save();
+                await Item.findByIdAndDelete(item._id);
+            }
+        }
+
+        const itemIds= [];
+        if(add.length!==0){
+            for(const item of add){
+                const newItem= new Item({...item, parcelId: trackingId , itemId: generateUniqueId(14)});
+                await newItem.save();
+                itemIds.push(newItem._id);
+                const parcel= await Parcel.findOneAndUpdate({trackingId}, {$push: {items: newItem._id}});
+                await parcel.save();
+            }
+        }
+
+        const actualUpdates= {...updates, items: itemIds };
         const updatedParcel = await Parcel.findOneAndUpdate(
             {trackingId},
-            {$set: updates},
+            {$set: actualUpdates},
             {new: true}
         );
 
@@ -334,6 +363,21 @@ module.exports.deleteParcel = async (req, res) => {
         if (!parcel) {
             return res.status(201).json({ message: `No parcel found with ID: ${trackingId}` });
         }
+
+        const itemIds= parcel.items;
+        for(const id of itemIds){
+            const item= await Item.findById(id);
+
+            if(item.ledgerId){
+                const ledger= await Ledger.findOneAndUpdate({ledgerId: item.ledgerId},  {$pull: {items: {itemId: item._id}}});
+                await ledger.save();
+            }
+                
+            await Item.findByIdAndDelete(item._id);
+        }
+
+        await Client.findByIdAndDelete(parcel.sender);
+        await Client.findByIdAndDelete(parcel.receiver);
 
         await Parcel.deleteOne({ trackingId });
 
@@ -370,6 +414,15 @@ module.exports.deleteLedger = async (req, res) => {
 
         if (!ledger) {
             return res.status(201).json({ message: `No ledger found with ID: ${ledgerId}` });
+        }
+
+        const itemIds= ledger.items;
+        for(const id of itemIds){
+            const item= await Item.findById(id);
+            delete item.ledgerId;
+            item.ledgerId= undefined;
+            item.status= 'arrived';
+            await item.save();
         }
 
         await Ledger.deleteOne({ ledgerId });
