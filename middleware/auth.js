@@ -20,7 +20,7 @@ const authenticateToken = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        res.status(201).json({ message: 'Please authenticate' , flag: false});
+        return res.status(201).json({ message: 'Please authenticate' , flag: false});
     }
 };
 
@@ -51,7 +51,7 @@ const verifyOTPToken = async (req, res, next) => {
         req.phoneNo = decoded.phoneNo;
         next();
     } catch (err) {
-        res.status(201).json({ message: 'Invalid token' });
+        return res.status(201).json({ message: 'Invalid token' });
     }
 };
 
