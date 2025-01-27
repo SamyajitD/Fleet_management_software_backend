@@ -394,3 +394,64 @@ module.exports.editLedger = async (req, res) => {
         return res.status(500).json({ message: "Failed to update ledger", error: err.message });
     }
 };
+
+module.exports.deliverLedger = async(req, res) => {
+    try {
+        const { id } = req.params;
+        const { data } = req.body;
+
+        let ledgers=await Ledger.findOne({ledgerId:id});
+        let parcelIds=[];
+        for(let item of body.items){
+            
+            let itemDetails=await Item.findById(item.itemId);
+            itemDetails.status='delivered';
+            await itemDetails.save();
+            if(!parcelIds.contains(itemDetails.parcelId))
+                parcelIds.push(itemDetails.parcelId);
+        }
+
+        ledgers.status='delivered';
+        for(const pId of parcelIds)
+            updateParcelStatus(pId);
+        ledgers.deliveredAt=new Date();
+        ledgers.verifiedByDest=data.verifiedByDest;
+        await ledgers.save();
+
+        return res.status(200).json({ message: "Successful", body: ledgers });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message });
+    }
+}
+
+module.exports.deliverItem = async(req, res) => {
+    try {
+        // const { id } = req.params;
+        const { data } = req.body;
+
+        // let ledgers=await Ledger.findOne({ledgerId:id});
+        let parcelIds=[];
+        for(let item of data.items){
+            
+            let itemDetails=await Item.findById(item.itemId);
+            itemDetails.status='delivered';
+            await itemDetails.save();
+            if(!parcelIds.contains(itemDetails.parcelId))
+                parcelIds.push(itemDetails.parcelId);
+        }
+
+        // ledgers.status='delivered';
+        for(const pId of parcelIds)
+            updateParcelStatus(pId);
+        // ledgers.deliveredAt=new Date();
+        // ledgers.verifiedByDest=data.verifiedByDest;
+        // await ledgers.save();
+
+        return res.status(200).json({ message: "Successful", flag : true });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message });
+    }
+}
+
+
+

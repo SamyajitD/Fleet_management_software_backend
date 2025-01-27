@@ -1,10 +1,12 @@
 const Employee = require("../models/employeeSchema.js");
+const Warehouse = require("../models/warehouseSchema.js");
 const jsonwebtoken = require('jsonwebtoken');
 const {sendOTPMessage, verifyOTP} = require('../utils/whatsappMessageSender.js');
 
 module.exports.register = async (req, res) => {
     try {
-        const { username, password, name, phoneNo, warehouseCode, role } = req.body;
+        const { username, password, name, phoneNo, warehouseID, role } = req.body;
+        const warehouseCode = Warehouse.findOne({warehouseID:warehouseID})._id;
         const employee = new Employee({ 
             username, 
             password, 
@@ -17,7 +19,7 @@ module.exports.register = async (req, res) => {
         await employee.save();
         
         const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
-        res.status(201).json({ token });
+        res.status(201).json({ token ,flag:true});
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -34,15 +36,8 @@ module.exports.login= async (req, res) => {
 
         const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
         res.json({ 
-            token,
-            user: {
-                id: employee._id,
-                username: employee.username,
-                name: employee.name,
-                role: employee.role,
-                warehouseCode: employee.warehouseCode,
-                phoneNo: employee.phoneNo
-            }
+            flag:true,
+            token
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -51,6 +46,7 @@ module.exports.login= async (req, res) => {
 
 module.exports.getStatus= (req, res) => {
     try{
+        const warehouse= Warehouse.findById(req.user.warehouseCode);
         res.status(200).json({
             flag: true,
             user: {
@@ -59,7 +55,8 @@ module.exports.getStatus= (req, res) => {
                 role: req.user.role,
                 name: req.user.name,
                 phoneNo: req.user.phoneNo,
-                warehouseCode: req.user.warehouseCode
+                warehouseCode: warehouse.warehouseID,
+                isSource: warehouse.isSource
             }
         });
     }catch(err){

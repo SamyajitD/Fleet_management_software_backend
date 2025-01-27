@@ -19,4 +19,7 @@ router.route('/all')
 router.route('/generate-lr-receipt/:id')
     .get(catchAsync(parcelController.generateLR))
 
+router.route('/append/:id')
+    .put(catchAsync(parcelController.appendItemsToParcel))
+
 module.exports = router;

@@ -28,4 +28,10 @@ router.route('/track-by-date/:date')
 router.route('/edit/:id')
     .put(catchAsync(ledgerController.editLedger));
 
+router.route('/verify-deliver/:id')
+    .put(catchAsync(ledgerController.deliverLedger));
+    
+router.route('/scan-deliver')
+    .post(catchAsync(ledgerController.deliverItem));
+
 module.exports = router;

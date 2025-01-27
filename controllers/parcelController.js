@@ -6,17 +6,17 @@ const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
 const generateLR = require("../utils/LRreceiptFormat.js");
 const Warehouse = require("../models/warehouseSchema.js");
-const {updateParcelStatus} = require('../utils/updateParcelStatus.js');
+const { updateParcelStatus } = require('../utils/updateParcelStatus.js');
 
-module.exports.newParcel = async (req, res) => {
+module.exports.newParcel = async(req, res) => {
     try {
         const { items, senderDetails, receiverDetails, destinationWarehouse } = req.body;
 
-        const sourceWarehouse= req.user.warehouseCode;
+        const sourceWarehouse = req.user.warehouseCode;
 
         const itemEntries = [];
         for (const item of items) {
-            let itemId= generateUniqueId(14)
+            // let itemId = generateUniqueId(14)
             const newItem = new Item({
                 name: item.name,
                 quantity: item.quantity,
@@ -25,7 +25,7 @@ module.exports.newParcel = async (req, res) => {
             const savedItem = await newItem.save();
             itemEntries.push(savedItem._id);
         }
-        
+
         const sender = new Client(senderDetails);
         const receiver = new Client(receiverDetails);
 
@@ -54,20 +54,20 @@ module.exports.newParcel = async (req, res) => {
 
         await updateParcelStatus(trackingId);
 
-        return res.status(200).json({ message: "Parcel created successfully", body: {flag: true, trackingId} });
+        return res.status(200).json({ message: "Parcel created successfully", body: { flag: true, trackingId } });
 
     } catch (err) {
         return res.status(500).json({ message: "An error occurred while creating the parcel", error: err.message });
     }
 };
 
-module.exports.trackParcel = async (req, res) => {
+module.exports.trackParcel = async(req, res) => {
     try {
         const { id } = req.params;
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver');
 
         if (!parcel) {
-            return res.status(201).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body:{} });
+            return res.status(201).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body: {} });
         }
 
         return res.status(200).json({ message: "Successfully fetched your parcel", body: parcel });
@@ -77,13 +77,13 @@ module.exports.trackParcel = async (req, res) => {
     }
 }
 
-module.exports.allParcel = async (req, res) => {
+module.exports.allParcel = async(req, res) => {
     try {
         // Add debug logs
         // console.log('User from token:', req.user);
         // console.log('Warehouse code:', req.user?.warehouseCode);
 
-        if (!req.user || !req.user.warehouseCode) {
+        if ((!req.user || !req.user.warehouseCode) &&!req.user.role === 'admin') {
             return res.status(401).json({
                 message: "Unauthorized: No warehouse access"
             });
@@ -92,8 +92,8 @@ module.exports.allParcel = async (req, res) => {
         const newDate = new Date(req.body.date);
         const startDate = new Date(newDate);
         const endDate = new Date(newDate);
-        startDate.setHours(0,0,0,0);
-        endDate.setHours(23,59,59,999);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
 
         // Use the authenticated user's warehouse code
         const employeeWHcode = req.user.warehouseCode;
@@ -101,28 +101,28 @@ module.exports.allParcel = async (req, res) => {
         const allWarehouses = await Warehouse.find().lean();
 
         let parcels = await Parcel.find({
-            placedAt: { $gte: startDate, $lt: endDate },
-            sourceWarehouse: employeeWHcode
-        })
-        .populate('items sender receiver')
-        .lean();
+                placedAt: { $gte: startDate, $lt: endDate },
+                sourceWarehouse: employeeWHcode
+            })
+            .populate('items sender receiver')
+            .lean();
 
 
         const parcelsWithWarehouseNames = parcels.map(parcel => {
             const sourceWH = allWarehouses.find(wh => wh.warehouseID === parcel.sourceWarehouse);
             const destWH = allWarehouses.find(wh => wh.warehouseID === parcel.destinationWarehouse);
-            
+
             return {
                 ...parcel,
                 sourceWarehouseName: sourceWH?.name || 'Unknown',
                 destinationWarehouseName: destWH?.name || 'Unknown'
-            };
+            }
         });
 
         return res.status(200).json(parcelsWithWarehouseNames);
-        
+
     } catch (err) {
-        console.error('Error:', err); 
+        console.error('Error:', err);
         return res.status(500).json({
             message: "Error fetching parcels",
             error: err.message
@@ -131,7 +131,7 @@ module.exports.allParcel = async (req, res) => {
 };
 
 
-module.exports.generateQRCodes = async (req, res) => {
+module.exports.generateQRCodes = async(req, res) => {
     try {
         const { id } = req.params;
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items');
@@ -153,7 +153,7 @@ module.exports.generateQRCodes = async (req, res) => {
     }
 }
 
-module.exports.generateLR = async (req, res) => {
+module.exports.generateLR = async(req, res) => {
     try {
         const { id } = req.params;
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver');
@@ -178,3 +178,29 @@ module.exports.generateLR = async (req, res) => {
         return res.status(500).json({ message: "Failed to generate LR Receipt", error: err.message });
     }
 }
+
+module.exports.appendItemsToParcel = async(req, res) => {
+    try {
+        const { id } = req.params;
+        const { items } = req.body;
+
+        const parcel = Parcel.findOne({ trackingId: id });
+        for (const item of items) {
+            // let itemId = generateUniqueId(14)
+            const newItem = new Item({
+                name: item.name,
+                quantity: item.quantity,
+                itemId: generateUniqueId(14)
+            });
+            await newItem.save();
+            parcel.items.push(item._id);
+        }
+
+        await parcel.save();
+        await updateParcelStatus(id);
+        return res.status(200).json({ message: "Items appended to parcel successfully",flag: true });
+
+    } catch (err) {
+        return res.status(500).json({ message: "An error occurred while appending items to the parcel", error: err.message });
+    }
+};
