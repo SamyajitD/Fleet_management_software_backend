@@ -178,7 +178,10 @@ module.exports.generateReport = async(req, res) => {
                 allLedgers = await Ledger.find({ dispatchedAt: { $gte: startDate, $lte: endDate } });
             }
 
-            const browser = await puppeteer.launch();
+            const browser = await puppeteer.launch({
+                headless: true,
+                userDataDir: '/opt/render/.cache/puppeteer'
+            });
             const page = await browser.newPage();
 
             const htmlContent = generateLedgerReport(allLedgers, startDate, endDate, isForVehicle);
