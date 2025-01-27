@@ -105,7 +105,7 @@ module.exports.verifyOTP = async (req, res) => {
     }
 };
 
-module.export.resetPassword = async (req, res) => {
+module.exports.resetPassword = async (req, res) => {
     try {
         const { username, password } = req.body;
         const employee = await Employee.findOne({ username });

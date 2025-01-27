@@ -46,33 +46,27 @@ async function sendDeliveryMessage(phoneNo, name, trackingId){
             messaging_product: 'whatsapp',
             to: '+91 '+ phoneNo,
             type: 'template',
-            template:{
-                name: 'hello_world',
-                language:{
+            template: {
+                name: 'parcel_shipped',
+                language: {
                     code: 'en_US'
-                }
+                },
+                components:[
+                    {
+                        type: 'body',
+                        parameters:[
+                            {
+                                type: 'text',
+                                text: name,
+                            },
+                            {
+                                type: 'text',
+                                text: trackingId,
+                            }
+                        ]
+                    }
+                ]
             }
-            // template: {
-            //     name: 'parcel_shipped',
-            //     language: {
-            //         code: 'en_US'
-            //     },
-            //     components:[
-            //         {
-            //             type: 'body',
-            //             parameters:[
-            //                 {
-            //                     type: 'text',
-            //                     text: name,
-            //                 },
-            //                 {
-            //                     type: 'text',
-            //                     text: trackingId,
-            //                 }
-            //             ]
-            //         }
-            //     ]
-            // }
         })
     })
     console.log(respose.data); 
@@ -95,10 +89,21 @@ async function sendOTPMessage(phoneNo){
             to: '+91 '+ phoneNo,
             type: 'template',
             template: {
-                name: 'hello_world',
+                name: 'otp',
                 language: {
                     code: 'en_US'
-                }
+                },
+                // components:[
+                //     {
+                //         type: 'body',
+                //         parameters:[
+                //             {
+                //                 type: 'text',
+                //                 text: otp,
+                //             },
+                //         ]
+                //     }
+                // ]
             }
         })
     });
