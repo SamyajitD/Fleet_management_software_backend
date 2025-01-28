@@ -22,4 +22,7 @@ router.route('/verify-otp')
 router.route('/reset-password')
     .post(verifyOTPToken, catchAsync(authController.resetPassword));
 
+router.route('/get-all-users')
+    .get(catchAsync(authController.getAllUsernames))
+
 module.exports = router;

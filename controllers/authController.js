@@ -6,22 +6,22 @@ const {sendOTPMessage, verifyOTP} = require('../utils/whatsappMessageSender.js')
 module.exports.register = async (req, res) => {
     try {
         const { username, password, name, phoneNo, warehouseID, role } = req.body;
-        const warehouseCode = Warehouse.findOne({warehouseID:warehouseID})._id;
+        const warehouseCode = await Warehouse.findOne({warehouseID});
         const employee = new Employee({ 
             username, 
             password, 
             name, 
             phoneNo, 
-            warehouseCode, 
+            warehouseCode: warehouseCode._id, 
             role
         });
 
         await employee.save();
         
         const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
-        res.status(201).json({ token ,flag:true});
+        return res.status(201).json({ token ,flag:true});
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        return res.status(400).json({ message: error.message });
     }
 }
 
@@ -44,10 +44,11 @@ module.exports.login= async (req, res) => {
     }
 }
 
-module.exports.getStatus= (req, res) => {
+module.exports.getStatus= async(req, res) => {
     try{
-        const warehouse= Warehouse.findById(req.user.warehouseCode);
-        res.status(200).json({
+        // console.log(req.user);
+        const warehouse= await Warehouse.findById(req.user.warehouseCode);
+        return res.status(200).json({
             flag: true,
             user: {
                 id: req.user._id,
@@ -60,7 +61,16 @@ module.exports.getStatus= (req, res) => {
             }
         });
     }catch(err){
-        res.status(500).json({ message: "Failed to get user status", error: err.message });
+        return res.status(500).json({ message: "Failed to get user status", error: err.message });
+    }
+}
+
+module.exports.getAllUsernames= async(req, res)=>{
+    try{
+        const allUsernames= await Employee.find({}).select('username -_id');
+        return res.status(200).send({message: "Successfully fetched all users", body: allUsernames});
+    }catch(err){
+        return res.status(500).json({message: "Failed to fetch all usernames", err: err.message});
     }
 }
 

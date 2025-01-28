@@ -5,7 +5,7 @@ const parcelController = require("../controllers/parcelController.js");
 const { authenticateToken } = require("../middleware/auth.js");
 
 router.route('/new')
-    .post(catchAsync(parcelController.newParcel));
+    .post(authenticateToken, catchAsync(parcelController.newParcel));
 
 router.route('/track/:id')
     .get(catchAsync(parcelController.trackParcel));

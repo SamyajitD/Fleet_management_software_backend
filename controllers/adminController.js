@@ -9,7 +9,7 @@ const {updateParcelStatus} = require('../utils/updateParcelStatus.js');
 
 module.exports.fetchAllEmployees= async(req, res)=>{
     try{
-        const allEmployees= await Employee.find().select('-password');
+        const allEmployees= await Employee.find().select('-password').populate('warehouseCode');
 
         if(allEmployees.length===0){
             return res.status(201).json({message: "No employees", body: {}});

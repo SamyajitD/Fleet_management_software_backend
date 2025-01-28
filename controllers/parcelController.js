@@ -11,12 +11,12 @@ const { updateParcelStatus } = require('../utils/updateParcelStatus.js');
 module.exports.newParcel = async(req, res) => {
     try {
         const { items, senderDetails, receiverDetails, destinationWarehouse } = req.body;
-
+        // console.log(req.user);
         const sourceWarehouse = req.user.warehouseCode;
+        const destinationWarehouseId= await Warehouse.findOne({warehouseID: destinationWarehouse});
 
         const itemEntries = [];
         for (const item of items) {
-            // let itemId = generateUniqueId(14)
             const newItem = new Item({
                 name: item.name,
                 quantity: item.quantity,
@@ -39,7 +39,7 @@ module.exports.newParcel = async(req, res) => {
             sender: newSender._id,
             receiver: newReceiver._id,
             sourceWarehouse,
-            destinationWarehouse,
+            destinationWarehouse: destinationWarehouseId._id,
             trackingId,
             addedBy: req.user._id
         });
@@ -64,7 +64,7 @@ module.exports.newParcel = async(req, res) => {
 module.exports.trackParcel = async(req, res) => {
     try {
         const { id } = req.params;
-        const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver');
+        const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver sourceWarehouse destinationWarehouse');
 
         if (!parcel) {
             return res.status(201).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body: {} });
@@ -95,31 +95,34 @@ module.exports.allParcel = async(req, res) => {
         startDate.setHours(0, 0, 0, 0);
         endDate.setHours(23, 59, 59, 999);
 
-        // Use the authenticated user's warehouse code
         const employeeWHcode = req.user.warehouseCode;
 
-        const allWarehouses = await Warehouse.find().lean();
+        const allWarehouses = await Warehouse.find();
 
-        let parcels = await Parcel.find({
+        let parcels;
+        if(req.user.role!=='admin'){
+            parcels=  await Parcel.find({
                 placedAt: { $gte: startDate, $lt: endDate },
-                sourceWarehouse: employeeWHcode
+                $or: [{sourceWarehouse: employeeWHcode}, {destinationWarehouse: employeeWHcode}]
             })
-            .populate('items sender receiver')
-            .lean();
+            .populate('items sender receiver sourceWarehouse destinationWarehouse');
+        }else{
+            parcels= await Parcel.find({
+                placedAt: { $gte: startDate, $lt: endDate },
+            })
+            .populate('items sender receiver sourceWarehouse destinationWarehouse');
+        }
 
 
-        const parcelsWithWarehouseNames = parcels.map(parcel => {
-            const sourceWH = allWarehouses.find(wh => wh.warehouseID === parcel.sourceWarehouse);
-            const destWH = allWarehouses.find(wh => wh.warehouseID === parcel.destinationWarehouse);
+        // const parcelsWithWarehouseNames = parcels.map(parcel => {
+        //     return {
+        //         ...parcel,
+        //         sourceWarehouseName: sourceWH?.name,
+        //         destinationWarehouseName: destWH?.name
+        //     }
+        // });
 
-            return {
-                ...parcel,
-                sourceWarehouseName: sourceWH?.name || 'Unknown',
-                destinationWarehouseName: destWH?.name || 'Unknown'
-            }
-        });
-
-        return res.status(200).json(parcelsWithWarehouseNames);
+        return res.status(200).json(parcels);
 
     } catch (err) {
         console.error('Error:', err);
