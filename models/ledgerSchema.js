@@ -69,7 +69,7 @@ const ledgerSchema = new mongoose.Schema({
     scannedByDest: {
         type: Schema.Types.ObjectId,
         ref: 'Employee',
-        required: true
+        required: false
     },
 
     verifiedByDest: {

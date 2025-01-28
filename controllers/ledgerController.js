@@ -13,7 +13,7 @@ module.exports.newLedger = async(req, res) => {
         const scannedIds = req.body.codes;
         const scannedBy = req.body.scannedBy;
         // const destinationWarehouse = req.body.destinationWarehouse;
-        // const sourceWarehouse = req.body.sourceWarehouse;
+        const sourceWarehouse = req.user.warehouseCode.warehouseID;
 
         let items = [];
 
@@ -25,7 +25,8 @@ module.exports.newLedger = async(req, res) => {
             updateParcelStatus(item.parcelId);
             items.push({
                 itemId: item._id,
-                // hamali: req.body.hamali || 0 // Assuming hamali is provided in the request body
+                hamali: req.body.hamali || 15,
+                freight: req.body.freight || 50
             });
         }
 
@@ -38,8 +39,8 @@ module.exports.newLedger = async(req, res) => {
             items,
             scannedBy,
             // verifiedBy: req.body.verifiedBy || null,
-            // destinationWarehouse,
-            // sourceWarehouse,
+            destinationWarehouse: ObjectId('6794c4f7c2f5a8eaf14287aa'),
+            sourceWarehouse,
             status: 'pending' // Default value
         });
 
