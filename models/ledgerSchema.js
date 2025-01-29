@@ -38,7 +38,8 @@ const ledgerSchema = new mongoose.Schema({
 
     items: [{
         itemId: {
-            type: String,
+            type: Schema.Types.ObjectId
+            ,
             ref: 'Item',
             required: true
         },

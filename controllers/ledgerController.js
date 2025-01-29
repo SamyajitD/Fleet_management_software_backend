@@ -11,9 +11,10 @@ const {updateParcelStatus} = require('../utils/updateParcelStatus.js');
 module.exports.newLedger = async(req, res) => {
     try {
         const scannedIds = req.body.codes;
-        const scannedBy = req.body.scannedBy;
+        const scannedByUsername = req.body.scannedBy;
+        const scannedBy= await Employee.findOne({username: scannedByUsername});
         // const destinationWarehouse = req.body.destinationWarehouse;
-        const sourceWarehouse = req.user.warehouseCode.warehouseID;
+        const sourceWarehouse= await Warehouse.findOne({warehouseID: req.user.warehouseCode.warehouseID});
 
         let items = [];
 
@@ -37,10 +38,10 @@ module.exports.newLedger = async(req, res) => {
             dispatchedAt: new Date(),
             // deliveredAt: req.body.deliveredAt || null,
             items,
-            scannedBy,
+            scannedBy: scannedBy._id,   
             // verifiedBy: req.body.verifiedBy || null,
             destinationWarehouse: ObjectId('6794c4f7c2f5a8eaf14287aa'),
-            sourceWarehouse,
+            sourceWarehouse: sourceWarehouse._id,
             status: 'pending' // Default value
         });
 
