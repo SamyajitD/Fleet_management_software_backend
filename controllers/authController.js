@@ -90,7 +90,7 @@ module.exports.getOTP= async (req, res) => {
         res.status(500).json({ message: 'Failed to Send OTP', error: err.message });
     }
 }
-module.exports.verifyOTP = async (req, res) => {
+module.exports.verifyOtp = async (req, res) => {
     try {
         const { phoneNo, otp } = req.body;
         const result = await verifyOTP(phoneNo, otp);
@@ -106,7 +106,7 @@ module.exports.verifyOTP = async (req, res) => {
                 flag: true 
             });
         }
-        return res.status(401).json({ message: 'Invalid OTP', flag: false });
+        return res.status(201).json({ message: 'Invalid OTP', flag: false });
     } catch (err) {
         res.status(500).json({ message: 'Failed to Verify OTP', error: err.message });
     }

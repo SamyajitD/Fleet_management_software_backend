@@ -17,7 +17,7 @@ router.route('/get-otp')
     .post(catchAsync(authController.getOTP));
 
 router.route('/verify-otp')
-    .post(catchAsync(authController.verifyOTP));
+    .post(catchAsync(authController.verifyOtp));
 
 router.route('/reset-password')
     .post(verifyOTPToken, catchAsync(authController.resetPassword));
