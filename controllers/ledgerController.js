@@ -40,7 +40,6 @@ module.exports.newLedger = async(req, res) => {
             items,
             scannedBy: scannedBy._id,   
             // verifiedBy: req.body.verifiedBy || null,
-            destinationWarehouse: ObjectId('6794c4f7c2f5a8eaf14287aa'),
             sourceWarehouse: sourceWarehouse._id,
             status: 'pending' // Default value
         });
