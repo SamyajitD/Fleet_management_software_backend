@@ -7,51 +7,44 @@ const generateLedgerReport = require("../utils/ledgerReportFormat.js");
 const formatToIST = require("../utils/dateFormatter.js");
 const ExcelJS = require('exceljs');
 const {updateParcelStatus} = require('../utils/updateParcelStatus.js');
+const Employee= require("../models/employeeSchema.js");
+const Warehouse= require("../models/warehouseSchema.js");
 
 module.exports.newLedger = async(req, res) => {
     try {
         const scannedIds = req.body.codes;
-        const scannedByUsername = req.body.scannedBy;
-        const scannedBy= await Employee.findOne({username: scannedByUsername});
         // const destinationWarehouse = req.body.destinationWarehouse;
-        const sourceWarehouse= await Warehouse.findOne({warehouseID: req.user.warehouseCode.warehouseID});
 
         let items = [];
+
+        const newLedger = new Ledger({
+            ledgerId: generateUniqueId(14),
+            vehicleNo: req.body.vehicleNo,
+            charges: 1000, 
+            dispatchedAt: new Date(),
+            scannedBy: req.user._id,   
+            sourceWarehouse: req.user.warehouseCode,
+            status: 'pending',
+            items: []
+        });
 
         for (let id of scannedIds) {
             const item = await Item.findOne({ itemId: id });
             if (!item) continue;
             item.status = 'pending';
-            await item.save();
-            updateParcelStatus(item.parcelId);
-            items.push({
-                itemId: item._id,
-                hamali: req.body.hamali || 15,
-                freight: req.body.freight || 50
-            });
-        }
-
-        const newLedger = new Ledger({
-            ledgerId: generateUniqueId(14),
-            vehicleNo: req.body.vehicleNo,
-            charges: 1000, // Default charges if not provided
-            dispatchedAt: new Date(),
-            // deliveredAt: req.body.deliveredAt || null,
-            items,
-            scannedBy: scannedBy._id,   
-            // verifiedBy: req.body.verifiedBy || null,
-            sourceWarehouse: sourceWarehouse._id,
-            status: 'pending' // Default value
-        });
-
-        for (const id of items) {
-            const item = await Item.findOne({itemId: id});
             item.ledgerId = newLedger._id;
             await item.save();
+   
+            newLedger.items.push({
+                itemId: item._id,
+                hamali:  15,
+                freight:  50
+            });
+            await updateParcelStatus(item.parcelId);
         }
 
         await newLedger.save();
-        res.status(200).json(newLedger);
+        res.status(200).json({message: "Ledger created successfully", body: newLedger});
     } catch (err) {
         res.status(500).json({ message: "Failed to create new ledger", error: err.message });
     }
@@ -340,7 +333,7 @@ module.exports.generateExcel = async(req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename="Ledger Report ${isForVehicle ? `(${vehicleNo})` : ''} - ${formatToIST(startDate).replace(/ at.*$/, '')} to ${formatToIST(endDate).replace(/ at.*$/, '')}.xlsx"`);
 
         await workbook.xlsx.write(res);
-        res.end();
+        return res.end();
     } catch (err) {
         return res.status(500).json({ message: "Failed to generate ledger report", error: err.message });
     }
@@ -364,12 +357,12 @@ module.exports.editLedger = async (req, res) => {
             return res.status(404).json({ message: `Can't find any Ledger with ID ${id}` });
         }
 
-        if (updateData.items) {
-            updateData.items = updateData.items.map(item => ({
-                itemId: item.itemId,
-                hamali: item.hamali
-            }));
-        }
+        // if (updateData.items) {
+        //     updateData.items = updateData.items.map(item => ({
+        //         itemId: item.itemId,
+        //         hamali: item.hamali
+        //     }));
+        // }
 
         const fieldsToUpdate = {};
         for (const key in updateData) {

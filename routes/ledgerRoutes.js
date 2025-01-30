@@ -3,9 +3,10 @@ const catchAsync = require("../utils/catchAsync.js");
 const router = express.Router();
 const Ledger = require("../models/ledgerSchema.js")
 const ledgerController = require("../controllers/ledgerController.js");
+const { authenticateToken } = require('../middleware/auth');
 
 router.route('/new')
-    .post(catchAsync(ledgerController.newLedger));
+    .post(authenticateToken, catchAsync(ledgerController.newLedger));
 
 router.route('/generate-ledger-receipt/:id')
     .get(catchAsync(ledgerController.generatePDF))
