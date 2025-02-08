@@ -18,13 +18,11 @@ const parcelSchema = new mongoose.Schema({
     sender: {
         type: Schema.Types.ObjectId,
         ref: 'Client',
-        required: true
     },
 
     receiver: {
         type: Schema.Types.ObjectId,
         ref: 'Client',
-        required: true
     },
 
     sourceWarehouse:{
@@ -32,13 +30,13 @@ const parcelSchema = new mongoose.Schema({
         ref: 'Warehouse',
         required: false
     },
-
+    
     destinationWarehouse:{
         type: Schema.Types.ObjectId,
         ref: 'Warehouse',
         required: false
     },
-
+    
     status: {
         type: String,
         enum:['arrived', 'partial', 'delivered'],
@@ -46,16 +44,22 @@ const parcelSchema = new mongoose.Schema({
         required: true
     },
 
+    hamali: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+
+    freight: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+
     addedBy:{
         type: Schema.Types.ObjectId,
         ref: 'Employee',
         required: false
-    },
-
-    charges: {
-        type: Number,
-        required: true,
-        default: 0
     },
 
     placedAt:{

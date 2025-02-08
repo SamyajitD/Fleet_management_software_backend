@@ -6,12 +6,11 @@ const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
 const generateLR = require("../utils/LRreceiptFormat.js");
 const Warehouse = require("../models/warehouseSchema.js");
-const { updateParcelStatus } = require('../utils/updateParcelStatus.js');
 
 module.exports.newParcel = async(req, res) => {
     try {
         const { items, senderDetails, receiverDetails, destinationWarehouse } = req.body;
-        // console.log(req.user);
+
         const sourceWarehouse = req.user.warehouseCode;
         const destinationWarehouseId= await Warehouse.findOne({warehouseID: destinationWarehouse});
 
@@ -20,7 +19,6 @@ module.exports.newParcel = async(req, res) => {
             const newItem = new Item({
                 name: item.name,
                 quantity: item.quantity,
-                itemId: generateUniqueId(14)
             });
             const savedItem = await newItem.save();
             itemEntries.push(savedItem._id);
@@ -45,14 +43,6 @@ module.exports.newParcel = async(req, res) => {
         });
 
         await newParcel.save();
-
-        for (const id of itemEntries) {
-            const item = await Item.findById(id);
-            item.parcelId = newParcel._id;
-            await item.save();
-        }
-
-        await updateParcelStatus(trackingId);
 
         return res.status(200).json({ message: "Parcel created successfully", body: { flag: true, trackingId } });
 
@@ -79,10 +69,6 @@ module.exports.trackParcel = async(req, res) => {
 
 module.exports.allParcel = async(req, res) => {
     try {
-        // Add debug logs
-        // console.log('User from token:', req.user);
-        // console.log('Warehouse code:', req.user?.warehouseCode);
-
         if ((!req.user || !req.user.warehouseCode) &&!req.user.role === 'admin') {
             return res.status(401).json({
                 message: "Unauthorized: No warehouse access"
@@ -113,7 +99,7 @@ module.exports.allParcel = async(req, res) => {
             .populate('items sender receiver sourceWarehouse destinationWarehouse');
         }
 
-
+        
         // const parcelsWithWarehouseNames = parcels.map(parcel => {
         //     return {
         //         ...parcel,
@@ -189,18 +175,15 @@ module.exports.appendItemsToParcel = async(req, res) => {
 
         const parcel = Parcel.findOne({ trackingId: id });
         for (const item of items) {
-            // let itemId = generateUniqueId(14)
             const newItem = new Item({
                 name: item.name,
                 quantity: item.quantity,
-                itemId: generateUniqueId(14)
             });
             await newItem.save();
             parcel.items.push(item._id);
         }
 
         await parcel.save();
-        await updateParcelStatus(id);
         return res.status(200).json({ message: "Items appended to parcel successfully",flag: true });
 
     } catch (err) {

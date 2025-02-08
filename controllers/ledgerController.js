@@ -6,7 +6,6 @@ const generateLedger = require("../utils/ledgerPdfFormat.js");
 const generateLedgerReport = require("../utils/ledgerReportFormat.js");
 const formatToIST = require("../utils/dateFormatter.js");
 const ExcelJS = require('exceljs');
-const {updateParcelStatus} = require('../utils/updateParcelStatus.js');
 const Employee= require("../models/employeeSchema.js");
 const Warehouse= require("../models/warehouseSchema.js");
 
@@ -21,7 +20,7 @@ module.exports.newLedger = async(req, res) => {
             vehicleNo: req.body.vehicleNo,
             charges: 1000, 
             dispatchedAt: new Date(),
-            scannedBy: req.user._id,   
+            scannedBySource: req.user._id,   
             sourceWarehouse: req.user.warehouseCode,
             status: 'pending',
             items: []
@@ -29,9 +28,9 @@ module.exports.newLedger = async(req, res) => {
 
         for (let id of scannedIds) {
             const item = await Item.findOne({ itemId: id });
+
             if (!item) continue;
             item.status = 'pending';
-            item.ledgerId = newLedger._id;
             await item.save();
    
             newLedger.items.push({
@@ -39,7 +38,6 @@ module.exports.newLedger = async(req, res) => {
                 hamali:  15,
                 freight:  50
             });
-            await updateParcelStatus(item.parcelId);
         }
 
         await newLedger.save();
@@ -376,11 +374,6 @@ module.exports.editLedger = async (req, res) => {
             { new: true, runValidators: true }
         ).populate('items.itemId scannedBy verifiedBy');
 
-        if(fieldsToUpdate.items.itemId){
-            for (const item of fieldsToUpdate.items.itemId) {
-                await updateParcelStatus(item.parcelId);
-            }
-        }
 
         return res.status(200).json({ message: "Ledger updated successfully", body: updatedLedger });
     } catch (err) {
@@ -405,10 +398,9 @@ module.exports.deliverLedger = async(req, res) => {
         }
 
         ledgers.status='delivered';
-        for(const pId of parcelIds)
-            updateParcelStatus(pId);
         ledgers.deliveredAt=new Date();
         ledgers.verifiedByDest=data.verifiedByDest;
+
         await ledgers.save();
 
         return res.status(200).json({ message: "Successful", body: ledgers });
@@ -434,8 +426,6 @@ module.exports.deliverItem = async(req, res) => {
         }
 
         // ledgers.status='delivered';
-        for(const pId of parcelIds)
-            updateParcelStatus(pId);
         // ledgers.deliveredAt=new Date();
         // ledgers.verifiedByDest=data.verifiedByDest;
         // await ledgers.save();

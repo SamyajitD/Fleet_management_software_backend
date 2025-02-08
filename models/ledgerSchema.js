@@ -16,13 +16,13 @@ const ledgerSchema = new mongoose.Schema({
     },
 
     charges: {
-        type: Number
-            // required: false
+        type: Number,
+        required: false
     },
 
     status: {
         type: String,
-        enum: ['dispatched', 'pending', 'completed'],
+        enum: ['pending', 'dispatched', 'completed'],
         default: 'pending',
         required: true,
     },
@@ -34,34 +34,24 @@ const ledgerSchema = new mongoose.Schema({
 
     deliveredAt: {
         type: Date,
+        required: false
     },
 
-    items: [{
+    parcels: [{
         itemId: {
             type: Schema.Types.ObjectId,
-            ref: 'Item',
+            ref: 'Parcel',
             required: true
         },
-        hamali: {
-            type: Number,
-            required: false,
-            default: 0
-        },
-        freight: {
-            type: Number,
-            required: false,
-            default: 0
-        },
-        _id: false
     }],
 
-    scannedBy: {
+    scannedBySource: {
         type: Schema.Types.ObjectId,
         ref: 'Employee',
         required: true
     },
 
-    verifiedBy: {
+    verifiedBySource: {
         type: Schema.Types.ObjectId,
         ref: 'Employee',
     },
@@ -75,6 +65,7 @@ const ledgerSchema = new mongoose.Schema({
     verifiedByDest: {
         type: Schema.Types.ObjectId,
         ref: 'Employee',
+        required: false
     },
 
     sourceWarehouse: {
@@ -88,7 +79,6 @@ const ledgerSchema = new mongoose.Schema({
         ref: 'Warehouse',
         required: false
     }
-
 });
 
 module.exports = mongoose.model('Ledger', ledgerSchema);

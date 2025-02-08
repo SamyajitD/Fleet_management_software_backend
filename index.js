@@ -4,7 +4,6 @@ if (process.env.NODE_ENV !== 'production') {
 
 const express = require('express');
 const app = express();
-const path = require('path');
 const mongoose = require("mongoose")
 const cors = require('cors');
 const Warehouse = require("./models/warehouseSchema.js");
@@ -14,7 +13,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const PORT = process.env.PORT || 8000;
 
 const ExpressError = require('./utils/expressError.js');
-const Employee = require("./models/employeeSchema.js");
 
 const authRoutes = require("./routes/authRoutes.js");
 const ledgerRoutes = require("./routes/ledgerRoutes.js");
@@ -46,7 +44,6 @@ app.post('/add-warehouse', async(req, res) => {
     for (let warehouse of warehouses) {
         const w = new Warehouse(warehouse);
         await w.save();
-        // console.log(w);
     }
     res.send("SUCCESS");
 })
