@@ -13,7 +13,6 @@ const Warehouse= require("../models/warehouseSchema.js");
 module.exports.newLedger = async(req, res) => {
     try {
         const scannedIds = req.body.codes;
-        // const destinationWarehouse = req.body.destinationWarehouse;
 
         let items = [];
 
@@ -216,14 +215,14 @@ module.exports.getLedgersByDate = async(req, res) => {
                     $lte: endDate
                 },
                 scannedBy: id
-            }).populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest');
+            }).populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest sourceWarehouse destinationWarehouse');
         } else {
             ledgers = await Ledger.find({
                 dispatchedAt: {
                     $gte: startDate,
                     $lte: endDate
                 }
-            }).populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest');
+            }).populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest sourceWarehouse destinationWarehouse');
         }
 
         return res.status(200).json({ message: "Successful", body: ledgers });
@@ -357,12 +356,12 @@ module.exports.editLedger = async (req, res) => {
             return res.status(404).json({ message: `Can't find any Ledger with ID ${id}` });
         }
 
-        // if (updateData.items) {
-        //     updateData.items = updateData.items.map(item => ({
-        //         itemId: item.itemId,
-        //         hamali: item.hamali
-        //     }));
-        // }
+        if (updateData.items) {
+            updateData.items = updateData.items.map(item => ({
+                itemId: item.itemId,
+                hamali: item.hamali
+            }));
+        }
 
         const fieldsToUpdate = {};
         for (const key in updateData) {
