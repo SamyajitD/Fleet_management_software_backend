@@ -9,9 +9,10 @@ const Warehouse = require("../models/warehouseSchema.js");
 
 module.exports.newParcel = async(req, res) => {
     try {
-        const { items, senderDetails, receiverDetails, destinationWarehouse } = req.body;
+        let { items, senderDetails, receiverDetails, destinationWarehouse,sourceWarehouse } = req.body;
+        if(!sourceWarehouse)
+            sourceWarehouse = req.user.warehouseCode;
 
-        const sourceWarehouse = req.user.warehouseCode;
         const destinationWarehouseId= await Warehouse.findOne({warehouseID: destinationWarehouse});
 
         const itemEntries = [];
@@ -23,7 +24,7 @@ module.exports.newParcel = async(req, res) => {
             const savedItem = await newItem.save();
             itemEntries.push(savedItem._id);
         }
-
+        
         const sender = new Client(senderDetails);
         const receiver = new Client(receiverDetails);
 
@@ -54,7 +55,7 @@ module.exports.newParcel = async(req, res) => {
 module.exports.trackParcel = async(req, res) => {
     try {
         const { id } = req.params;
-        const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver sourceWarehouse destinationWarehouse');
+        const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
 
         if (!parcel) {
             return res.status(201).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body: {} });
@@ -88,15 +89,15 @@ module.exports.allParcel = async(req, res) => {
         let parcels;
         if(req.user.role!=='admin'){
             parcels=  await Parcel.find({
-                placedAt: { $gte: startDate, $lt: endDate },
+                placedAt: { $gte: startDate, $lte: endDate },
                 $or: [{sourceWarehouse: employeeWHcode}, {destinationWarehouse: employeeWHcode}]
             })
-            .populate('items sender receiver sourceWarehouse destinationWarehouse');
+            .populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
         }else{
             parcels= await Parcel.find({
-                placedAt: { $gte: startDate, $lt: endDate },
+                placedAt: { $gte: startDate, $lte: endDate },
             })
-            .populate('items sender receiver sourceWarehouse destinationWarehouse');
+            .populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
         }
 
         return res.status(200).json(parcels);
@@ -164,7 +165,7 @@ module.exports.appendItemsToParcel = async(req, res) => {
         const { id } = req.params;
         const { items } = req.body;
 
-        const parcel = Parcel.findOne({ trackingId: id });
+        const parcel = await Parcel.findOne({ trackingId: id });
         for (const item of items) {
             const newItem = new Item({
                 name: item.name,
@@ -181,3 +182,116 @@ module.exports.appendItemsToParcel = async(req, res) => {
         return res.status(500).json({ message: "An error occurred while appending items to the parcel", error: err.message });
     }
 };
+
+module.exports.DeleteItemsFromParcel = async(req, res) => {
+    try {
+        const { id } = req.params;
+        const { items } = req.body;
+
+        const parcel = await Parcel.findOne({ trackingId: id });
+        
+        if(!parcel){
+            return res.status(201).json({ message: "Parcel not found",flag: false });
+        }
+
+        for (const itemId of items) {
+            const itemIndex = parcel.items.indexOf(itemId);
+            console.log(itemIndex);
+            if (itemIndex > -1) {
+                parcel.items.splice(itemIndex, 1);
+                await Item.findByIdAndDelete(itemId);
+            }
+        }
+
+
+        await parcel.save();
+        return res.status(200).json({ message: "Items deleted to parcel successfully",flag: true });
+
+    } catch (err) {
+        return res.status(500).json({ message: "An error occurred while deleting items to the parcel", error: err.message });
+    }
+};
+
+
+module.exports.editParcel = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        if (!id) {
+            return res.status(400).json({ message: 'Parcel ID is required' });
+        }
+
+        if (!updateData || Object.keys(updateData).length === 0) {
+            return res.status(400).json({ message: 'Update data is required' });
+        }
+
+        let parcel = await Parcel.findOne({ trackingId: id });
+        if (!parcel) {
+            return res.status(404).json({ message: `Can't find any Parcel with Tracking ID ${id}` });
+        }
+
+        // Update items if provided
+        if (updateData.items) {
+            const itemEntries = [];
+            for (const item of updateData.items) {
+                const newItem = new Item({
+                    name: item.name,
+                    quantity: item.quantity,
+                });
+                const savedItem = await newItem.save();
+                itemEntries.push(savedItem._id);
+            }
+            updateData.items = itemEntries;
+        }
+
+        // Update sender details if provided
+        if (updateData.senderDetails) {
+            const sender = await Client.findById(parcel.sender);
+            if (sender) {
+                Object.assign(sender, updateData.senderDetails);
+                await sender.save();
+            }
+        }
+
+        // Update receiver details if provided
+        if (updateData.receiverDetails) {
+            const receiver = await Client.findById(parcel.receiver);
+            if (receiver) {
+                Object.assign(receiver, updateData.receiverDetails);
+                await receiver.save();
+            }
+        }
+
+        // Update destination warehouse if provided
+        if (updateData.destinationWarehouse) {
+            const destinationWarehouseId = await Warehouse.findOne({ warehouseID: updateData.destinationWarehouse });
+            if (destinationWarehouseId) {
+                updateData.destinationWarehouse = destinationWarehouseId._id;
+            }
+        }
+
+        // Update source warehouse if provided
+        if (updateData.sourceWarehouse) {
+            updateData.sourceWarehouse = updateData.sourceWarehouse;
+        }
+
+        const fieldsToUpdate = {};
+        for (const key in updateData) {
+            if (updateData.hasOwnProperty(key)) {
+                fieldsToUpdate[key] = updateData[key];
+            }
+        }
+
+        const updatedParcel = await Parcel.findByIdAndUpdate(
+            parcel._id,
+            { $set: fieldsToUpdate },
+            { new: true, runValidators: true }
+        ).populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
+
+        return res.status(200).json({ message: "Parcel updated successfully", body: updatedParcel });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to update parcel", error: err.message });
+    }
+};
+

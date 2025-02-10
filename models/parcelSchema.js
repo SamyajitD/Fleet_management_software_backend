@@ -17,7 +17,7 @@ const parcelSchema = new mongoose.Schema({
         {
             type: Schema.Types.ObjectId,
             ref: 'Item'
-        }
+        },
     ],
 
     sender: {

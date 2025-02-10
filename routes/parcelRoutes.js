@@ -21,5 +21,13 @@ router.route('/generate-lr-receipt/:id')
 
 router.route('/append/:id')
     .put(catchAsync(parcelController.appendItemsToParcel))
+    
+router.route('/delete/:id')
+    .delete(catchAsync(parcelController.DeleteItemsFromParcel))
+
+router.route('/edit/:id')
+        .put(catchAsync(parcelController.editParcel))
+
+
 
 module.exports = router;
