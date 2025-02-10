@@ -12,6 +12,8 @@ module.exports.newParcel = async(req, res) => {
         let { items, senderDetails, receiverDetails, destinationWarehouse,sourceWarehouse } = req.body;
         if(!sourceWarehouse)
             sourceWarehouse = req.user.warehouseCode;
+        else
+            sourceWarehouse = await Warehouse.findOne({warehouseID: sourceWarehouse});
 
         const destinationWarehouseId= await Warehouse.findOne({warehouseID: destinationWarehouse});
 
@@ -32,7 +34,7 @@ module.exports.newParcel = async(req, res) => {
         const newReceiver = await receiver.save();
 
         const trackingId = generateUniqueId(12);
-
+        // sourceWarehouse
         const newParcel = new Parcel({
             items: itemEntries,
             sender: newSender._id,
