@@ -13,12 +13,13 @@ module.exports.newLedger = async(req, res) => {
     try {
         const scannedIds = req.body.codes;
 
+
         let items = [];
 
         const newLedger = new Ledger({
             ledgerId: generateUniqueId(14),
             vehicleNo: req.body.vehicleNo,
-            charges: 1000, 
+            charges: req.body.charges, 
             dispatchedAt: new Date(),
             scannedBySource: req.user._id,   
             sourceWarehouse: req.user.warehouseCode,
@@ -81,24 +82,24 @@ module.exports.generatePDF = async(req, res) => {
     }
 }
 
-module.exports.allLedger = async(req, res) => {
-    try {
-        // console.log("All Ledger");
-        const allLedger = await Ledger.find().populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest');
-        if (allLedger.length === 0) {
-            return res.status(201).json({ message: "No Vehicle number found", body: [] });
-        }
-        return res.status(200).json({ message: "Successfull", body: allLedger });
-    } catch (err) {
-        return res.status(500).json({ message: "Failed to fetch vehicle numbers", err });
-    }
-}
+// module.exports.allLedger = async(req, res) => {
+//     try {
+//         // console.log("All Ledger");
+//         const allLedger = await Ledger.find().populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest');
+//         if (allLedger.length === 0) {
+//             return res.status(201).json({ message: "No Vehicle number found", body: [] });
+//         }
+//         return res.status(200).json({ message: "Successfull", body: allLedger });
+//     } catch (err) {
+//         return res.status(500).json({ message: "Failed to fetch vehicle numbers", err });
+//     }
+// }
 
 module.exports.trackLedger = async(req, res) => {
     try {
         const { id } = req.params;
         const ledger = await Ledger.findOne({ ledgerId: id })
-            .populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest');
+            .populate('parcels scannedBySource verifiedBySource scannedByDest verifiedByDest sourceWarehouse destinationWarehouse');
 
         if (!ledger) {
             return res.status(201).json({ message: `Can't find any Ledger with ID ${id}`, body: {} });
@@ -110,6 +111,7 @@ module.exports.trackLedger = async(req, res) => {
     }
 };
 
+/*
 module.exports.generateReport = async(req, res) => {
         try {
             const { dateRange } = req.params;
@@ -194,7 +196,7 @@ module.exports.generateReport = async(req, res) => {
     }
 }
 
-
+*/
 module.exports.getLedgersByDate = async(req, res) => {
     try {
         const { date } = req.params;
@@ -213,14 +215,14 @@ module.exports.getLedgersByDate = async(req, res) => {
                     $lte: endDate
                 },
                 scannedBy: id
-            }).populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest sourceWarehouse destinationWarehouse');
+            }).populate('parcels scannedBySource verifiedBySource scannedByDest verifiedByDest sourceWarehouse destinationWarehouse');
         } else {
             ledgers = await Ledger.find({
                 dispatchedAt: {
                     $gte: startDate,
                     $lte: endDate
                 }
-            }).populate('items.itemId scannedBy verifiedBy scannedByDest verifiedByDest sourceWarehouse destinationWarehouse');
+            }).populate('parcels scannedBySource verifiedBySource scannedByDest verifiedByDest sourceWarehouse destinationWarehouse');
         }
 
         return res.status(200).json({ message: "Successful", body: ledgers });
@@ -354,12 +356,12 @@ module.exports.editLedger = async (req, res) => {
             return res.status(404).json({ message: `Can't find any Ledger with ID ${id}` });
         }
 
-        if (updateData.items) {
-            updateData.items = updateData.items.map(item => ({
-                itemId: item.itemId,
-                hamali: item.hamali
-            }));
-        }
+        // if (updateData.items) {
+        //     updateData.items = updateData.items.map(item => ({
+        //         itemId: item.itemId,
+        //         hamali: item.hamali
+        //     }));
+        // }
 
         const fieldsToUpdate = {};
         for (const key in updateData) {
@@ -372,7 +374,7 @@ module.exports.editLedger = async (req, res) => {
             ledger._id,
             { $set: fieldsToUpdate },
             { new: true, runValidators: true }
-        ).populate('items.itemId scannedBy verifiedBy');
+        ).populate('parcels scannedBy verifiedBy');
 
 
         return res.status(200).json({ message: "Ledger updated successfully", body: updatedLedger });

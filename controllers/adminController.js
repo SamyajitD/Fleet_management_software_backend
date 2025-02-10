@@ -44,27 +44,27 @@ module.exports.addDriver = async (req, res) => {
     }
 }
 
-module.exports.getDriverByVehicleNo = async (req, res) => {
-    try {
-        const { vehicleNo } = req.params;
-        const driver = await Driver.findOne({ vehicleNo });
+// module.exports.getDriverByVehicleNo = async (req, res) => {
+//     try {
+//         const { vehicleNo } = req.params;
+//         const driver = await Driver.findOne({ vehicleNo });
 
-        if (!driver) {
-            return res.status(201).json({ message: `No driver found with vehicle number ${vehicleNo}` });
-        }
+//         if (!driver) {
+//             return res.status(201).json({ message: `No driver found with vehicle number ${vehicleNo}` });
+//         }
 
-        return res.status(200).json({
-            message: "Successfully found driver",
-            body: {
-                name: driver.name,
-                phoneNo: driver.phoneNo
-            }
-        });
+//         return res.status(200).json({
+//             message: "Successfully found driver",
+//             body: {
+//                 name: driver.name,
+//                 phoneNo: driver.phoneNo
+//             }
+//         });
 
-    } catch (err) {
-        return res.status(500).json({ message: "Failed to fetch driver details", error: err.message });
-    }
-}
+//     } catch (err) {
+//         return res.status(500).json({ message: "Failed to fetch driver details", error: err.message });
+//     }
+// }
 
 module.exports.updateDriver = async (req, res) => { 
     try {
@@ -103,20 +103,20 @@ module.exports.deleteDriver = async (req, res) => {
     }
 }
 
-module.exports.getEmployeeDetails= async(req, res)=>{  
-    try{
-        const {id}= req.body;
-        const employee= await Employee.findById(id).select('-password');
+// module.exports.getEmployeeDetails= async(req, res)=>{  
+//     try{
+//         const {id}= req.body;
+//         const employee= await Employee.findById(id).select('-password');
 
-        if(!employee){
-            return res.status(201).json({message: `No employee found with ID ${id}`});
-        }
+//         if(!employee){
+//             return res.status(201).json({message: `No employee found with ID ${id}`});
+//         }
 
-        return res.status(200).json({message: "Successfully fetched employee details", body: employee});
-    }catch(err){
-        return res.status(500).json({message: "Failed to fetch employee details", error: err.message});
-    }
-}
+//         return res.status(200).json({message: "Successfully fetched employee details", body: employee});
+//     }catch(err){
+//         return res.status(500).json({message: "Failed to fetch employee details", error: err.message});
+//     }
+// }
 
 module.exports.updateEmployee = async (req, res) => { 
     try {
@@ -364,15 +364,15 @@ module.exports.deleteParcel = async (req, res) => {
             return res.status(201).json({ message: `No parcel found with ID: ${trackingId}` });
         }
 
+        if(parcel.ledgerId){
+            const ledger= await Ledger.findOneAndUpdate({ledgerId: parcel.ledgerId},  {$pull: {items: {itemId: item._id}}});
+            await ledger.save();
+        }
+
         const itemIds= parcel.items;
+
         for(const id of itemIds){
             const item= await Item.findById(id);
-
-            if(item.ledgerId){
-                const ledger= await Ledger.findOneAndUpdate({ledgerId: item.ledgerId},  {$pull: {items: {itemId: item._id}}});
-                await ledger.save();
-            }
-                
             await Item.findByIdAndDelete(item._id);
         }
 

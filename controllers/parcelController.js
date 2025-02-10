@@ -99,15 +99,6 @@ module.exports.allParcel = async(req, res) => {
             .populate('items sender receiver sourceWarehouse destinationWarehouse');
         }
 
-        
-        // const parcelsWithWarehouseNames = parcels.map(parcel => {
-        //     return {
-        //         ...parcel,
-        //         sourceWarehouseName: sourceWH?.name,
-        //         destinationWarehouseName: destWH?.name
-        //     }
-        // });
-
         return res.status(200).json(parcels);
 
     } catch (err) {

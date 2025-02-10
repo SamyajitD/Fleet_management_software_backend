@@ -3,8 +3,8 @@ const router= express.Router();
 const catchAsync= require("../utils/catchAsync.js");
 const adminController= require("../controllers/adminController.js")
 
-router.route('/get-driver/:vehicleNo')
-    .get(catchAsync(adminController.getDriverByVehicleNo));
+// router.route('/get-driver/:vehicleNo')
+//     .get(catchAsync(adminController.getDriverByVehicleNo));
 
 router.route('/get-all-employees')
     .get(catchAsync(adminController.fetchAllEmployees));
@@ -30,7 +30,7 @@ router.route('/manage/driver')
     .delete(catchAsync(adminController.deleteDriver));
 
 router.route('/manage/employee')
-    .get(catchAsync(adminController.getEmployeeDetails))
+    // .get(catchAsync(adminController.getEmployeeDetails))
     .put(catchAsync(adminController.updateEmployee))
     .delete(catchAsync(adminController.deleteEmployee));
 

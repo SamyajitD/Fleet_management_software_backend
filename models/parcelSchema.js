@@ -8,6 +8,11 @@ const parcelSchema = new mongoose.Schema({
         unique: true
     },
 
+    ledgerId:{
+        type: Schema.Types.ObjectId,
+        ref: 'Ledger',
+    },
+
     items: [
         {
             type: Schema.Types.ObjectId,
@@ -39,7 +44,7 @@ const parcelSchema = new mongoose.Schema({
     
     status: {
         type: String,
-        enum:['arrived', 'partial', 'delivered'],
+        enum:['arrived', 'dispatched', 'delivered'],
         default: 'arrived',
         required: true
     },

@@ -38,12 +38,11 @@ const ledgerSchema = new mongoose.Schema({
     },
 
     parcels: [{
-        itemId: {
             type: Schema.Types.ObjectId,
             ref: 'Parcel',
             required: true
         },
-    }],
+    ],
 
     scannedBySource: {
         type: Schema.Types.ObjectId,
