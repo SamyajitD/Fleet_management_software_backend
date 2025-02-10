@@ -13,7 +13,7 @@ module.exports.newParcel = async(req, res) => {
         if(!sourceWarehouse)
             sourceWarehouse = req.user.warehouseCode;
         else
-            sourceWarehouse = await Warehouse.findOne({warehouseID: sourceWarehouse});
+            sourceWarehouse = await Warehouse.findOne({warehouseID: sourceWarehouse})._id;
 
         const destinationWarehouseId= await Warehouse.findOne({warehouseID: destinationWarehouse});
 
