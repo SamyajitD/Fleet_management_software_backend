@@ -26,7 +26,7 @@ router.route('/delete/:id')
     .delete(catchAsync(parcelController.DeleteItemsFromParcel))
 
 router.route('/edit/:id')
-    .put(catchAsync(parcelController.editParcel))
+        .put(catchAsync(parcelController.editParcel))
 
 
 

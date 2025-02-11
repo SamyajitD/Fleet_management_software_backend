@@ -9,6 +9,7 @@ const ExcelJS = require('exceljs');
 const Employee= require("../models/employeeSchema.js");
 const Warehouse= require("../models/warehouseSchema.js");
 const Parcel= require("../models/parcelSchema.js");
+const qrCodeGenerator= require("../utils/qrCodeGenerator.js");
 
 module.exports.newLedger = async(req, res) => {
     try {
@@ -452,7 +453,6 @@ module.exports.editLedger = async (req, res) => {
 module.exports.verifyLedger = async(req, res) => {
     try {
         const { id } = req.params;
-        const { codes } = req.body;
 
         let ledger=await Ledger.findOne({ledgerId:id});
 
