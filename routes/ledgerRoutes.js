@@ -11,14 +11,8 @@ router.route('/new')
 router.route('/generate-ledger-receipt/:id')
     .get(catchAsync(ledgerController.generatePDF))
 
-// router.route('/all-ledger')
-//     .get(catchAsync(ledgerController.allLedger));
-
 router.route('/track/:id')
     .get(catchAsync(ledgerController.trackLedger));
-
-// router.route('/generate-report/:dateRange')
-//     .get(catchAsync(ledgerController.generateReport))
 
 router.route('/generate-excel/:dateRange')
     .get(catchAsync(ledgerController.generateExcel))
@@ -29,10 +23,11 @@ router.route('/track-by-date/:date')
 router.route('/edit/:id')
     .put(catchAsync(ledgerController.editLedger));
 
+router.route('/scan-deliver/:id')
+        .post(catchAsync(ledgerController.deliverLedger));
+
 router.route('/verify-deliver/:id')
-    .put(catchAsync(ledgerController.deliverLedger));
+    .put(catchAsync(ledgerController.verifyLedger));
     
-router.route('/scan-deliver')
-    .post(catchAsync(ledgerController.deliverItem));
 
 module.exports = router;

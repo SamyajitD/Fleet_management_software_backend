@@ -1,22 +1,18 @@
 const formatToIST= require("../utils/dateFormatter.js");
 
 const generateLedger = (ledger) => {
-
-    let allItems = ledger.items.map(item => `
+    console.log(ledger);
+    let allParcels = ledger.parcels.map(parcel => `
         <tr>
-            <td>${item.itemId}</td>
-            <td>${item.name}</td>
-            <td>${item.parcelId.sender.name}</td>
-            <td>50</td>
-            <td>₹15</td>
+            <td>${parcel.trackingId}</td>
+            <td>${parcel.hamali}</td>
+            <td>${parcel.freight}</td>
+            <td>${parcel.receiver.name || 'NA'}</td>
         </tr>
     `).join('');
 
-    // const totalFreight = ledger.items.reduce((sum, item) => sum + item.freight, 0);
-    // const totalHamali = ledger.items.reduce((sum, item) => sum + item.hamali, 0);
-
-    const totalFreight= 1000;
-    const totalHamali= 150;
+    let totalFreight = ledger.parcels.reduce((sum, parcel) => sum + parcel.freight, 0);
+    let totalHamali = ledger.parcels.reduce((sum, parcel) => sum + parcel.hamali, 0);
 
     return `
         <!DOCTYPE html>
@@ -140,7 +136,7 @@ const generateLedger = (ledger) => {
 
             <div class="ledger-header">
                 <div><strong>Vehicle No:</strong> ${ledger.vehicleNo}</div>
-                <div><strong>Delivery Station:</strong>WAREHOUSE 2</div>
+                <div><strong>Delivery Station:</strong>${ledger.destinationWarehouse}</div>
                 <div><strong>Date and Time:</strong> ${formatToIST(ledger.dispatchedAt)}</div>
             </div>
 
@@ -148,15 +144,14 @@ const generateLedger = (ledger) => {
                 <table style="font-size: 14px">
                     <thead>
                         <tr>
-                            <th>Item ID</th>
-                            <th>Item Name</th>
-                            <th>Consignee</th>
-                            <th>Freight</th>
+                            <th>Tracking ID</th>
                             <th>Hamali</th>
+                            <th>Freight</th>
+                            <th>Receiver</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${allItems}
+                        ${allParcels}
                     </tbody>
                 </table>
             </div>

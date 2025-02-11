@@ -43,13 +43,7 @@ router.route('/manage/parcel')
     .put(catchAsync(adminController.updateParcel)) //to be updated
     .delete(catchAsync(adminController.deleteParcel));
 
-// router.route('/manage/item')
-//     .post(catchAsync(adminController.addItem))
-//     .put(catchAsync(adminController.updateItem))
-//     .delete(catchAsync(adminController.deleteItem));
-
 router.route('/manage/ledger')
-    // .put(catchAsync(adminController.updateLedger)) //already there in ledger controller
     .delete(catchAsync(adminController.deleteLedger));
 
 module.exports= router;

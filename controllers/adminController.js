@@ -413,18 +413,17 @@ module.exports.deleteLedger = async (req, res) => {
         const ledger = await Ledger.findOne({ ledgerId });
 
         if (!ledger) {
-            return res.status(201).json({ message: `No ledger found with ID: ${ledgerId}` });
+            return res.status(404).json({ message: `No ledger found with ID: ${ledgerId}` });
         }
 
-        const itemIds= ledger.items;
-        for(const id of itemIds){
-            const item= await Item.findById(id);
-            delete item.ledgerId;
-            item.ledgerId= undefined;
-            item.status= 'arrived';
-            await item.save();
+        const parcelIds= ledger.parcels;
+        for(const id of parcelIds){
+            const parcel= await Parcel.findById(id);
+            delete parcel.ledgerId;
+            parcel.ledgerId= undefined;
+            parcel.status= 'arrived';
+            await parcel.save();
         }
-
         await Ledger.deleteOne({ ledgerId });
 
         return res.status(200).json({ message: "Successfully deleted ledger", body: ledger });

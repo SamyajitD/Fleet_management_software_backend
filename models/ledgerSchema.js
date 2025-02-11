@@ -15,11 +15,6 @@ const ledgerSchema = new mongoose.Schema({
         index: true
     },
 
-    charges: {
-        type: Number,
-        required: false
-    },
-
     status: {
         type: String,
         enum: ['pending', 'dispatched', 'completed'],
@@ -37,7 +32,8 @@ const ledgerSchema = new mongoose.Schema({
         required: false
     },
 
-    parcels: [{
+    parcels: [
+        {
             type: Schema.Types.ObjectId,
             ref: 'Parcel',
             required: true
