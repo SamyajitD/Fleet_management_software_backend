@@ -1,36 +1,37 @@
 const Driver = require("../models/driverSchema.js");
-const Employee= require("../models/employeeSchema.js");
-const Warehouse= require("../models/warehouseSchema.js");
-const Item= require("../models/itemSchema.js");
-const Parcel= require("../models/parcelSchema.js");
-const Ledger= require("../models/ledgerSchema.js"); 
+const Employee = require("../models/employeeSchema.js");
+const Warehouse = require("../models/warehouseSchema.js");
+const Item = require("../models/itemSchema.js");
+const Parcel = require("../models/parcelSchema.js");
+const Ledger = require("../models/ledgerSchema.js");
+const Client = require("../models/clientSchema.js");
 const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 
-module.exports.fetchAllEmployees= async(req, res)=>{
-    try{
-        const allEmployees= await Employee.find().select('-password').populate('warehouseCode');
+module.exports.fetchAllEmployees = async (req, res) => {
+    try {
+        const allEmployees = await Employee.find().select('-password').populate('warehouseCode');
 
-        if(allEmployees.length===0){
-            return res.status(201).json({message: "No employees", body: {}});
+        if (allEmployees.length === 0) {
+            return res.status(201).json({ message: "No employees", body: {} });
         }
 
-        return res.status(200).json({message: "Successfully fetched all employees", body: allEmployees});
-    }catch(err){
-        return res.status(500).json({message: "Failed to fetch all Employees", error: err.message});
+        return res.status(200).json({ message: "Successfully fetched all employees", body: allEmployees });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to fetch all Employees", error: err.message });
     }
 }
 
-module.exports.fetchAllDrivers= async(req, res)=>{
-    try{
-        const allDrivers= await Driver.find();
+module.exports.fetchAllDrivers = async (req, res) => {
+    try {
+        const allDrivers = await Driver.find();
 
-        if(allDrivers.length===0){
-            return res.status(201).json({message: "No Drivers", body: {}});
+        if (allDrivers.length === 0) {
+            return res.status(201).json({ message: "No Drivers", body: {} });
         }
 
-        return res.status(200).send({message: "Successfully fetched all Drivers", body: allDrivers});
-    }catch(err){
-        return res.status(500).json({message: "Failed to fetch all Drivers", error: err.message});
+        return res.status(200).send({ message: "Successfully fetched all Drivers", body: allDrivers });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to fetch all Drivers", error: err.message });
     }
 }
 
@@ -66,13 +67,13 @@ module.exports.addDriver = async (req, res) => {
 //     }
 // }
 
-module.exports.updateDriver = async (req, res) => { 
+module.exports.updateDriver = async (req, res) => {
     try {
         const { vehicleNo, updates } = req.body;
         const updatedDriver = await Driver.findOneAndUpdate(
-            {vehicleNo},
-            {$set: updates},
-            {new: true}
+            { vehicleNo },
+            { $set: updates },
+            { new: true }
         );
 
         if (!updatedDriver) {
@@ -118,13 +119,13 @@ module.exports.deleteDriver = async (req, res) => {
 //     }
 // }
 
-module.exports.updateEmployee = async (req, res) => { 
+module.exports.updateEmployee = async (req, res) => {
     try {
         const { username, updates } = req.body;
         const updatedEmployee = await Employee.findOneAndUpdate(
-            {username},
-            {$set: updates},
-            {new: true}
+            { username },
+            { $set: updates },
+            { new: true }
         );
 
         if (!updatedEmployee) {
@@ -155,17 +156,17 @@ module.exports.deleteEmployee = async (req, res) => {
     }
 }
 
-module.exports.fetchAllWarehouses= async(req, res)=>{ 
-    try{
-        const allWarehouses= await Warehouse.find();
+module.exports.fetchAllWarehouses = async (req, res) => {
+    try {
+        const allWarehouses = await Warehouse.find();
 
-        if(allWarehouses.length===0){
-            return res.status(201).json({message: "No Warehouses", body: {}});
+        if (allWarehouses.length === 0) {
+            return res.status(201).json({ message: "No Warehouses", body: {} });
         }
 
-        return res.status(200).json({message: "Successfully fetched all Warehouses", body: allWarehouses});
-    }catch(err){
-        return res.status(500).json({message: "Failed to fetch all Warehouses", error: err.message});
+        return res.status(200).json({ message: "Successfully fetched all Warehouses", body: allWarehouses });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to fetch all Warehouses", error: err.message });
     }
 }
 
@@ -183,9 +184,9 @@ module.exports.updateWarehouse = async (req, res) => {
     try {
         const { warehouseID, updates } = req.body;
         const updatedWarehouse = await Warehouse.findOneAndUpdate(
-            {warehouseID},
-            {$set: updates},
-            {new: true}
+            { warehouseID },
+            { $set: updates },
+            { new: true }
         );
 
         if (!updatedWarehouse) {
@@ -219,7 +220,7 @@ module.exports.deleteWarehouse = async (req, res) => {
 module.exports.addItem = async (req, res) => {
     try {
         const { parcelId, name, quantity, dispatchedAt } = req.body;
-        const item = new Item({ name, quantity, dispatchedAt, parcelId, itemId: generateUniqueId(14)});
+        const item = new Item({ name, quantity, dispatchedAt, parcelId, itemId: generateUniqueId(14) });
         await item.save();
         return res.status(200).json({ message: "Successfully added an item", body: item });
     } catch (err) {
@@ -231,9 +232,9 @@ module.exports.updateItem = async (req, res) => {
     try {
         const { itemId, updates } = req.body;
         const updatedItem = await Item.findOneAndUpdate(
-            {itemId},
-            {$set: updates},
-            {new: true}
+            { itemId },
+            { $set: updates },
+            { new: true }
         );
 
         if (!updatedItem) {
@@ -264,84 +265,84 @@ module.exports.deleteItem = async (req, res) => {
     }
 }
 
-module.exports.fetchAllParcels= async(req, res)=>{
-    try{
-        const allParcels= await Parcel.find().populate('items sender receiver addedBy');
+module.exports.fetchAllParcels = async (req, res) => {
+    try {
+        const allParcels = await Parcel.find().populate('items sender receiver addedBy');
 
-        if(allParcels.length===0){
-            return res.status(201).json({message: "No Parcels", body: {}});
+        if (allParcels.length === 0) {
+            return res.status(201).json({ message: "No Parcels", body: {} });
         }
 
-        return res.status(200).json({message: "Successfully fetched all Parcels", body: allParcels});
-    }catch(err){
-        return res.status(500).json({message: "Failed to fetch all Parcels", error: err.message});
+        return res.status(200).json({ message: "Successfully fetched all Parcels", body: allParcels });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to fetch all Parcels", error: err.message });
     }
 }
 
-module.exports.fetchAllItems= async(req, res)=>{
-    try{
-        const allItems= await Item.find();
+module.exports.fetchAllItems = async (req, res) => {
+    try {
+        const allItems = await Item.find();
 
-        if(allItems.length===0){
-            return res.status(201).json({message: "No Items", body: {}});
+        if (allItems.length === 0) {
+            return res.status(201).json({ message: "No Items", body: {} });
         }
 
-        return res.status(200).json({message: "Successfully fetched all Items", body: allItems});
-    }catch(err){
-        return res.status(500).json({message: "Failed to fetch all Items", error: err.message});
+        return res.status(200).json({ message: "Successfully fetched all Items", body: allItems });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to fetch all Items", error: err.message });
     }
 }
 
-module.exports.fetchAllLedgers= async(req, res)=>{
-    try{
-        const allLedgers= await Ledger.find();
+module.exports.fetchAllLedgers = async (req, res) => {
+    try {
+        const allLedgers = await Ledger.find();
 
-        if(allLedgers.length===0){
-            return res.status(201).json({message: "No Ledgers Found", body: {}});
+        if (allLedgers.length === 0) {
+            return res.status(201).json({ message: "No Ledgers Found", body: {} });
         }
 
-        return res.status(200).json({message: "Successfully fetched all Ledgers", body: allLedgers});
-    }catch(err){
-        return res.status(500).json({message: "Failed to fetch all Ledgers", error: err.message});
+        return res.status(200).json({ message: "Successfully fetched all Ledgers", body: allLedgers });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to fetch all Ledgers", error: err.message });
     }
 }
 
 module.exports.updateParcel = async (req, res) => {
     try {
         const { trackingId, updates } = req.body;
-        const {del, add}= updates.items;
+        const { del, add } = updates.items;
 
-        if(del.length!==0){
-            for(const id of del){
-                const item= await Item.findOne({itemId: id});
+        if (del.length !== 0) {
+            for (const id of del) {
+                const item = await Item.findOne({ itemId: id });
 
-                if(item.ledgerId){  
-                    const ledger= await Ledger.findOneAndUpdate({ledgerId: item.ledgerId},  {$pull: {items: {itemId: item._id}}});
+                if (item.ledgerId) {
+                    const ledger = await Ledger.findOneAndUpdate({ ledgerId: item.ledgerId }, { $pull: { items: { itemId: item._id } } });
                     await ledger.save();
                 }
 
-                const parcel= await Parcel.findOneAndUpdate({trackingId}, {$pull: {items: item._id}});
+                const parcel = await Parcel.findOneAndUpdate({ trackingId }, { $pull: { items: item._id } });
                 await parcel.save();
                 await Item.findByIdAndDelete(item._id);
             }
         }
 
-        const itemIds= [];
-        if(add.length!==0){
-            for(const item of add){
-                const newItem= new Item({...item, parcelId: trackingId , itemId: generateUniqueId(14)});
+        const itemIds = [];
+        if (add.length !== 0) {
+            for (const item of add) {
+                const newItem = new Item({ ...item, parcelId: trackingId, itemId: generateUniqueId(14) });
                 await newItem.save();
                 itemIds.push(newItem._id);
-                const parcel= await Parcel.findOneAndUpdate({trackingId}, {$push: {items: newItem._id}});
+                const parcel = await Parcel.findOneAndUpdate({ trackingId }, { $push: { items: newItem._id } });
                 await parcel.save();
             }
         }
 
-        const actualUpdates= {...updates, items: itemIds };
+        const actualUpdates = { ...updates, items: itemIds };
         const updatedParcel = await Parcel.findOneAndUpdate(
-            {trackingId},
-            {$set: actualUpdates},
-            {new: true}
+            { trackingId },
+            { $set: actualUpdates },
+            { new: true }
         );
 
         if (!updatedParcel) {
@@ -361,22 +362,24 @@ module.exports.deleteParcel = async (req, res) => {
         const parcel = await Parcel.findOne({ trackingId });
 
         if (!parcel) {
-            return res.status(201).json({ message: `No parcel found with ID: ${trackingId}` });
+            return res.status(400).json({ flag: false, message: `No parcel found with ID: ${trackingId}` });
         }
 
-        if(parcel.ledgerId){
+        if (parcel.ledgerId) {
+            const parcelId = await Parcel.findOne({trackingId});
+            console.log(parcelId);
             const ledger = await Ledger.findOneAndUpdate(
                 { ledgerId: parcel.ledgerId },
-                { $pull: { parcels: parcel._id } },
+                { $pull: { parcels: parcelId._id } },
                 { new: true }
             );
             await ledger.save();
         }
-
-        const itemIds= parcel.items;
-
-        for(const id of itemIds){
-            const item= await Item.findById(id);
+        
+        const itemIds = parcel.items;
+        
+        for (const id of itemIds) {
+            const item = await Item.findById(id);
             await Item.findByIdAndDelete(item._id);
         }
 
@@ -385,9 +388,9 @@ module.exports.deleteParcel = async (req, res) => {
 
         await Parcel.deleteOne({ trackingId });
 
-        return res.status(200).json({ message: "Successfully deleted parcel", body: parcel });
+        return res.status(200).json({ message: "Successfully deleted parcel", body: parcel, flag: true });
     } catch (err) {
-        return res.status(500).json({ message: "Failed to delete parcel", error: err.message });
+        return res.status(500).json({ message: "Failed to delete parcel", error: err.message, flag: false });
     }
 }
 
@@ -395,9 +398,9 @@ module.exports.updateLedger = async (req, res) => {
     try {
         const { ledgerId, updates } = req.body;
         const updatedLedger = await Ledger.findOneAndUpdate(
-            {ledgerId},
-            {$set: updates},
-            {new: true}
+            { ledgerId },
+            { $set: updates },
+            { new: true }
         );
 
         if (!updatedLedger) {
@@ -420,12 +423,12 @@ module.exports.deleteLedger = async (req, res) => {
             return res.status(404).json({ message: `No ledger found with ID: ${ledgerId}` });
         }
 
-        const parcelIds= ledger.parcels;
-        for(const id of parcelIds){
-            const parcel= await Parcel.findById(id);
+        const parcelIds = ledger.parcels;
+        for (const id of parcelIds) {
+            const parcel = await Parcel.findById(id);
             delete parcel.ledgerId;
-            parcel.ledgerId= undefined;
-            parcel.status= 'arrived';
+            parcel.ledgerId = undefined;
+            parcel.status = 'arrived';
             await parcel.save();
         }
         await Ledger.deleteOne({ ledgerId });
