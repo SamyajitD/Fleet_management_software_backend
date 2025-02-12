@@ -271,59 +271,6 @@ module.exports.generateLR = async(req, res) => {
     }
 }
 
-module.exports.appendItemsToParcel = async(req, res) => {
-    try {
-        const { id } = req.params;
-        const { items } = req.body;
-
-        const parcel = await Parcel.findOne({ trackingId: id });
-        for (const item of items) {
-            const newItem = new Item({
-                name: item.name,
-                quantity: item.quantity,
-            });
-            await newItem.save();
-            parcel.items.push(item._id);
-        }
-
-        await parcel.save();
-        return res.status(200).json({ message: "Items appended to parcel successfully",flag: true });
-
-    } catch (err) {
-        return res.status(500).json({ message: "An error occurred while appending items to the parcel", error: err.message });
-    }
-};
-
-module.exports.DeleteItemsFromParcel = async(req, res) => {
-    try {
-        const { id } = req.params;
-        const { items } = req.body;
-
-        const parcel = await Parcel.findOne({ trackingId: id });
-        
-        if(!parcel){
-            return res.status(201).json({ message: "Parcel not found",flag: false });
-        }
-
-        for (const itemId of items) {
-            const itemIndex = parcel.items.indexOf(itemId);
-            console.log(itemIndex);
-            if (itemIndex > -1) {
-                parcel.items.splice(itemIndex, 1);
-                await Item.findByIdAndDelete(itemId);
-            }
-        }
-
-
-        await parcel.save();
-        return res.status(200).json({ message: "Items deleted to parcel successfully",flag: true });
-
-    } catch (err) {
-        return res.status(500).json({ message: "An error occurred while deleting items to the parcel", error: err.message });
-    }
-};
-
-
 module.exports.editParcel = async (req, res) => {
     try {
         const { id } = req.params;
@@ -343,17 +290,26 @@ module.exports.editParcel = async (req, res) => {
         }
 
         // Update items if provided
-        if (updateData.items) {
-            const itemEntries = [];
-            for (const item of updateData.items) {
+        if (updateData.addItems) {
+            for (const item of updateData.addItems) {
                 const newItem = new Item({
                     name: item.name,
                     quantity: item.quantity,
                 });
-                const savedItem = await newItem.save();
-                itemEntries.push(savedItem._id);
+                await newItem.save();
+                parcel.items.push(item._id);
             }
-            updateData.items = itemEntries;
+        }
+        
+        if (updateData.delItems) {
+            for (const itemId of updateData.delItems) {
+                const itemIndex = parcel.items.indexOf(itemId);
+                console.log(itemIndex);
+                if (itemIndex > -1) {
+                    parcel.items.splice(itemIndex, 1);
+                    await Item.findByIdAndDelete(itemId);
+                }
+            }
         }
 
         // Update sender details if provided
@@ -381,15 +337,19 @@ module.exports.editParcel = async (req, res) => {
                 updateData.destinationWarehouse = destinationWarehouseId._id;
             }
         }
-
+        
         // Update source warehouse if provided
         if (updateData.sourceWarehouse) {
-            updateData.sourceWarehouse = updateData.sourceWarehouse;
+            const sourceWarehouseId = await Warehouse.findOne({ warehouseID: updateData.sourceWarehouse });
+            if (sourceWarehouseId) {
+                updateData.sourceWarehouse = sourceWarehouseId._id;
+            }
         }
+        await parcel.save();
 
         const fieldsToUpdate = {};
         for (const key in updateData) {
-            if (updateData.hasOwnProperty(key)) {
+            if (updateData.hasOwnProperty(key) && (key in ['addedBy','status','hamali','freight','ledgerId'])) {
                 fieldsToUpdate[key] = updateData[key];
             }
         }

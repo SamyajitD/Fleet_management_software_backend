@@ -19,11 +19,11 @@ router.route('/all')
 router.route('/generate-lr-receipt/:id')
     .get(catchAsync(parcelController.generateLR))
 
-router.route('/append/:id')
-    .put(catchAsync(parcelController.appendItemsToParcel))
+// router.route('/append/:id')
+//     .put(catchAsync(parcelController.appendItemsToParcel))
     
-router.route('/delete/:id')
-    .delete(catchAsync(parcelController.DeleteItemsFromParcel))
+// router.route('/delete/:id')
+//     .delete(catchAsync(parcelController.DeleteItemsFromParcel))
 
 router.route('/edit/:id')
         .put(catchAsync(parcelController.editParcel))
