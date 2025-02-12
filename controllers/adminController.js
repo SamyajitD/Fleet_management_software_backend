@@ -365,7 +365,11 @@ module.exports.deleteParcel = async (req, res) => {
         }
 
         if(parcel.ledgerId){
-            const ledger= await Ledger.findOneAndUpdate({ledgerId: parcel.ledgerId},  {$pull: {items: {itemId: item._id}}});
+            const ledger = await Ledger.findOneAndUpdate(
+                { ledgerId: parcel.ledgerId },
+                { $pull: { parcels: parcel._id } },
+                { new: true }
+            );
             await ledger.save();
         }
 

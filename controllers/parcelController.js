@@ -102,13 +102,14 @@ module.exports.allParcel = async(req, res) => {
             .populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
         }
 
-        return res.status(200).json(parcels);
+        return res.status(200).json({body:parcels,message:"Successfully fetched all parcels",flag:true});
 
     } catch (err) {
         console.error('Error:', err);
         return res.status(500).json({
             message: "Error fetching parcels",
-            error: err.message
+            error: err.message,
+            flag:false
         });
     }
 };
@@ -297,7 +298,7 @@ module.exports.editParcel = async (req, res) => {
                     quantity: item.quantity,
                 });
                 await newItem.save();
-                parcel.items.push(item._id);
+                parcel.items.push(newItem._id);
             }
         }
         
@@ -345,24 +346,15 @@ module.exports.editParcel = async (req, res) => {
                 updateData.sourceWarehouse = sourceWarehouseId._id;
             }
         }
+        
+        if(updateData.status){
+            parcel.status = updateData.status;
+        }
         await parcel.save();
 
-        const fieldsToUpdate = {};
-        for (const key in updateData) {
-            if (updateData.hasOwnProperty(key) && (key in ['addedBy','status','hamali','freight','ledgerId'])) {
-                fieldsToUpdate[key] = updateData[key];
-            }
-        }
-
-        const updatedParcel = await Parcel.findByIdAndUpdate(
-            parcel._id,
-            { $set: fieldsToUpdate },
-            { new: true, runValidators: true }
-        ).populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
-
-        return res.status(200).json({ message: "Parcel updated successfully", body: updatedParcel });
+        return res.status(200).json({flag:true, message: "Parcel updated successfully", body: parcel });
     } catch (err) {
-        return res.status(500).json({ message: "Failed to update parcel", error: err.message });
+        return res.status(500).json({ flag:false,message: "Failed to update parcel", error: err.message });
     }
 };
 
