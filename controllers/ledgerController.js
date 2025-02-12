@@ -61,7 +61,10 @@ module.exports.generatePDF = async(req, res) => {
 
         console.log(ledger);
 
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+            executablePath: require('puppeteer').executablePath(),
+            headless: true
+        });
         const page = await browser.newPage();
 
         const htmlContent = generateLedger(ledger);
