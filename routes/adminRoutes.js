@@ -40,8 +40,8 @@ router.route('/manage/warehouse')
     .delete(catchAsync(adminController.deleteWarehouse));
 
 router.route('/manage/parcel')
-    .put(catchAsync(adminController.updateParcel)) //to be updated
     .delete(catchAsync(adminController.deleteParcel));
+    // .put(catchAsync(adminController.updateParcel)) //to be updated
 
 router.route('/manage/ledger')
     .delete(catchAsync(adminController.deleteLedger));

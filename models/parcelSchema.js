@@ -64,7 +64,7 @@ const parcelSchema = new mongoose.Schema({
     addedBy:{
         type: Schema.Types.ObjectId,
         ref: 'Employee',
-        required: false
+        required: true
     },
 
     placedAt:{
