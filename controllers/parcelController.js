@@ -64,10 +64,10 @@ module.exports.trackParcel = async (req, res) => {
         }
         const { qrCodeURL } = await generateQRCode(id);
 
-        return res.status(200).json({ message: "Successfully fetched your parcel", body: parcel,flag:true, qrCode: qrCodeURL });
+        return res.status(200).json({ message: "Successfully fetched your parcel", body: parcel, flag: true, qrCode: qrCodeURL });
 
     } catch (err) {
-        return res.status(500).json({ message: "An error occurred while tracking your parcel", error: err.message,flag:false });
+        return res.status(500).json({ message: "An error occurred while tracking your parcel", error: err.message, flag: false });
     }
 }
 
@@ -346,8 +346,7 @@ module.exports.editParcel = async (req, res) => {
                 updateData.sourceWarehouse = sourceWarehouseId._id;
             }
         }
-
-        if (res.user.role=='admin'&&updateData.status) {
+        if (req.user.role === 'admin' && updateData.status) {
             parcel.status = updateData.status;
         }
         await parcel.save();

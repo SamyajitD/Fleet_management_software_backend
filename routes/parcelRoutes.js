@@ -26,7 +26,7 @@ router.route('/generate-lr-receipt/:id')
 //     .delete(catchAsync(parcelController.DeleteItemsFromParcel))
 
 router.route('/edit/:id')
-        .put(catchAsync(parcelController.editParcel))
+        .put(authenticateToken,catchAsync(parcelController.editParcel))
 
 
 
