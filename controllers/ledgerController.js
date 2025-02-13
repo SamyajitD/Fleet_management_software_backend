@@ -32,6 +32,15 @@ module.exports.newLedger = async(req, res) => {
         });
 
         await newLedger.save();
+        for (const id of scannedIds) {
+            let parcel = await Parcel.findOne({ trackingId: id });
+            if (parcel) {
+                parcel.ledgerId = newLedger._id;
+                parcel.status = 'dispatched';
+            }
+            await parcel.save();
+        }
+        
         res.status(200).json({message: "Ledger created successfully", body: newLedger});
     } catch (err) {
         res.status(500).json({ message: "Failed to create new ledger", error: err.message });
@@ -59,13 +68,12 @@ module.exports.generatePDF = async(req, res) => {
             })
             .populate('sourceWarehouse destinationWarehouse');
 
-        console.log(ledger);
-
+node
         const browser = await puppeteer.launch({
             executablePath: '/opt/render/.cache/puppeteer/chrome/linux-133.0.6943.53/chrome-linux64/chrome',
             headless: true
         });
-        
+
         const page = await browser.newPage();
 
         const htmlContent = generateLedger(ledger);
@@ -380,15 +388,17 @@ module.exports.editLedger = async (req, res) => {
     try {
         const { id } = req.params;
         const updateData = req.body; 
+        console.log(updateData);
         /* updateData- 
             status('pending', 'dispatched', 'completed')
             vehicleNo(string)
             parcels- {
                     add: [{parcelObj}],
-                    del: [trackingIds]
+                    del: [mongoId]
                 }
+            hamali_freight- [{trackingId, hamali, freight}]            
             sourceWarehouse(wh_id)
-            destinationWarehouse(wh_id)
+            destinationWarehouse(whCode)
          */
 
         if (!id) {
@@ -407,22 +417,21 @@ module.exports.editLedger = async (req, res) => {
         if(updateData.parcels){
             let delParcels= updateData.parcels.del;
             let addParcels= updateData.parcels.add;
+            console.log(delParcels);
 
             if(!delParcels && !addParcels){
                 return res.status(400).json({message: 'No parameters for updating parcels is provided'});
             }
 
-            if(delParcels.length>0) {
-                await Ledger.findOneAndUpdate(
-                    { ledgerId: id },
-                    { $pull: { parcels: { _id: { $in: delParcels } } } },
-                    { new: true }
-                );
-        
-                await Parcel.deleteMany({ _id: { $in: delParcels } });
+            if(delParcels && delParcels.length>0) {
+                for(let pId of delParcels){
+                    const temp= await Ledger.findOneAndUpdate({ledgerId: id}, {$pull: {parcels: pId}}, {new: true}); 
+                    console.log(temp);
+                    await temp.save();
+                }
             }
 
-            if(addParcels.length>0){
+            if(addParcels && addParcels.length>0){
                 await Ledger.findOneAndUpdate(
                     { ledgerId: id },
                     { $push: { parcels: { $each: addParcels } } },
@@ -430,6 +439,25 @@ module.exports.editLedger = async (req, res) => {
                 );
             }
         }
+        
+        if(updateData.status) ledger.status=updateData.status;
+        if(updateData.vehicleNo) ledger.vehicleNo=updateData.vehicleNo;
+        if(updateData.sourceWarehouse) ledger.sourceWarehouse=updateData.sourceWarehouse;
+        if(updateData.destinationWarehouse){
+            const warehouse= await Warehouse.findOne({warehouseID: updateData.destinationWarehouse});
+            ledger.destinationWarehouse=warehouse._id;
+        }
+
+        if(updateData.hamali_freight && updateData.hamali_freight.length>0){
+            for(let hf of updateData.hamali_freight){
+                const parcel= await Parcel.findOne({trackingId: hf.trackingId});
+                parcel.hamali=hf.hamali;
+                parcel.freight=hf.freight;
+                await parcel.save();
+            }
+        }
+
+        await ledger.save();
 
         const updatedLedger = await Ledger.findOne({ledgerId: id}).populate({
             path: 'parcels',
@@ -446,7 +474,6 @@ module.exports.editLedger = async (req, res) => {
             select: '-password' 
         })
         .populate('sourceWarehouse destinationWarehouse');
-
 
         return res.status(200).json({ message: "Ledger updated successfully", body: updatedLedger });
     } catch (err) {
