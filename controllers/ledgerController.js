@@ -216,25 +216,39 @@ module.exports.generateReport = async(req, res) => {
 module.exports.getLedgersByDate = async(req, res) => {
     try {
         const { date } = req.params;
-        const { id } = req.query; // for app
+        const { id } = req.query;
 
+        // Ensure date is in correct format YYYYMMDD
+        if (!date.match(/^\d{8}$/)) {
+            return res.status(400).json({ 
+                message: "Invalid date format. Expected YYYYMMDD" 
+            });
+        }
+
+        // Format date string to ISO format
         const formattedDate = date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
         const startDate = new Date(`${formattedDate}T00:00:00.000Z`);
         const endDate = new Date(`${formattedDate}T23:59:59.999Z`);
 
-        let ledgers;
+        // Base query object
+        const dateQuery = {
+            dispatchedAt: {
+                $gte: startDate,
+                $lte: endDate
+            }
+        };
 
-        if(id){
-            ledgers = await Ledger.find({
-                dispatchedAt: {
-                    $gte: startDate,
-                    $lte: endDate
-                },
-                $or: [{scannedBySource: id}, {scannedByDest: id}],
-            }) .populate({
+        // Add ID filter if provided
+        const query = id ? {
+            ...dateQuery,
+            $or: [{scannedBySource: id}, {scannedByDest: id}]
+        } : dateQuery;
+
+        const ledgers = await Ledger.find(query)
+            .populate({
                 path: 'parcels',
                 populate: [
-                    { path: 'items' }, 
+                    { path: 'items' },
                     { path: 'sender' },
                     { path: 'receiver' },
                     { path: 'sourceWarehouse' },
@@ -242,41 +256,36 @@ module.exports.getLedgersByDate = async(req, res) => {
                 ]
             })
             .populate({
-                path: 'scannedBySource scannedByDest verifiedBySource verifiedByDest',
-                select: '-password' 
-            })
-            .populate('sourceWarehouse destinationWarehouse');
-        } else {
-            ledgers = await Ledger.find({
-                dispatchedAt: {
-                    $gte: startDate,
-                    $lte: endDate
-                }
-            }).populate({
-                path: 'parcels',
-                populate: [
-                    { path: 'items' }, 
-                    { path: 'sender' },
-                    { path: 'receiver' },
-                    { path: 'sourceWarehouse' },
-                    { path: 'destinationWarehouse' }
-                ]
+                path: 'scannedBySource',
+                select: '-password'
             })
             .populate({
-                path: 'scannedBySource scannedByDest verifiedBySource verifiedByDest',
-                select: '-password' 
+                path: 'scannedByDest',
+                select: '-password'
             })
-            .populate('sourceWarehouse destinationWarehouse');
+            .populate({
+                path: 'verifiedBySource',
+                select: '-password'
+            })
+            .populate({
+                path: 'verifiedByDest',
+                select: '-password'
+            })
+            .populate('sourceWarehouse')
+            .populate('destinationWarehouse');
 
-        }
-        
-        return res.status(200).json({ message: "Successful", body: ledgers });
+        return res.status(200).json({ 
+            message: "Successful", 
+            body: ledgers 
+        });
     } catch (err) {
-        return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message });
+        console.error('Error in getLedgersByDate:', err);
+        return res.status(500).json({ 
+            message: "Failed to get ledgers by date", 
+            error: err.message 
+        });
     }
 }
-
-
 
 module.exports.generateExcel = async(req, res) => {
     try {
