@@ -240,7 +240,7 @@ module.exports.getLedgersByDate = async(req, res) => {
 
         let query= null;
         const id= req.user._id;
-        
+
         if(forApp=="true"){
             query= {
                 ...dateQuery,
@@ -499,7 +499,7 @@ module.exports.verifyLedger = async(req, res) => {
 
         let ledger=await Ledger.findOne({ledgerId:id});
 
-        ledger.status='delivered';
+        ledger.status='completed';
         ledger.deliveredAt=new Date();
         ledger.verifiedByDest=req.user._id;
 

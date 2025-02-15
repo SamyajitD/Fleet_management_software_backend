@@ -27,7 +27,7 @@ router.route('/scan-deliver')
     .post(authenticateToken, catchAsync(ledgerController.deliverLedger));
 
 router.route('/verify-deliver/:id')
-    .put(catchAsync(ledgerController.verifyLedger));
+    .put(authenticateToken, catchAsync(ledgerController.verifyLedger));
     
 
 module.exports = router;
