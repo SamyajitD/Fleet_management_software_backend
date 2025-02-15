@@ -216,7 +216,7 @@ module.exports.generateReport = async(req, res) => {
 module.exports.getLedgersByDate = async(req, res) => {
     try {
         const { date } = req.params;
-        const { id } = req.query;
+        const { forApp="false" } = req.query;
 
         // Ensure date is in correct format YYYYMMDD
         if (!date.match(/^\d{8}$/)) {
@@ -238,11 +238,15 @@ module.exports.getLedgersByDate = async(req, res) => {
             }
         };
 
-        // Add ID filter if provided
-        const query = id ? {
-            ...dateQuery,
-            $or: [{scannedBySource: id}, {scannedByDest: id}]
-        } : dateQuery;
+        let query= null;
+        const id= req.user._id;
+        
+        if(forApp=="true"){
+            query= {
+                ...dateQuery,
+                $or: [{scannedBySource: id}, {scannedByDest: id}]
+            }
+        }else query= dateQuery;
 
         const ledgers = await Ledger.find(query)
             .populate({
@@ -510,7 +514,7 @@ module.exports.verifyLedger = async(req, res) => {
 module.exports.deliverLedger = async(req, res) => {
     try {
         const { codes, vehicleNo } = req.body;
-        console.log(codes);
+        // console.log(codes);
 
         let ledger= null;
         for(let parcel of codes){
