@@ -508,9 +508,9 @@ module.exports.deliverLedger = async(req, res) => {
 
             if(p.ledgerId.vehicleNo!=vehicleNo){
                 for(let pcl of codes){
-                    const temp=await Parcel.findById(parcel._id);
-                    p.status= 'dispatched';
-                    p.save();
+                    const temp=await Parcel.findById(pcl._id);
+                    temp.status= 'dispatched';
+                    temp.save();
                 }
 
                 return res.status(400).json({message: "Selected vehicle no. does not matches this ledger's vehicle no."})
