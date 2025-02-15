@@ -510,11 +510,18 @@ module.exports.verifyLedger = async(req, res) => {
 module.exports.deliverLedger = async(req, res) => {
     try {
         const { codes, vehicleNo } = req.body;
+        console.log(codes);
 
+        let ledger= null;
         for(let parcel of codes){
-            const p=await Parcel.findById(parcel._id).populate('ledgerId');
+            const p=await Parcel.findOne({trackingId: parcel});
+            if(!p){
+                return res.status(400).json({message: "Parcel not found"});
+            }
 
-            if(p.ledgerId.vehicleNo!=vehicleNo){
+            if(!ledger) ledger= await Ledger.findById(p.ledgerId);
+
+            if(ledger.vehicleNo!=vehicleNo){
                 for(let pcl of codes){
                     const temp=await Parcel.findById(pcl._id);
                     temp.status= 'dispatched';
@@ -523,10 +530,12 @@ module.exports.deliverLedger = async(req, res) => {
 
                 return res.status(400).json({message: "Selected vehicle no. does not matches this ledger's vehicle no."})
             }
-
+            
             p.status='delivered';
             await p.save();
         }
+        ledger.scannedByDest=req.user._id;
+        await ledger.save();
 
         return res.status(200).json({ message: "Successful", flag : true });
     } catch (err) {

@@ -23,8 +23,8 @@ router.route('/track-all/:date')
 router.route('/edit/:id')
     .put(catchAsync(ledgerController.editLedger));
 
-router.route('/scan-deliver/:id')
-        .post(catchAsync(ledgerController.deliverLedger));
+router.route('/scan-deliver')
+    .post(authenticateToken, catchAsync(ledgerController.deliverLedger));
 
 router.route('/verify-deliver/:id')
     .put(catchAsync(ledgerController.verifyLedger));
