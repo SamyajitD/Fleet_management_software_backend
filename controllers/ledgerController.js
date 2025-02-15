@@ -519,11 +519,12 @@ module.exports.deliverLedger = async(req, res) => {
                 return res.status(400).json({message: "Parcel not found"});
             }
 
+
             if(!ledger) ledger= await Ledger.findById(p.ledgerId);
 
-            if(ledger.vehicleNo!=vehicleNo){
+            if(ledger && ledger.vehicleNo!=vehicleNo){
                 for(let pcl of codes){
-                    const temp=await Parcel.findById(pcl._id);
+                    const temp=await Parcel.findOne({trackingId: pcl});
                     temp.status= 'dispatched';
                     temp.save();
                 }

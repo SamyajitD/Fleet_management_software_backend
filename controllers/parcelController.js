@@ -9,7 +9,7 @@ const Warehouse = require("../models/warehouseSchema.js");
 
 module.exports.newParcel = async (req, res) => {
     try {
-        let { items, senderDetails, receiverDetails, destinationWarehouse, sourceWarehouse } = req.body;
+        let { items, charges, senderDetails, receiverDetails, destinationWarehouse, sourceWarehouse } = req.body;
         if (!sourceWarehouse) {
             sourceWarehouse = req.user.warehouseCode;
         }
@@ -38,6 +38,7 @@ module.exports.newParcel = async (req, res) => {
         // sourceWarehouse
         const newParcel = new Parcel({
             items: itemEntries,
+            charges,
             sender: newSender._id,
             receiver: newReceiver._id,
             sourceWarehouse,
@@ -345,6 +346,10 @@ module.exports.editParcel = async (req, res) => {
             if (sourceWarehouseId) {
                 updateData.sourceWarehouse = sourceWarehouseId._id;
             }
+        }
+
+        if (updateData.charges) {
+            parcel.charges= updateData.charges;
         }
         if (req.user.role === 'admin' && updateData.status) {
             parcel.status = updateData.status;
