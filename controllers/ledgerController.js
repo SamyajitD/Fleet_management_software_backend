@@ -68,7 +68,6 @@ module.exports.generatePDF = async(req, res) => {
             })
             .populate('sourceWarehouse destinationWarehouse');
 
-node
         const browser = await puppeteer.launch({
             executablePath: '/opt/render/.cache/puppeteer/chrome/linux-133.0.6943.53/chrome-linux64/chrome',
             headless: true
@@ -231,7 +230,7 @@ module.exports.getLedgersByDate = async(req, res) => {
                     $gte: startDate,
                     $lte: endDate
                 },
-                $or: [{scannedBySorce: id}, {scannedByDest: id}],
+                $or: [{scannedBySource: id}, {scannedByDest: id}],
             }) .populate({
                 path: 'parcels',
                 populate: [
@@ -270,7 +269,7 @@ module.exports.getLedgersByDate = async(req, res) => {
             .populate('sourceWarehouse destinationWarehouse');
 
         }
-
+        
         return res.status(200).json({ message: "Successful", body: ledgers });
     } catch (err) {
         return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message });
