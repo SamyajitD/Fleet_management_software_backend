@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer');
 const Ledger = require("../models/ledgerSchema.js");
 const Item = require("../models/itemSchema.js");
 const generateUniqueId = require("../utils/uniqueIdGenerator.js");
@@ -12,7 +12,8 @@ const Parcel= require("../models/parcelSchema.js");
 const qrCodeGenerator= require("../utils/qrCodeGenerator.js");
 const {sendDeliveryMessage}= require("../utils/whatsappMessageSender.js");
 const { Cluster } = require('puppeteer-cluster');
-const chromium = require('chrome-aws-lambda');
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
 
 module.exports.newLedger = async(req, res) => {
     try {
@@ -78,7 +79,10 @@ module.exports.generatePDF = async (req, res) => {
 
         console.log('Launching Puppeteer...');
         const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+            executablePath: await chromium.executablePath(),
+            headless: 'new', 
+            ignoreHTTPSErrors: true,
         });
 
         const page = await browser.newPage();

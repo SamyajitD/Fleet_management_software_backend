@@ -4,6 +4,7 @@
     "install": "npx puppeteer browsers install chrome"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^132.0.0",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "chrome-aws-lambda": "^10.1.0",
