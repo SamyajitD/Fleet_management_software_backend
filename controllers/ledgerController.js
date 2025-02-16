@@ -240,13 +240,21 @@ module.exports.getLedgersByDate = async(req, res) => {
 
         let query= null;
         const id= req.user._id;
+        const user= await Employee.findById(id);
 
         if(forApp=="true"){
             query= {
                 ...dateQuery,
                 $or: [{scannedBySource: id}, {scannedByDest: id}]
             }
-        }else query= dateQuery;
+        }else if(user.role==="admin"){ 
+            query= dateQuery
+        }else{
+            query= {
+                ...dateQuery, 
+                $or: [{sourceWarehouse: user.warehouseCode}, {destinationWarehouse: user.warehouseCode}]
+            }
+        } 
 
         const ledgers = await Ledger.find(query)
             .populate({

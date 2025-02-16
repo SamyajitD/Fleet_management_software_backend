@@ -217,7 +217,7 @@ const generateLR = (parcel) => {
 
                             <div class="charges-row">
                                 <div>
-                                    <strong>Charges:</strong> ₹1000
+                                    <strong>Charges:</strong> ₹ ${parcel.charges}
                                 </div>
                                 <div>
                                     <strong>Signature:</strong> _________________
@@ -237,7 +237,7 @@ const generateLR = (parcel) => {
                                 <strong>Sender Details:</strong>
                                 Name: ${parcel.sender.name}<br>
                                 Phone: ${parcel.sender.phoneNo}<br>
-                                Email: ${parcel.sender.email}
+                                Address: ${parcel.sender.address}
                             </div>
 
                             <hr>
@@ -246,7 +246,6 @@ const generateLR = (parcel) => {
                                 <strong>Receiver Details:</strong>
                                 Name: ${parcel.receiver.name}<br>
                                 Phone: ${parcel.receiver.phoneNo}<br>
-                                Email: ${parcel.receiver.email}<br>
                                 Address: ${parcel.receiver.address}
                             </div>
                         </div>

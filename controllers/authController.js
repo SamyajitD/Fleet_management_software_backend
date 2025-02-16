@@ -57,6 +57,7 @@ module.exports.getStatus= async(req, res) => {
                 name: req.user.name,
                 phoneNo: req.user.phoneNo,
                 warehouseCode: warehouse.warehouseID,
+                warehouseName: warehouse.name,
                 isSource: warehouse.isSource
             }
         });
