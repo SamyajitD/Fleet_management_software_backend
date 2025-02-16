@@ -11,6 +11,9 @@ const Warehouse= require("../models/warehouseSchema.js");
 const Parcel= require("../models/parcelSchema.js");
 const qrCodeGenerator= require("../utils/qrCodeGenerator.js");
 const {sendDeliveryMessage}= require("../utils/whatsappMessageSender.js");
+const { Cluster } = require('puppeteer-cluster');
+const chromium = require('chrome-aws-lambda');
+
 module.exports.newLedger = async(req, res) => {
     try {
         const scannedIds = req.body.codes;
@@ -48,33 +51,21 @@ module.exports.newLedger = async(req, res) => {
 };
 
 
-module.exports.generatePDF = async(req, res) => {
-    try {
-        const { id } = req.params;
-        const ledger = await Ledger.findOne({ ledgerId: id })
-            .populate({
-                path: 'parcels',
-                populate: [
-                    { path: 'items' }, 
-                    { path: 'sender' },
-                    { path: 'receiver' },
-                    { path: 'sourceWarehouse' },
-                    { path: 'destinationWarehouse' }
-                ]
-            })
-            .populate({
-                path: 'scannedBySource scannedByDest verifiedBySource verifiedByDest',
-                select: '-password' 
-            })
-            .populate('sourceWarehouse destinationWarehouse');
 
-        const browser = await puppeteer.launch({
-            executablePath: '/opt/render/.cache/puppeteer/chrome/linux-133.0.6943.53/chrome-linux64/chrome',
-            headless: true
-        });
+let cluster;
 
-        const page = await browser.newPage();
+(async () => {
+    cluster = await Cluster.launch({
+        concurrency: Cluster.CONCURRENCY_CONTEXT,
+        maxConcurrency: 2,
+        puppeteerOptions: {
+            args: chromium.args,
+            executablePath: await chromium.executablePath,
+            headless: chromium.headless,
+        },
+    });
 
+    cluster.task(async ({ page, data: { ledger, id } }) => {
         const htmlContent = generateLedger(ledger);
         await page.setContent(htmlContent, { waitUntil: 'load' });
 
@@ -83,15 +74,44 @@ module.exports.generatePDF = async(req, res) => {
             printBackground: true,
         });
 
-        await browser.close();
+        return pdfBuffer;
+    });
+})();
+
+module.exports.generatePDF = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const ledger = await Ledger.findOne({ ledgerId: id })
+            .populate({
+                path: 'parcels',
+                populate: [
+                    { path: 'items' },
+                    { path: 'sender' },
+                    { path: 'receiver' },
+                    { path: 'sourceWarehouse' },
+                    { path: 'destinationWarehouse' }
+                ]
+            })
+            .populate({
+                path: 'scannedBySource scannedByDest verifiedBySource verifiedByDest',
+                select: '-password'
+            })
+            .populate('sourceWarehouse destinationWarehouse');
+
+        if (!ledger) {
+            return res.status(404).json({ message: `Can't find any Ledger with ID ${id}` });
+        }
+
+        const pdfBuffer = await cluster.execute({ ledger, id });
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${id}.pdf"`);
         res.end(pdfBuffer);
     } catch (err) {
+        console.error('Error generating PDF:', err);
         return res.status(500).json({ message: "Failed to generate Ledger PDF", error: err.message });
     }
-}
+};
 
 
 module.exports.trackLedger = async (req, res) => {
