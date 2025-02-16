@@ -10,16 +10,17 @@ function generateOTP() {
 async function storeOTP(phoneNo, otp) {
     otpStore.set(phoneNo, {
         otp,
-        expires: Date.now() + 2 * 60 * 1000 // 2min
+        expires: Date.now() + 25 * 60 * 1000 // 2min
     });
 
     setTimeout(() => {
         otpStore.delete(phoneNo);
-    }, 2 * 60 * 1000);
+    }, 25 * 60 * 1000);
 }
 
 async function verifyOTP(phoneNo, userOtp) {
     const otpData = otpStore.get(phoneNo);
+    console.log(otpData);
     if (!otpData) return false;
     
     if (Date.now() > otpData.expires) {
@@ -77,8 +78,6 @@ async function sendOTPMessage(phoneNo){
     const otp = generateOTP();
     storeOTP(phoneNo, otp);
 
-    // console.log({otp, phoneNo});
-    
     const respose = await axios({
         url: process.env.WHATSAPP_URL,
         method: 'post',

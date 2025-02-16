@@ -44,13 +44,13 @@ const verifyOTPToken = async (req, res, next) => {
         if (!token) {
             return res.status(201).json({ message: 'Please verify OTP first' });
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jsonwebtoken.verify(token, process.env.JWT_SECRET);
         if (!decoded.isOTPVerified) {
             return res.status(201).json({ message: 'Invalid verification' });
         }
-        req.phoneNo = decoded.phoneNo;
         next();
     } catch (err) {
+        console.log(err);
         return res.status(201).json({ message: 'Invalid token' });
     }
 };
