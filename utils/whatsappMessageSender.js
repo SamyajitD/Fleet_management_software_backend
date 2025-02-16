@@ -47,7 +47,7 @@ async function sendDeliveryMessage(phoneNo, name, trackingId){
             to: '+91 '+ phoneNo,
             type: 'template',
             template: {
-                name: 'parcel_shipped',
+                name: 'parcel_dispatched',
                 language: {
                     code: 'en_US'
                 },
@@ -69,13 +69,15 @@ async function sendDeliveryMessage(phoneNo, name, trackingId){
             }
         })
     })
-    console.log(respose.data); 
-    console.log({name, phoneNo, trackingId});
+    // console.log(respose.data); 
+    // console.log({name, phoneNo, trackingId});
 }
 
 async function sendOTPMessage(phoneNo){
     const otp = generateOTP();
     storeOTP(phoneNo, otp);
+
+    // console.log({otp, phoneNo});
     
     const respose = await axios({
         url: process.env.WHATSAPP_URL,
@@ -93,22 +95,33 @@ async function sendOTPMessage(phoneNo){
                 language: {
                     code: 'en_US'
                 },
-                // components:[
-                //     {
-                //         type: 'body',
-                //         parameters:[
-                //             {
-                //                 type: 'text',
-                //                 text: otp,
-                //             },
-                //         ]
-                //     }
-                // ]
+                components:[
+                    {
+                        type: 'body',
+                        parameters:[
+                            {
+                                type: 'text',
+                                text: otp,
+                            },
+                        ]
+                    },
+                    {
+                        type: 'button',
+                            sub_type: 'url',
+                            index: "0",
+                            parameters: [
+                                {
+                                    type: 'text',
+                                    text: otp
+                                }
+                        ]
+                    }
+                ]    
             }
         })
     });
-    console.log(respose.data);
-    console.log(`OTP for ${phoneNo} is ${otp}`);
+    // console.log(respose.data);
+    // console.log(`OTP for ${phoneNo} is ${otp}`);
 }
 
 module.exports = {
