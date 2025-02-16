@@ -299,7 +299,8 @@ module.exports.getLedgersByDate = async(req, res) => {
     }
 }
 
-module.exports.generateExcel = async(req, res) => {
+
+module.exports.generateExcel = async (req, res) => {
     try {
         const { dateRange } = req.params;
         const { vehicleNo } = req.query;
@@ -307,40 +308,19 @@ module.exports.generateExcel = async(req, res) => {
         const isForVehicle = vehicleNo !== undefined;
 
         if (!dateRange || dateRange.length !== 16) {
-            return res.status(201).json({ message: "Invalid date range format" });
+            return res.status(400).json({ message: "Invalid date range format" });
         }
 
-        const startString = dateRange.slice(0, 8);
-        const endString = dateRange.slice(8);
+        let startString = dateRange.slice(0, 8);
+        let endString = dateRange.slice(8);
 
-        const convertDate = (dateString) => {
-            const day = parseInt(dateString.slice(0, 2), 10);
-            const month = parseInt(dateString.slice(2, 4), 10);
-            const year = parseInt(dateString.slice(4), 10);
+        startString = startString.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+        endString = endString.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
 
-            if (
-                isNaN(day) || isNaN(month) || isNaN(year) ||
-                day < 1 || day > 31 ||
-                month < 1 || month > 12 ||
-                year < 2000 || year > 2125
-            ) {
-                throw new Error(`Invalid date: ${dateString}`);
-            }
-
-            const date = new Date(year, month - 1, day);
-            if (date.getDate() !== day || date.getMonth() + 1 !== month || date.getFullYear() !== year) {
-                throw new Error(`Invalid date: ${dateString}`);
-            }
-
-            return date;
-        };
-
-        let startDate = convertDate(startString);
-        let endDate = convertDate(endString);
-        endDate.setHours(23, 59, 59, 999);
-
+        const startDate = new Date(`${startString}T00:00:00.000Z`);
+        const endDate = new Date(`${endString}T23:59:59.999Z`);
+        
         let allLedgers;
-
         if (isForVehicle) {
             allLedgers = await Ledger.find({
                 $and: [
@@ -351,58 +331,59 @@ module.exports.generateExcel = async(req, res) => {
                         }
                     },
                     {
-                        vehicleNo
+                        vehicleNo: vehicleNo
                     }
                 ]
-            }).populate('items.itemId scannedBy verifiedBy');
+            }).populate('scannedBySource verifiedBySource scannedByDest verifiedByDest sourceWarehouse destinationWarehouse');
         } else {
-            allLedgers = await Ledger.find({ dispatchedAt: { $gte: startDate, $lte: endDate } }).populate('items.itemId').populate('scannedBy').populate('verifiedBy');
+            allLedgers = await Ledger.find({ dispatchedAt: { $gte: startDate, $lte: endDate } })
+            .populate('scannedBySource verifiedBySource scannedByDest verifiedByDest sourceWarehouse destinationWarehouse');
         }
-
+        
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Ledger Report');
 
         worksheet.columns = [
+            { header: 'Ledger ID', key: 'ledgerId', width: 20 },
             { header: 'Vehicle No', key: 'vehicleNo', width: 15 },
-            { header: 'Charges', key: 'charges', width: 15 },
-            { header: 'Is Complete', key: 'status', width: 15 },
+            { header: 'Status', key: 'status', width: 15 },
             { header: 'Dispatched At', key: 'dispatchedAt', width: 20 },
             { header: 'Delivered At', key: 'deliveredAt', width: 20 },
-            { header: 'Item Count', key: 'items', width: 30 },
-            { header: 'Total Hamali', key: 'hamali', width: 15 },
-            { header: 'Scanned By', key: 'scannedBy', width: 20 },
-            { header: 'Verified By', key: 'verifiedBy', width: 20 },
-            { header: 'Destination Warehouse', key: 'destinationWarehouse', width: 20 },
+            { header: 'Parcel Count', key: 'parcels', width: 15 },
+            { header: 'Scanned By Source', key: 'scannedBySource', width: 20 },
+            { header: 'Verified By Source', key: 'verifiedBySource', width: 20 },
+            { header: 'Scanned By Dest', key: 'scannedByDest', width: 20 },
+            { header: 'Verified By Dest', key: 'verifiedByDest', width: 20 },
             { header: 'Source Warehouse', key: 'sourceWarehouse', width: 20 },
+            { header: 'Destination Warehouse', key: 'destinationWarehouse', width: 20 },
         ];
 
-        allLedgers.forEach(ledger => {
-            const totalHamali = ledger.items.reduce((sum, item) => sum + (item.hamali || 0), 0);
-
+        for (const ledger of allLedgers) {
             worksheet.addRow({
+                ledgerId: ledger.ledgerId,
                 vehicleNo: ledger.vehicleNo,
-                charges: ledger.charges,
                 status: ledger.status,
                 dispatchedAt: ledger.dispatchedAt,
                 deliveredAt: ledger.deliveredAt,
-                items: ledger.items.length,
-                hamali: totalHamali,  // Sum of hamali for all items in this ledger
-                scannedBy: ledger.scannedBy?.name || '',
-                verifiedBy: ledger.verifiedBy?.name || '',
-                destinationWarehouse: ledger.destinationWarehouse,
-                sourceWarehouse: ledger.sourceWarehouse,
+                parcels: ledger.parcels.length,
+                scannedBySource: ledger.scannedBySource?.name || '',
+                verifiedBySource: ledger.verifiedBySource?.name || '',
+                scannedByDest: ledger.scannedByDest?.name || '',
+                verifiedByDest: ledger.verifiedByDest?.name || '',
+                sourceWarehouse: ledger.sourceWarehouse?.warehouseID || '',
+                destinationWarehouse: ledger.destinationWarehouse?.warehouseID || '',
             });
-        });
+        }
 
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename="Ledger Report ${isForVehicle ? `(${vehicleNo})` : ''} - ${formatToIST(startDate).replace(/ at.*$/, '')} to ${formatToIST(endDate).replace(/ at.*$/, '')}.xlsx"`);
+        res.setHeader('Content-Disposition', `attachment; filename="Ledger Report ${isForVehicle ? `(${vehicleNo})` : ''} - ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}.xlsx"`);
 
         await workbook.xlsx.write(res);
         return res.end();
     } catch (err) {
         return res.status(500).json({ message: "Failed to generate ledger report", error: err.message });
     }
-}
+};
 
 module.exports.editLedger = async (req, res) => {
     try {
