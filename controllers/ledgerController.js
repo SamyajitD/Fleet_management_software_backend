@@ -52,32 +52,6 @@ module.exports.newLedger = async(req, res) => {
 
 
 
-let cluster;
-
-(async () => {
-    cluster = await Cluster.launch({
-        concurrency: Cluster.CONCURRENCY_CONTEXT,
-        maxConcurrency: 2,
-        puppeteerOptions: {
-            args: chromium.args,
-            executablePath: await chromium.executablePath,
-            headless: chromium.headless,
-        },
-    });
-
-    cluster.task(async ({ page, data: { ledger, id } }) => {
-        const htmlContent = generateLedger(ledger);
-        await page.setContent(htmlContent, { waitUntil: 'load' });
-
-        const pdfBuffer = await page.pdf({
-            format: 'A4',
-            printBackground: true,
-        });
-
-        return pdfBuffer;
-    });
-})();
-
 module.exports.generatePDF = async (req, res) => {
     try {
         const { id } = req.params;
@@ -102,8 +76,26 @@ module.exports.generatePDF = async (req, res) => {
             return res.status(404).json({ message: `Can't find any Ledger with ID ${id}` });
         }
 
-        const pdfBuffer = await cluster.execute({ ledger, id });
+        console.log('Launching Puppeteer...');
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
 
+        const page = await browser.newPage();
+
+        console.log('Setting page content...');
+        const htmlContent = generateLedger(ledger);
+        await page.setContent(htmlContent, { waitUntil: 'load' });
+
+        console.log('Generating PDF...');
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true,
+        });
+
+        await browser.close();
+
+        console.log('Sending PDF response...');
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${id}.pdf"`);
         res.end(pdfBuffer);
