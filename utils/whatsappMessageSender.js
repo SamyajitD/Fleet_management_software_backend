@@ -50,7 +50,7 @@ async function sendDeliveryMessage(phoneNo, name, trackingId){
             template: {
                 name: 'parcel_dispatched',
                 language: {
-                    code: 'en_US'
+                    code: 'en'
                 },
                 components:[
                     {

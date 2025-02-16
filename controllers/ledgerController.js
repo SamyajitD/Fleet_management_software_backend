@@ -10,7 +10,7 @@ const Employee= require("../models/employeeSchema.js");
 const Warehouse= require("../models/warehouseSchema.js");
 const Parcel= require("../models/parcelSchema.js");
 const qrCodeGenerator= require("../utils/qrCodeGenerator.js");
-
+const {sendDeliveryMessage}= require("../utils/whatsappMessageSender.js");
 module.exports.newLedger = async(req, res) => {
     try {
         const scannedIds = req.body.codes;
@@ -505,6 +505,12 @@ module.exports.verifyLedger = async(req, res) => {
 
         await ledger.save();
 
+        for(let id of ledger.parcels){
+            const parcel= await Parcel.findById(id).populate('sender receiver');
+            sendDeliveryMessage(parcel.sender.phoneNo, parcel.sender.name, parcel.trackingId);
+            sendDeliveryMessage(parcel.receiver.phoneNo, parcel.receiver.name, parcel.trackingId);
+        }
+
         return res.status(200).json({ message: "Successful", body: ledger });
     } catch (err) {
         return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message });
@@ -535,10 +541,11 @@ module.exports.deliverLedger = async(req, res) => {
 
                 return res.status(400).json({message: "Selected vehicle no. does not matches this ledger's vehicle no."})
             }
-            
+
             p.status='delivered';
             await p.save();
         }
+        ledger.status= 'verified';
         ledger.scannedByDest=req.user._id;
         await ledger.save();
 
@@ -547,6 +554,3 @@ module.exports.deliverLedger = async(req, res) => {
         return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message });
     }
 }
-
-
-

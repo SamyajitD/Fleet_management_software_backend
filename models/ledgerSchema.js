@@ -17,7 +17,7 @@ const ledgerSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ['pending', 'dispatched', 'completed'],
+        enum: ['pending', 'dispatched', 'verified', 'completed'],
         default: 'pending',
         required: true,
     },
