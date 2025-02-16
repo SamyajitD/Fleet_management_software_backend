@@ -45,9 +45,9 @@ module.exports.newLedger = async(req, res) => {
             await parcel.save();
         }
         
-        res.status(200).json({message: "Ledger created successfully", body: newLedger});
+        res.status(200).json({message: "Ledger created successfully", body: newLedger,flag:true});
     } catch (err) {
-        res.status(500).json({ message: "Failed to create new ledger", error: err.message });
+        res.status(500).json({ message: "Failed to create new ledger", error: err.message ,flag:false});
     }
 };
 
@@ -74,7 +74,7 @@ module.exports.generatePDF = async (req, res) => {
             .populate('sourceWarehouse destinationWarehouse');
 
         if (!ledger) {
-            return res.status(404).json({ message: `Can't find any Ledger with ID ${id}` });
+            return res.status(404).json({ message: `Can't find any Ledger with ID ${id}`,flag:false });
         }
 
         console.log('Launching Puppeteer...');
@@ -103,9 +103,10 @@ module.exports.generatePDF = async (req, res) => {
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${id}.pdf"`);
         res.end(pdfBuffer);
+        return res.json({ message: "Successful", flag:true });
     } catch (err) {
         console.error('Error generating PDF:', err);
-        return res.status(500).json({ message: "Failed to generate Ledger PDF", error: err.message });
+        return res.status(500).json({ message: "Failed to generate Ledger PDF", error: err.message,flag:false });
     }
 };
 
@@ -132,13 +133,13 @@ module.exports.trackLedger = async (req, res) => {
             .populate('sourceWarehouse destinationWarehouse');
 
         if (!ledger) {
-            return res.status(201).json({ message: `Can't find any Ledger with ID ${id}`, body: {} });
+            return res.status(201).json({ message: `Can't find any Ledger with ID ${id}`,flag:false });
         }
 
-        return res.status(200).json({ message: "Successful", body: ledger });
+        return res.status(200).json({ message: "Successful", body: ledger,flag:true });
 
     } catch (err) {
-        return res.status(500).json({ message: "Failed to track ledger", error: err.message });
+        return res.status(500).json({ message: "Failed to track ledger", error: err.message,flag:false });
     }
 };
 
@@ -237,7 +238,7 @@ module.exports.getLedgersByDate = async(req, res) => {
         // Ensure date is in correct format YYYYMMDD
         if (!date.match(/^\d{8}$/)) {
             return res.status(400).json({ 
-                message: "Invalid date format. Expected YYYYMMDD" 
+                message: "Invalid date format. Expected YYYYMMDD" ,flag:false
             });
         }
 
@@ -304,13 +305,15 @@ module.exports.getLedgersByDate = async(req, res) => {
 
         return res.status(200).json({ 
             message: "Successful", 
-            body: ledgers 
+            body: ledgers ,
+            flag:true
         });
     } catch (err) {
         console.error('Error in getLedgersByDate:', err);
         return res.status(500).json({ 
             message: "Failed to get ledgers by date", 
-            error: err.message 
+            error: err.message ,
+            flag:false
         });
     }
 }
@@ -324,7 +327,7 @@ module.exports.generateExcel = async (req, res) => {
         const isForVehicle = vehicleNo !== undefined;
 
         if (!dateRange || dateRange.length !== 16) {
-            return res.status(400).json({ message: "Invalid date range format" });
+            return res.status(400).json({ message: "Invalid date range format" ,flag:false});
         }
 
         let startString = dateRange.slice(0, 8);
@@ -395,9 +398,9 @@ module.exports.generateExcel = async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename="Ledger Report ${isForVehicle ? `(${vehicleNo})` : ''} - ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}.xlsx"`);
 
         await workbook.xlsx.write(res);
-        return res.end();
+        return res.json({ message: "Successful", flag:true });
     } catch (err) {
-        return res.status(500).json({ message: "Failed to generate ledger report", error: err.message });
+        return res.status(500).json({ message: "Failed to generate ledger report", error: err.message,flag:false });
     }
 };
 
@@ -419,16 +422,16 @@ module.exports.editLedger = async (req, res) => {
          */
 
         if (!id) {
-            return res.status(400).json({ message: 'Ledger ID is required' });
+            return res.status(400).json({ message: 'Ledger ID is required',flag:false });
         }
 
         if(!(updateData.status || updateData.vehicleNo || updateData.parcels || updateData.sourceWarehouse || updateData.destinationWarehouse)){
-            return res.status(400).json({message: 'No parameters for updation is provided'});
+            return res.status(400).json({message: 'No parameters for updation is provided',flag:false});
         }
 
         let ledger = await Ledger.findOne({ ledgerId: id });
         if (!ledger) {
-            return res.status(404).json({ message: `Can't find any Ledger with ID ${id}` });
+            return res.status(404).json({ message: `Can't find any Ledger with ID ${id}`,flag:false });
         }
 
         if(updateData.parcels){
@@ -437,7 +440,7 @@ module.exports.editLedger = async (req, res) => {
             console.log(delParcels);
 
             if(!delParcels && !addParcels){
-                return res.status(400).json({message: 'No parameters for updating parcels is provided'});
+                return res.status(400).json({message: 'No parameters for updating parcels is provided',flag:false});    
             }
 
             if(delParcels && delParcels.length>0) {
@@ -492,9 +495,9 @@ module.exports.editLedger = async (req, res) => {
         })
         .populate('sourceWarehouse destinationWarehouse');
 
-        return res.status(200).json({ message: "Ledger updated successfully", body: updatedLedger });
+        return res.status(200).json({ message: "Ledger updated successfully", body: updatedLedger,flag:true });
     } catch (err) {
-        return res.status(500).json({ message: "Failed to update ledger", error: err.message });
+        return res.status(500).json({ message: "Failed to update ledger", error: err.message ,flag:false});
     }
 };
 
@@ -516,9 +519,9 @@ module.exports.verifyLedger = async(req, res) => {
             sendDeliveryMessage(parcel.receiver.phoneNo, parcel.receiver.name, parcel.trackingId);
         }
 
-        return res.status(200).json({ message: "Successful", body: ledger });
+        return res.status(200).json({ message: "Successful", body: ledger ,flag:true});
     } catch (err) {
-        return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message });
+        return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message,flag:false });
     }
 }
 
@@ -544,7 +547,7 @@ module.exports.deliverLedger = async(req, res) => {
                     temp.save();
                 }
 
-                return res.status(400).json({message: "Selected vehicle no. does not matches this ledger's vehicle no."})
+                return res.status(400).json({message: "Selected vehicle no. does not matches this ledger's vehicle no.",flag:false});
             }
 
             p.status='delivered';
@@ -556,6 +559,6 @@ module.exports.deliverLedger = async(req, res) => {
 
         return res.status(200).json({ message: "Successful", flag : true });
     } catch (err) {
-        return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message });
+        return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message,flag:false });
     }
 }

@@ -21,7 +21,7 @@ module.exports.register = async (req, res) => {
         const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
         return res.status(201).json({ token ,flag:true});
     } catch (error) {
-        return res.status(400).json({ message: error.message });
+        return res.status(400).json({ message: error.message,flag:false });
     }
 }
 
@@ -31,7 +31,7 @@ module.exports.login= async (req, res) => {
         const employee = await Employee.findOne({ username });
         
         if (!employee || !(await employee.comparePassword(password))) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Invalid credentials' ,flag:false});
         }
 
         const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
@@ -39,8 +39,8 @@ module.exports.login= async (req, res) => {
             flag:true,
             token
         });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    } catch (err) {
+        res.status(500).json({ message: error.message ,flag:true,error:err.message});
     }
 }
 
@@ -62,16 +62,16 @@ module.exports.getStatus= async(req, res) => {
             }
         });
     }catch(err){
-        return res.status(500).json({ message: "Failed to get user status", error: err.message });
+        return res.status(500).json({ message: "Failed to get user status", error: err.message, flag: false });
     }
 }
 
 module.exports.getAllUsernames= async(req, res)=>{
     try{
         const allUsernames= await Employee.find({}).select('username -_id');
-        return res.status(200).send({message: "Successfully fetched all users", body: allUsernames});
+        return res.status(200).send({message: "Successfully fetched all users", body: allUsernames,flag:true});
     }catch(err){
-        return res.status(500).json({message: "Failed to fetch all usernames", err: err.message});
+        return res.status(500).json({message: "Failed to fetch all usernames", err: err.message, flag: false});
     }
 }
 
@@ -91,7 +91,7 @@ module.exports.getOTP= async (req, res) => {
         return res.status(200).json({ message: 'Successfully sent OTP', phoneNo: employee.phoneNo,  flag: true });
         
     } catch (err) {
-        res.status(500).json({ message: 'Failed to Send OTP', error: err.message });
+        res.status(500).json({ message: 'Failed to Send OTP', error: err.message, flag: false });
     }
 }
 module.exports.verifyOtp = async (req, res) => {
@@ -130,6 +130,6 @@ module.exports.resetPassword = async (req, res) => {
         await employee.save();
         return res.status(200).json({ message: 'Password reset successful', flag: true });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to reset password', error: err.message });
+        res.status(500).json({ message: 'Failed to reset password', error: err.message, flag: false });
     }
 }

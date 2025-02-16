@@ -22,11 +22,11 @@ module.exports.getItemDetails= async(req, res)=>{
                     sender: parcel.sender,
                     receiver: parcel.receiver
                 }
-            }
+            },flag:true
         });
 
     }catch(err){
-        return res.status(500).json({ message: "Failed to fetch item details", error: err.message });
+        return res.status(500).json({ message: "Failed to fetch item details", error: err.message, flag: false });
     }
 }
 
@@ -36,12 +36,12 @@ module.exports.generateQR= async(req, res)=>{
         const item= await Item.findOne({itemId: id});
 
         if(!item){
-            return res.status(201).json({message: "Incorrect Item Id", body: {}});
+            return res.status(201).json({message: "Incorrect Item Id", flag: false});
         }
 
         const qrCode= await generateQRCode(id);
-        return res.status(200).json({message: `Successfully generated QR code for Item Id: ${id}`, body: qrCode});
+        return res.status(200).json({message: `Successfully generated QR code for Item Id: ${id}`, body: qrCode, flag: true});
     }catch(err){
-        return res.status(500).json({message: `Failed to generate QR Code for Item Id: ${id}`, body: {}});
+        return res.status(500).json({message: `Failed to generate QR Code for Item Id: ${id}`, error: err.message, flag: false});
     }
 }

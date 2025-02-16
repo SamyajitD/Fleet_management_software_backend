@@ -6,6 +6,6 @@ module.exports.fetchAllWarehouse= async(req, res)=>{
         const allWarehouses= await Warehouse.find();
         return res.status(200).json({message: "Successfully fetched all warehouses", flag:true, body: allWarehouses});
     }catch(err){
-        return res.status(500).json({message: "Failed to fetch all warehouses", body: {}});
+        return res.status(500).json({message: "Failed to fetch all warehouses", flag:false, error: err.message});
     }
 }

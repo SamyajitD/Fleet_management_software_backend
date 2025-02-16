@@ -49,10 +49,10 @@ module.exports.newParcel = async (req, res) => {
 
         await newParcel.save();
 
-        return res.status(200).json({ message: "Parcel created successfully", body: trackingId });
+        return res.status(200).json({ message: "Parcel created successfully", body: trackingId,flag:true });
 
     } catch (err) {
-        return res.status(500).json({ message: "An error occurred while creating the parcel", error: err.message });
+        return res.status(500).json({ message: "An error occurred while creating the parcel", error: err.message, flag: false });
     }
 };
 
@@ -61,7 +61,7 @@ module.exports.trackParcel = async (req, res) => {
         const { id } = req.params;
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
         if (!parcel) {
-            return res.status(201).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body: {} });
+            return res.status(201).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body: {}, flag: false });
         }
         const { qrCodeURL } = await generateQRCode(id);
 
@@ -76,7 +76,7 @@ module.exports.allParcel = async (req, res) => {
     try {
         if ((!req.user || !req.user.warehouseCode) && !req.user.role === 'admin') {
             return res.status(401).json({
-                message: "Unauthorized: No warehouse access"
+                message: "Unauthorized: No warehouse access",flag:false
             });
         }
 
@@ -123,7 +123,7 @@ module.exports.generateQRCodes = async (req, res) => {
 
         const parcel = await Parcel.findOne({ trackingId: id });
         if (!parcel) {
-            return res.status(404).json({ message: `Parcel not found. Tracking ID: ${id}` });
+            return res.status(404).json({ message: `Parcel not found. Tracking ID: ${id}`,flag:false });
         }
 
         const { qrCodeURL } = await generateQRCode(id);
@@ -243,7 +243,8 @@ module.exports.generateQRCodes = async (req, res) => {
         console.error('Error generating QR codes:', err);
         return res.status(500).json({
             message: "Failed to generate QR codes",
-            error: err.message
+            error: err.message,
+            flag:true
         });
     }
 };
@@ -270,7 +271,7 @@ module.exports.generateLR = async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename="${id}.pdf"`);
         res.end(pdfBuffer);
     } catch (err) {
-        return res.status(500).json({ message: "Failed to generate LR Receipt", error: err.message });
+        return res.status(500).json({ message: "Failed to generate LR Receipt", error: err.message,flag:false });
     }
 }
 
@@ -280,16 +281,16 @@ module.exports.editParcel = async (req, res) => {
         const updateData = req.body;
 
         if (!id) {
-            return res.status(400).json({ message: 'Parcel ID is required' });
+            return res.status(400).json({ message: 'Parcel ID is required',flag:false });
         }
 
         if (!updateData || Object.keys(updateData).length === 0) {
-            return res.status(400).json({ message: 'Update data is required' });
+            return res.status(400).json({ message: 'Update data is required',flag:false });
         }
 
         let parcel = await Parcel.findOne({ trackingId: id });
         if (!parcel) {
-            return res.status(404).json({ message: `Can't find any Parcel with Tracking ID ${id}` });
+            return res.status(404).json({ message: `Can't find any Parcel with Tracking ID ${id}`,flag:false });
         }
 
         // Update items if provided
@@ -356,9 +357,9 @@ module.exports.editParcel = async (req, res) => {
         }
         await parcel.save();
 
-        return res.status(200).json({ flag: true, message: "Parcel updated successfully", body: parcel });
+        return res.status(200).json({ flag: true, message: "Parcel updated successfully", body: parcel ,flag:true});
     } catch (err) {
-        return res.status(500).json({ flag: false, message: "Failed to update parcel", error: err.message });
+        return res.status(500).json({ flag: false, message: "Failed to update parcel", error: err.message ,flag:false});
     }
 };
 
