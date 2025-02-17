@@ -7,7 +7,6 @@
     "@sparticuz/chromium": "^132.0.0",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
-    "chrome-aws-lambda": "^10.1.0",
     "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",

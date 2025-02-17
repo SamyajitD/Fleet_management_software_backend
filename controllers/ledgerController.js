@@ -11,7 +11,7 @@ const Warehouse= require("../models/warehouseSchema.js");
 const Parcel= require("../models/parcelSchema.js");
 const qrCodeGenerator= require("../utils/qrCodeGenerator.js");
 const {sendDeliveryMessage}= require("../utils/whatsappMessageSender.js");
-const { Cluster } = require('puppeteer-cluster');
+// const { Cluster } = require('puppeteer-cluster');
 const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
 
