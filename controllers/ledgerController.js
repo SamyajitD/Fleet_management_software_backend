@@ -513,13 +513,20 @@ module.exports.verifyLedger = async(req, res) => {
 
         await ledger.save();
 
+        let retValueSender, retValueReceiver;
+
         for(let id of ledger.parcels){
             const parcel= await Parcel.findById(id).populate('sender receiver');
-            sendDeliveryMessage(parcel.sender.phoneNo, parcel.sender.name, parcel.trackingId);
-            sendDeliveryMessage(parcel.receiver.phoneNo, parcel.receiver.name, parcel.trackingId);
+            retValueSender= sendDeliveryMessage(parcel.sender.phoneNo, parcel.sender.name, parcel.trackingId);
+            retValueReceiver= sendDeliveryMessage(parcel.receiver.phoneNo, parcel.receiver.name, parcel.trackingId);
         }
 
-        return res.status(200).json({ message: "Successful", body: ledger ,flag:true});
+        if(retValueSender && retValueReceiver){
+            return res.status(200).json({ message: "Successful", body: ledger ,flag:true});
+        }else{
+            return res.status(400).send({message: "Failed to send delivery message", flag: false});
+        }
+        
     } catch (err) {
         return res.status(500).json({ message: "Failed to get ledgers by date", error: err.message,flag:false });
     }

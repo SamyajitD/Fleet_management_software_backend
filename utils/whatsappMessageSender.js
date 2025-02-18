@@ -70,11 +70,13 @@ async function sendDeliveryMessage(phoneNo, name, trackingId){
                     ]
                 }
             })
-        })
+        });
+        return 1;
         // console.log(respose.data); 
         // console.log({name, phoneNo, trackingId});
     }catch(err){
         console.log("Failed to send OTP message");
+        return 0;
     }
 }
 
@@ -126,8 +128,10 @@ async function sendOTPMessage(phoneNo){
         });
         // console.log(respose.data);
         // console.log(`OTP for ${phoneNo} is ${otp}`);
+        return 1;
     }catch(err){
         console.log("Failed to send delivery message");
+        return 0;
     }
 }
 

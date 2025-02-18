@@ -41,6 +41,7 @@ router.route('/manage/regular-item')
 router.route('/manage/regular-client')
     .get(catchAsync(adminController.getAllRegularClients))
     .post(catchAsync(adminController.addNewRegularClient))
+    .put(catchAsync(adminController.editRegularClient))
     .delete(catchAsync(adminController.deleteRegularClient));
 
 module.exports= router;

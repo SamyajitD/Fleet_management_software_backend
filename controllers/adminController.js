@@ -289,22 +289,25 @@ module.exports.addNewRegularItems= async(req, res)=>{
 
 module.exports.deleteRegularItem= async(req, res)=>{
     try{
-        const {id}= req.body;
+        const {items}= req.body;
 
-        const item = await RegularItem.findById(id);
-
-        if (!item) {
-            return res.status(404).json({ message: `No Regular Item found with ID: ${id}` , flag:false});
+        for(let itemId of items){
+            const item = await RegularItem.findById(itemId);
+            if (!item) {
+                return res.status(404).json({ message: `No Regular Item found with ID: ${id}` , flag:false});
+            }
+            
+            await RegularItem.findByIdAndDelete(id);
         }
-
-        await RegularItem.findByIdAndDelete(id);
-
+        
+        
         return res.status(200).json({message: "Successfully deleted a regular item", flag:true});
     }catch(err){
         return res.status(500).json({ message: "Failed to delete a regular item", error: err.message, flag: false});
     }
 }
 
+//edit client
 module.exports.getAllRegularClients= async(req, res)=>{
     try{
         const allClients= await RegularClient.find();
@@ -321,9 +324,24 @@ module.exports.addNewRegularClient= async(req, res)=>{
         const client= new RegularClient({name, phoneNo, address});
         await client.save();
     
-        return res.json({ message: "Successfully added a regular client", body: client, flag: true });
+        return res.status(200).json({ message: "Successfully added a regular client", body: client, flag: true });
     }catch(err){
         return res.status(500).json({ message: "Failed to create a new regular client", error: err.message, flag: false});
+    }
+}
+
+module.exports.editRegularClient= async(req, res)=>{
+    try{
+        const { id, updates }= req.body;
+
+        const client= await RegularClient.findByIdAndUpdate({id}, {$set: updates});
+        if(!client){
+            return res.status(404).json({message: "No client found with given Id", flag: false});
+        }
+        return res.status(200).json({ message: "Successfully edited client details", flag: true, body: client });
+
+    }catch(err){
+        return res.status(500).json({message: "Failed to update client details", error: err.message, flag: false});
     }
 }
 
