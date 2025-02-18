@@ -265,7 +265,7 @@ module.exports.deleteLedger = async (req, res) => {
 
 module.exports.getAllRegularItems= async(req, res)=>{
     try{
-        const allItems= await RegularClient.find();
+        const allItems= await RegularItem.find().sort({name: 1});
 
         return res.status(200).json({ message: "Successfully fetched all regular items", body: allItems, flag: true});
     }catch(err){
@@ -310,7 +310,7 @@ module.exports.deleteRegularItem= async(req, res)=>{
 //edit client
 module.exports.getAllRegularClients= async(req, res)=>{
     try{
-        const allClients= await RegularClient.find();
+        const allClients= await RegularClient.find().sort({name: 1});
 
         return res.status(200).json({message: "Successfully fetched all regular clients", body: allClients, flag:true});
     }catch(err){
@@ -322,6 +322,7 @@ module.exports.addNewRegularClient= async(req, res)=>{
     try{
         const {name, phoneNo, address="NA"}= req.body;
         const client= new RegularClient({name, phoneNo, address});
+        
         await client.save();
     
         return res.status(200).json({ message: "Successfully added a regular client", body: client, flag: true });

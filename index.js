@@ -7,6 +7,7 @@ const app = express();
 const mongoose = require("mongoose")
 const cors = require('cors');
 const Warehouse = require("./models/warehouseSchema.js");
+const RegularClient= require("./models/regularClientSchema.js");
 
 const dbUrl = process.env.DB_URL;
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -46,6 +47,21 @@ app.post('/add-warehouse', async(req, res) => {
         await w.save();
     }
     res.send("SUCCESS");
+})
+
+app.post('/add-regular-clients', async(req, res)=>{
+    try{
+        const {clients}= req.body;
+
+        for(let client of clients){
+            const temp= new RegularClient({name: client.name, phoneNo: client.phoneNo, address: client.address});
+            await temp.save();
+        }
+
+        return res.json("TRUE");
+    }catch(err){
+        res.json({message: "ERROR", err});
+    }
 })
 
 app.use('/api/auth', authRoutes);
