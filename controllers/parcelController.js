@@ -125,7 +125,7 @@ module.exports.generateQRCodes = async (req, res) => {
 
         const parcel = await Parcel.findOne({ trackingId: id });
         if (!parcel) {
-            return res.status(404).json({ message: `Parcel not found. Tracking ID: ${id}`,flag:false });
+            return res.status(404).json({ message: `Parcel not found. Tracking ID: ${id}`, flag: false });
         }
 
         const { qrCodeURL } = await generateQRCode(id);
@@ -223,10 +223,17 @@ module.exports.generateQRCodes = async (req, res) => {
             </html>
         `;
 
-        const browser = await puppeteer.launch();
+        console.log('Launching Puppeteer...');
+        const browser = await puppeteer.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+        });
+
         const page = await browser.newPage();
         await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
 
+        console.log('Generating PDF...');
         const pdfBuffer = await page.pdf({
             format: 'A4',
             printBackground: true,
@@ -235,6 +242,7 @@ module.exports.generateQRCodes = async (req, res) => {
 
         await browser.close();
 
+        console.log('Sending PDF response...');
         const filename = `qr-codes-${id}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -246,7 +254,7 @@ module.exports.generateQRCodes = async (req, res) => {
         return res.status(500).json({
             message: "Failed to generate QR codes",
             error: err.message,
-            flag:true
+            flag: true
         });
     }
 };
