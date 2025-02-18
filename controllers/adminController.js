@@ -294,10 +294,10 @@ module.exports.deleteRegularItem= async(req, res)=>{
         for(let itemId of items){
             const item = await RegularItem.findById(itemId);
             if (!item) {
-                return res.status(404).json({ message: `No Regular Item found with ID: ${id}` , flag:false});
+                return res.status(404).json({ message: `No Regular Item found with ID: ${itemId}` , flag:false});
             }
             
-            await RegularItem.findByIdAndDelete(id);
+            await RegularItem.findByIdAndDelete(itemId);
         }
         
         
@@ -335,7 +335,7 @@ module.exports.editRegularClient= async(req, res)=>{
     try{
         const { id, updates }= req.body;
 
-        const client= await RegularClient.findByIdAndUpdate({id}, {$set: updates});
+        const client= await RegularClient.findByIdAndUpdate(id, {$set: updates});
         if(!client){
             return res.status(404).json({message: "No client found with given Id", flag: false});
         }
