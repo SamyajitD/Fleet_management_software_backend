@@ -10,7 +10,7 @@ function generateOTP() {
 async function storeOTP(phoneNo, otp) {
     otpStore.set(phoneNo, {
         otp,
-        expires: Date.now() + 25 * 60 * 1000 // 2min
+        expires: Date.now() + 25 * 60 * 1000 // 25min
     });
 
     setTimeout(() => {
@@ -36,91 +36,99 @@ async function verifyOTP(phoneNo, userOtp) {
 }
 
 async function sendDeliveryMessage(phoneNo, name, trackingId){
-    const respose= await axios({
-        url: process.env.WHATSAPP_URL,
-        method: 'post',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`
-        },
-        data: JSON.stringify({
-            messaging_product: 'whatsapp',
-            to: '+91 '+ phoneNo,
-            type: 'template',
-            template: {
-                name: 'parcel_dispatched',
-                language: {
-                    code: 'en'
-                },
-                components:[
-                    {
-                        type: 'body',
-                        parameters:[
-                            {
-                                type: 'text',
-                                text: name,
-                            },
-                            {
-                                type: 'text',
-                                text: trackingId,
-                            }
-                        ]
-                    }
-                ]
-            }
+    try{
+        const respose= await axios({
+            url: process.env.WHATSAPP_URL,
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`
+            },
+            data: JSON.stringify({
+                messaging_product: 'whatsapp',
+                to: '+91 '+ phoneNo,
+                type: 'template',
+                template: {
+                    name: 'parcel_dispatched',
+                    language: {
+                        code: 'en'
+                    },
+                    components:[
+                        {
+                            type: 'body',
+                            parameters:[
+                                {
+                                    type: 'text',
+                                    text: name,
+                                },
+                                {
+                                    type: 'text',
+                                    text: trackingId,
+                                }
+                            ]
+                        }
+                    ]
+                }
+            })
         })
-    })
-    // console.log(respose.data); 
-    // console.log({name, phoneNo, trackingId});
+        // console.log(respose.data); 
+        // console.log({name, phoneNo, trackingId});
+    }catch(err){
+        console.log("Failed to send OTP message");
+    }
 }
 
 async function sendOTPMessage(phoneNo){
-    const otp = generateOTP();
-    storeOTP(phoneNo, otp);
-
-    const respose = await axios({
-        url: process.env.WHATSAPP_URL,
-        method: 'post',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`
-        },
-        data: JSON.stringify({
-            messaging_product: 'whatsapp',
-            to: '+91 '+ phoneNo,
-            type: 'template',
-            template: {
-                name: 'otp',
-                language: {
-                    code: 'en_US'
-                },
-                components:[
-                    {
-                        type: 'body',
-                        parameters:[
-                            {
-                                type: 'text',
-                                text: otp,
-                            },
-                        ]
+    try{
+        const otp = generateOTP();
+        storeOTP(phoneNo, otp);
+    
+        const respose = await axios({
+            url: process.env.WHATSAPP_URL,
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`
+            },
+            data: JSON.stringify({
+                messaging_product: 'whatsapp',
+                to: '+91 '+ phoneNo,
+                type: 'template',
+                template: {
+                    name: 'otp',
+                    language: {
+                        code: 'en_US'
                     },
-                    {
-                        type: 'button',
-                            sub_type: 'url',
-                            index: "0",
-                            parameters: [
+                    components:[
+                        {
+                            type: 'body',
+                            parameters:[
                                 {
                                     type: 'text',
-                                    text: otp
-                                }
-                        ]
-                    }
-                ]    
-            }
-        })
-    });
-    // console.log(respose.data);
-    // console.log(`OTP for ${phoneNo} is ${otp}`);
+                                    text: otp,
+                                },
+                            ]
+                        },
+                        {
+                            type: 'button',
+                                sub_type: 'url',
+                                index: "0",
+                                parameters: [
+                                    {
+                                        type: 'text',
+                                        text: otp
+                                    }
+                            ]
+                        }
+                    ]    
+                }
+            })
+        });
+        // console.log(respose.data);
+        // console.log(`OTP for ${phoneNo} is ${otp}`);
+    }catch(err){
+        console.log("Failed to send delivery message");
+    }
 }
 
 module.exports = {

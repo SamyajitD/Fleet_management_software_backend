@@ -5,7 +5,8 @@ const Item = require("../models/itemSchema.js");
 const Parcel = require("../models/parcelSchema.js");
 const Ledger = require("../models/ledgerSchema.js");
 const Client = require("../models/clientSchema.js");
-const generateUniqueId = require("../utils/uniqueIdGenerator.js");
+const RegularClient= require("../models/regularClientSchema.js");
+const RegularItem= require("../models/regularItemSchema.js");
 
 //
 module.exports.fetchAllEmployees = async (req, res) => {
@@ -259,5 +260,86 @@ module.exports.deleteLedger = async (req, res) => {
         return res.status(200).json({ message: "Successfully deleted ledger", body: ledger , flag:true});
     } catch (err) {
         return res.status(500).json({ message: "Failed to delete ledger", error: err.message , flag:false});
+    }
+}
+
+module.exports.getAllRegularItems= async(req, res)=>{
+    try{
+        const allItems= await RegularClient.find();
+
+        return res.status(200).json({ message: "Successfully fetched all regular items", body: allItems, flag: true});
+    }catch(err){
+        return res.status(500).json({ message: "Failed to fetch all regular items", error: err.message, flag: false});
+    }
+}
+
+module.exports.addNewRegularItems= async(req, res)=>{
+    try{
+        const { items }= req.body;
+        for(let itemName of items){
+            const item= new RegularItem({name: itemName});
+            await item.save();
+        }
+
+        return res.status(201).json({ message: "Successfully added all regular items", flag: true });
+    }catch(err){
+        return res.status(500).json({ message: "Failed to add new regular items", error: err.message, flag: false });
+    }
+}
+
+module.exports.deleteRegularItem= async(req, res)=>{
+    try{
+        const {id}= req.body;
+
+        const item = await RegularItem.findById(id);
+
+        if (!item) {
+            return res.status(404).json({ message: `No Regular Item found with ID: ${id}` , flag:false});
+        }
+
+        await RegularItem.findByIdAndDelete(id);
+
+        return res.status(200).json({message: "Successfully deleted a regular item", flag:true});
+    }catch(err){
+        return res.status(500).json({ message: "Failed to delete a regular item", error: err.message, flag: false});
+    }
+}
+
+module.exports.getAllRegularClients= async(req, res)=>{
+    try{
+        const allClients= await RegularClient.find();
+
+        return res.status(200).json({message: "Successfully added a regular client", body: allClients, flag:true});
+    }catch(err){
+        return res.status(500).json({ message: "Failed to fetch all regular items", error: err.message, flag: false});
+    }
+}
+
+module.exports.addNewRegularClient= async(req, res)=>{
+    try{
+        const {name, phoneNo, address="NA"}= req.body;
+        const client= new RegularClient({name, phoneNo, address});
+    
+        return res.json({ message: "Successfully added a regular client", body: client, flag: true });
+    }catch(err){
+        return res.status(500).json({ message: "Failed to create a new regular client", error: err.message, flag: false});
+    }
+}
+
+module.exports.deleteRegularClient= async(req, res)=>{
+    try{
+        const {id}= req.body;
+
+        const client = await RegularClient.findById(id);
+
+        if (!client) {
+            return res.status(404).json({ message: `No Regular Client found with ID: ${id}`, flag: false});
+        }
+
+        await RegularClient.findByIdAndDelete(id);
+
+        return res.status(200).json({message: "Successfully deleted a regular client", flag:true});
+    }catch(err){
+        return res.status(500).json({ message: "Failed to delete a regular client", error: err.message, flag: false});
     }
 }

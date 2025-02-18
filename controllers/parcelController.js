@@ -9,7 +9,7 @@ const Warehouse = require("../models/warehouseSchema.js");
 
 module.exports.newParcel = async (req, res) => {
     try {
-        let { items, charges, senderDetails, receiverDetails, destinationWarehouse, sourceWarehouse } = req.body;
+        let { items, charges, hamali, freight, senderDetails, receiverDetails, destinationWarehouse, sourceWarehouse } = req.body;
         if (!sourceWarehouse) {
             sourceWarehouse = req.user.warehouseCode;
         }
@@ -39,6 +39,8 @@ module.exports.newParcel = async (req, res) => {
         const newParcel = new Parcel({
             items: itemEntries,
             charges,
+            hamali,
+            freight,
             sender: newSender._id,
             receiver: newReceiver._id,
             sourceWarehouse,
@@ -87,8 +89,6 @@ module.exports.allParcel = async (req, res) => {
         endDate.setHours(23, 59, 59, 999);
 
         const employeeWHcode = req.user.warehouseCode;
-
-        const allWarehouses = await Warehouse.find();
 
         let parcels;
         if (req.user.role !== 'admin') {
