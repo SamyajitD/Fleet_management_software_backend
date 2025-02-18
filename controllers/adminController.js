@@ -309,7 +309,7 @@ module.exports.getAllRegularClients= async(req, res)=>{
     try{
         const allClients= await RegularClient.find();
 
-        return res.status(200).json({message: "Successfully added a regular client", body: allClients, flag:true});
+        return res.status(200).json({message: "Successfully fetched all regular clients", body: allClients, flag:true});
     }catch(err){
         return res.status(500).json({ message: "Failed to fetch all regular items", error: err.message, flag: false});
     }
@@ -319,6 +319,7 @@ module.exports.addNewRegularClient= async(req, res)=>{
     try{
         const {name, phoneNo, address="NA"}= req.body;
         const client= new RegularClient({name, phoneNo, address});
+        await client.save();
     
         return res.json({ message: "Successfully added a regular client", body: client, flag: true });
     }catch(err){
