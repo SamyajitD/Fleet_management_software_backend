@@ -6,7 +6,7 @@ const regularClientchema= new mongoose.Schema({
         required: true
     },
     phoneNo:{
-        tyoe: String,
+        type: String,
         required: true
     },
     address:{
