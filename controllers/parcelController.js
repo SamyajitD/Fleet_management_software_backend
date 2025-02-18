@@ -1,4 +1,3 @@
-const puppeteer = require('puppeteer');
 const Parcel = require("../models/parcelSchema.js");
 const Client = require("../models/clientSchema.js");
 const Item = require("../models/itemSchema.js");
@@ -6,6 +5,9 @@ const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
 const generateLR = require("../utils/LRreceiptFormat.js");
 const Warehouse = require("../models/warehouseSchema.js");
+// const { Cluster } = require('puppeteer-cluster');
+const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
 
 module.exports.newParcel = async (req, res) => {
     try {
@@ -254,12 +256,24 @@ module.exports.generateLR = async (req, res) => {
         const { id } = req.params;
         const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver');
 
-        const browser = await puppeteer.launch();
+        if (!parcel) {
+            return res.status(404).json({ message: `Can't find any Parcel with Tracking ID ${id}`, flag: false });
+        }
+
+        console.log('Launching Puppeteer...');
+        const browser = await puppeteer.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+        });
+
         const page = await browser.newPage();
 
+        console.log('Setting page content...');
         const htmlContent = generateLR(parcel);
         await page.setContent(htmlContent, { waitUntil: 'load' });
 
+        console.log('Generating PDF...');
         const pdfBuffer = await page.pdf({
             format: 'A4',
             printBackground: true,
@@ -267,13 +281,15 @@ module.exports.generateLR = async (req, res) => {
 
         await browser.close();
 
+        console.log('Sending PDF response...');
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${id}.pdf"`);
         res.end(pdfBuffer);
     } catch (err) {
-        return res.status(500).json({ message: "Failed to generate LR Receipt", error: err.message,flag:false });
+        console.error('Error generating LR Receipt:', err);
+        return res.status(500).json({ message: "Failed to generate LR Receipt", error: err.message, flag: false });
     }
-}
+};
 
 module.exports.editParcel = async (req, res) => {
     try {
