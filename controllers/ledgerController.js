@@ -375,9 +375,19 @@ module.exports.generateExcel = async (req, res) => {
             { header: 'Verified By Dest', key: 'verifiedByDest', width: 20 },
             { header: 'Source Warehouse', key: 'sourceWarehouse', width: 20 },
             { header: 'Destination Warehouse', key: 'destinationWarehouse', width: 20 },
+            { header: 'Total Hamali', key: 'hamali', width: 20 },
+            { header: 'Total Freight', key: 'freight', width: 20 },
+            { header: 'Statistical Charges', key: 'charges', width: 20 },
         ];
 
         for (const ledger of allLedgers) {
+            let totalHamli=0,totalFreight=0,totalCharges=0;
+            for(const parcelId of ledger.parcels){
+                let parcel=await Parcel.findById(parcelId);
+                totalHamli+=parcel.hamali;
+                totalFreight+=parcel.freight;
+                totalCharges+=parcel.charges;
+            }
             worksheet.addRow({
                 ledgerId: ledger.ledgerId,
                 vehicleNo: ledger.vehicleNo,
@@ -391,6 +401,9 @@ module.exports.generateExcel = async (req, res) => {
                 verifiedByDest: ledger.verifiedByDest?.name || '',
                 sourceWarehouse: ledger.sourceWarehouse?.warehouseID || '',
                 destinationWarehouse: ledger.destinationWarehouse?.warehouseID || '',
+                hamali:totalHamli,
+                freight:totalFreight,
+                charges:totalCharges
             });
         }
 
@@ -398,7 +411,7 @@ module.exports.generateExcel = async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename="Ledger Report ${isForVehicle ? `(${vehicleNo})` : ''} - ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}.xlsx"`);
 
         await workbook.xlsx.write(res);
-        return res.json({ message: "Successful", flag:true });
+        // return res.json({ message: "Successful", flag:true });
     } catch (err) {
         return res.status(500).json({ message: "Failed to generate ledger report", error: err.message,flag:false });
     }
