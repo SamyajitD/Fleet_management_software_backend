@@ -39,8 +39,9 @@ module.exports.login= async (req, res) => {
             flag:true,
             token
         });
+
     } catch (err) {
-        res.status(500).json({ message: error.message ,flag:true,error:err.message});
+        res.status(500).json({ message: "Failed to Login" ,flag:true, error:err.message});
     }
 }
 

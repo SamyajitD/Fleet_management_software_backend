@@ -17,6 +17,13 @@ const authenticateToken = async (req, res, next) => {
             throw new Error('User not found');
         }
 
+        if(req.query){
+            const {isApp}= req.query;
+            if(isApp==="true" && user.role==="supervisor"){
+                return res.status(403).json({message: "Only Staff and Admin can login to app", flag: false});
+            }
+        }
+
         req.user = user;
         next();
     } catch (error) {
@@ -38,6 +45,13 @@ const isSupervisor = async (req, res, next) => {
     next();
 };
 
+const isAppUser = async (req, res, next) => {
+    if (!(req.user.role === 'staff' || req.user.role === 'admin')) {
+        return res.status(201).json({ message: 'Access denied. Only Staff & Admin can access app', flag: false });
+    }
+    next();
+};
+
 const verifyOTPToken = async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
@@ -55,4 +69,4 @@ const verifyOTPToken = async (req, res, next) => {
     }
 };
 
-module.exports = { authenticateToken, isAdmin, isSupervisor, verifyOTPToken };
+module.exports = { authenticateToken, isAdmin, isSupervisor, isAppUser, verifyOTPToken };
