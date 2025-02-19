@@ -28,4 +28,8 @@ router.route('/generate-lr-receipt/:id')
 router.route('/edit/:id')
     .put(authenticateToken,catchAsync(parcelController.editParcel))
 
+//forApp
+router.route('/get-parcels')
+    .get(authenticateToken, catchAsync(parcelController.getParcelsForApp))
+
 module.exports = router;

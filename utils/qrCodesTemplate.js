@@ -1,4 +1,4 @@
-const qrCodeTemplate= (qrCodeURL, id)=>{
+const qrCodeTemplate= (qrCodeURL, id, count)=>{
     return `
     <!DOCTYPE html>
             <html>

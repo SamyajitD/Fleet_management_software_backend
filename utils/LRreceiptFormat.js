@@ -223,17 +223,17 @@ const generateLR = (parcel) => {
 
                             <div class="charges-row">
                                 <div>
-                                    <strong>Statistical Charges:</strong> ${parcel.charges==0?"____": `₹${parcel.charges}`}
+                                    <strong>Statistical Charges: </strong> ${parcel.charges==0?"____":`₹${parcel.charges}`}
                                 </div>
                                 <div>
-                                    <strong>Signature:</strong> _________________
+                                    <strong>Signature: </strong> _________________
                                 </div>
                                 </div>
 
                                 <div>
-                                <strong>Hamali:</strong> ₹${parcel.hamali}
+                                <strong>Hamali: </strong>${parcel.hamali==0?"____": `₹${parcel.hamali}`}
                                 <br>
-                                <strong>Freight:</strong> ${parcel.freight}
+                                <strong>Freight: </strong>${parcel.freight==0?"____": `₹${parcel.freight}`}
                                 <br><br>
                                 <strong>Total Items: ${parcel.items.length}</strong>
                             </div>

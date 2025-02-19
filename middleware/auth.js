@@ -11,14 +11,17 @@ const authenticateToken = async (req, res, next) => {
         }
 
         const decoded = jsonwebtoken.verify(token, process.env.JWT_SECRET);
-        const user = await Employee.findById(decoded.id);
+        const user = await Employee.findById(decoded.id).populate('warehouseCode');
         
         if (!user) {
             throw new Error('User not found');
         }
 
         if(req.query){
+            console.log(req.query)
             const {isApp}= req.query;
+            console.log(isApp);
+            console.log(user);
             if(isApp==="true" && user.role==="supervisor"){
                 return res.status(403).json({message: "Only Staff and Admin can login to app", flag: false});
             }

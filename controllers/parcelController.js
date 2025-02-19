@@ -9,6 +9,7 @@ const Warehouse = require("../models/warehouseSchema.js");
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
 const qrCodeTemplate = require("../utils/qrCodesTemplate.js");
+const Employee= require("../models/employeeSchema.js");
 
 module.exports.newParcel = async (req, res) => {
     try {
@@ -131,7 +132,7 @@ module.exports.generateQRCodes = async (req, res) => {
 
         const { qrCodeURL } = await generateQRCode(id);
 
-        const htmlContent = qrCodeTemplate(qrCodeURL, id);
+        const htmlContent = qrCodeTemplate(qrCodeURL, id, count);
 
         console.log('Launching Puppeteer...');
         const browser = await puppeteer.launch({
@@ -297,3 +298,21 @@ module.exports.editParcel = async (req, res) => {
     }
 };
 
+module.exports.getParcelsForApp= async(req, res)=>{
+    try{
+        const user= req.user;
+        let parcels= [];
+        if(user.warehouseCode.isSource){
+            let temp= await Parcel.find({$and: [{status: 'arrived'}, {sourceWarehouse: user.warehouseCode._id}]});
+            parcels= temp.map((parcel)=>parcel.trackingId)
+        }else{
+            let temp= await Parcel.find({$and: [{status: 'dispatched'}, {destinationWarehouse: user.warehouseCode._id}]});
+            parcels= temp.map((parcel)=>parcel.trackingId)
+        }
+
+        return res.status(200).json({message: "Successfully fetched parcels for resp. warehouse", body: parcels, flag: true});
+
+    }catch(err){
+        return res.status(500).json({message: "Failed to get all parcel details (for app)", error: err.message, flag: false});
+    }
+}
