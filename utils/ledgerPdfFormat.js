@@ -4,21 +4,25 @@ const generateLedger = (ledger) => {
     console.log(ledger);
     let allParcels = ledger.parcels.map(parcel => `
         <tr>
-            <td>${parcel.trackingId}</td>
+            <td>${parcel.trackingId} <strong>(${parcel.items.length} ${parcel.items.length==1?"item":"items"})</strong> </td>
+            <td>${parcel.charges}</td>
             <td>${parcel.hamali}</td>
             <td>${parcel.freight}</td>
+            <td>${parcel.sender.name || 'NA'}</td>
             <td>${parcel.receiver.name || 'NA'}</td>
         </tr>
     `).join('');
 
     let totalFreight = ledger.parcels.reduce((sum, parcel) => sum + parcel.freight, 0);
     let totalHamali = ledger.parcels.reduce((sum, parcel) => sum + parcel.hamali, 0);
+    let totalCharges = ledger.parcels.reduce((sum, parcel) => sum + parcel.charges, 0);
+    let totalItems = ledger.parcels.reduce((sum, parcel) => sum + parcel.items.length, 0);
 
     return `
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Friends Transport Corporation</title>
+            <title>Friends Transport Company</title>
             <style>
                 * {
                     margin: 0;
@@ -125,28 +129,38 @@ const generateLedger = (ledger) => {
                     border-top: 1px solid #333;
                     font-weight: bold;
                 }
+
+                #date-time{
+                    font-size: 15px;
+                    margin-left: 9px;
+                }
             </style>
         </head>
         <body>
             <div class="header">
-                <h1>FRIENDS TRANSPORT CORPORATION</h1>
-                <p class="address">1651/2, Something, again something, Hyderabad</p>
+                <h1>FRIENDS TRANSPORT COMPANY</h1>
+                <p class="address">H.O: 15-1-196/2, Feelkhana, Hyd. Br. O : Nallagutta, Secunderabad. <br> Br. Off Near Mir Alam Filter, Bahadurpura, Hyderabad</p>
                 <h2>Ledger</h2>
             </div>
 
+            <div id="date-time"><strong>Date and Time:</strong> ${formatToIST(ledger.dispatchedAt)}</div>
+            <br>
+
             <div class="ledger-header">
-                <div><strong>Vehicle No:</strong> ${ledger.vehicleNo}</div>
-                <div><strong>Delivery Station:</strong>${ledger.destinationWarehouse}</div>
-                <div><strong>Date and Time:</strong> ${formatToIST(ledger.dispatchedAt)}</div>
+                <div><strong>Vehicle No: </strong>${ledger.vehicleNo}</div>
+                <div><strong>Source Station: </strong>${ledger.sourceWarehouse.name}</div>
+                <div><strong>Delivery Station: </strong>${ledger.destinationWarehouse.name}</div>
             </div>
 
             <div class="table-container">
                 <table style="font-size: 14px">
                     <thead>
                         <tr>
-                            <th>Tracking ID</th>
+                            <th>Order ID</th>
                             <th>Hamali</th>
                             <th>Freight</th>
+                            <th>Statistical Ch.</th>
+                            <th>Sender</th>
                             <th>Receiver</th>
                         </tr>
                     </thead>
@@ -157,9 +171,13 @@ const generateLedger = (ledger) => {
             </div>
 
             <div class="totals">
-                <div>Total Freight: ${totalFreight}</div>
+            <div>Total Items: ${totalItems}</div>
+                <div>Total Statistical Charges: ₹${totalCharges}</div>
                 <div>Total Hamali: ₹${totalHamali}</div>
+                <div>Total Freight: ${totalFreight}</div>
             </div>
+            <br>
+            <div><strong>Truck Hamali: </strong> ______</div>
         </body>
         </html>
     `;

@@ -1,16 +1,4 @@
-const formatToIST= require("../utils/dateFormatter.js");
-
-const generateLR = (parcel) => {
-
-    let allitems = parcel.items.map(item => `
-        <tr>
-            <td>${item.name}</td>
-            <td>${item.quantity}</td>
-        </tr>
-    `).join('');
-
-    return `
-        <!DOCTYPE html>
+<!DOCTYPE html>
         <html>
         <head>
             <title>Friends Transport Company</title>
@@ -200,12 +188,6 @@ const generateLR = (parcel) => {
 
                     <div class="content">
                         <div class="left-column">
-                            <div>
-                                <strong>Source:</strong> ${parcel.sourceWarehouse.name} 
-                                <br> 
-                                <strong>Destination:</strong> ${parcel.destinationWarehouse.name}
-                            </div>
-                            <br>
                             <p><strong>List of Item(s):</strong></p>
                             <div class="table-container">
                                 <table style="font-size: 14px">
@@ -216,7 +198,18 @@ const generateLR = (parcel) => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        ${allitems}
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td>${item.quantity}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td>${item.quantity}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td>${item.quantity}</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -224,18 +217,16 @@ const generateLR = (parcel) => {
                             <div class="charges-row">
                                 <div>
                                     <strong>Statistical Charges:</strong> ${parcel.charges==0?"____": `₹${parcel.charges}`}
+                                    <strong>Hamali:</strong> ₹ ${parcel.hamali}
+                                    <strong>Freight:</strong> ${parcel.freight}
                                 </div>
                                 <div>
                                     <strong>Signature:</strong> _________________
                                 </div>
-                                </div>
-
-                                <div>
-                                <strong>Hamali:</strong> ₹${parcel.hamali}
-                                <br>
-                                <strong>Freight:</strong> ${parcel.freight}
-                                <br><br>
-                                <strong>Total Items: ${parcel.items.length}</strong>
+                            </div>
+                            <br>
+                            <div>
+                                <strong>Total Items: 56</strong>
                             </div>
                         </div>
 
@@ -281,7 +272,3 @@ const generateLR = (parcel) => {
             </div>
         </body>
         </html>
-    `;
-};
-
-module.exports= generateLR;

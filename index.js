@@ -62,7 +62,7 @@ app.post('/add-regular-clients', async(req, res)=>{
     }catch(err){
         res.json({message: "ERROR", err});
     }
-})
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/ledger', ledgerRoutes);
@@ -79,7 +79,7 @@ app.all('*', (req, res, next) => {
 app.use((err, req, res, next) => {
     const { statusCode = 500 } = err;
     if (!err.message) err.message = 'Someting went Wrong !';
-    res.status(statusCode).json(err);
+    return res.status(statusCode).json(err);
 });
 
 app.listen(PORT, () => {
