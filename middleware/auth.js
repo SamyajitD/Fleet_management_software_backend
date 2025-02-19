@@ -16,11 +16,7 @@ const authenticateToken = async (req, res, next) => {
         if (!user) {
             throw new Error('User not found');
         }
-
-        if(user && user.role==='supervisor'){
-            return res.status(403).json({message: 'Only Admin & Staff can access the app', flag: false});
-        }
-
+        
         req.user = user;
         next();
     } catch (error) {
