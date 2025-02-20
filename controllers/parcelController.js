@@ -86,11 +86,9 @@ module.exports.allParcel = async (req, res) => {
             });
         }
 
-        const newDate = new Date(req.body.date);
-        const startDate = new Date(newDate);
-        const endDate = new Date(newDate);
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
+        const formattedDate = req.body.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+        const startDate = new Date(`${formattedDate}T00:00:00.000Z`);
+        const endDate = new Date(`${formattedDate}T23:59:59.999Z`);
 
         const employeeWHcode = req.user.warehouseCode;
 
@@ -272,7 +270,7 @@ module.exports.editParcel = async (req, res) => {
         if (updateData.destinationWarehouse) {
             const destinationWarehouseId = await Warehouse.findOne({ warehouseID: updateData.destinationWarehouse });
             if (destinationWarehouseId) {
-                updateData.destinationWarehouse = destinationWarehouseId._id;
+                parcel.destinationWarehouse = destinationWarehouseId._id;
             }
         }
 
@@ -280,12 +278,18 @@ module.exports.editParcel = async (req, res) => {
         if (updateData.sourceWarehouse) {
             const sourceWarehouseId = await Warehouse.findOne({ warehouseID: updateData.sourceWarehouse });
             if (sourceWarehouseId) {
-                updateData.sourceWarehouse = sourceWarehouseId._id;
+                parcel.sourceWarehouse = sourceWarehouseId._id;
             }
         }
 
         if (updateData.charges) {
             parcel.charges= updateData.charges;
+        }
+        if (updateData.hamali) {
+            parcel.hamali= updateData.hamali;
+        }
+        if (updateData.freight) {
+            parcel.freight= updateData.freight;
         }
         if (req.user.role === 'admin' && updateData.status) {
             parcel.status = updateData.status;

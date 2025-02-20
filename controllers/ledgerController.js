@@ -475,7 +475,11 @@ module.exports.editLedger = async (req, res) => {
         
         if(updateData.status) ledger.status=updateData.status;
         if(updateData.vehicleNo) ledger.vehicleNo=updateData.vehicleNo;
-        if(updateData.sourceWarehouse) ledger.sourceWarehouse=updateData.sourceWarehouse;
+
+        if(updateData.sourceWarehouse){
+            const warehouse= await Warehouse.findOne({warehouseID: updateData.sourceWarehouse});
+            ledger.sourceWarehouse=warehouse._id;
+        }
         if(updateData.destinationWarehouse){
             const warehouse= await Warehouse.findOne({warehouseID: updateData.destinationWarehouse});
             ledger.destinationWarehouse=warehouse._id;
