@@ -2,34 +2,28 @@ const express = require("express");
 const router = express.Router();
 const catchAsync = require("../utils/catchAsync.js");
 const parcelController = require("../controllers/parcelController.js");
-const { authenticateToken } = require("../middleware/auth.js");
+const { authenticateToken, isSupervisor, isAppUser } = require("../middleware/auth.js");
 
 router.route('/new')
-    .post(authenticateToken, catchAsync(parcelController.newParcel));
+    .post(authenticateToken, isSupervisor, catchAsync(parcelController.newParcel));
 
 router.route('/track/:id')
     .get(catchAsync(parcelController.trackParcel));
 
 router.route('/generate-qr/:id')
-    .get(catchAsync(parcelController.generateQRCodes))
+    .get(authenticateToken, isSupervisor, catchAsync(parcelController.generateQRCodes))
 
 router.route('/all')
-    .post(authenticateToken, catchAsync(parcelController.allParcel));
+    .post(authenticateToken, isSupervisor, catchAsync(parcelController.allParcel));
 
 router.route('/generate-lr-receipt/:id')
-    .get(catchAsync(parcelController.generateLR))
-
-// router.route('/append/:id')
-//     .put(catchAsync(parcelController.appendItemsToParcel))
-    
-// router.route('/delete/:id')
-//     .delete(catchAsync(parcelController.DeleteItemsFromParcel))
+    .get(authenticateToken, isSupervisor, catchAsync(parcelController.generateLR))
 
 router.route('/edit/:id')
-    .put(authenticateToken,catchAsync(parcelController.editParcel))
+    .put(authenticateToken, isSupervisor, catchAsync(parcelController.editParcel))
 
 //forApp
 router.route('/get-parcels')
-    .get(authenticateToken, catchAsync(parcelController.getParcelsForApp))
+    .get(authenticateToken, isAppUser, catchAsync(parcelController.getParcelsForApp))
 
 module.exports = router;

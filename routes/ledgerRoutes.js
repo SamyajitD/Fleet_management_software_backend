@@ -1,33 +1,31 @@
 const express = require("express");
 const catchAsync = require("../utils/catchAsync.js");
 const router = express.Router();
-const Ledger = require("../models/ledgerSchema.js")
 const ledgerController = require("../controllers/ledgerController.js");
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, isAppUser, isSupervisor } = require('../middleware/auth');
 
 router.route('/new')
-    .post(authenticateToken, catchAsync(ledgerController.newLedger));
+    .post(authenticateToken, isAppUser, catchAsync(ledgerController.newLedger));
 
 router.route('/generate-ledger-receipt/:id')
-    .get(catchAsync(ledgerController.generatePDF))
+    .get(authenticateToken, isSupervisor, catchAsync(ledgerController.generatePDF))
 
 router.route('/track/:id')
-    .get(catchAsync(ledgerController.trackLedger));
+    .get(authenticateToken, isSupervisor, catchAsync(ledgerController.trackLedger));
 
 router.route('/generate-excel/:dateRange')
-    .get(catchAsync(ledgerController.generateExcel))
+    .get(authenticateToken, isSupervisor, catchAsync(ledgerController.generateExcel))
 
 router.route('/track-all/:date')
     .get(authenticateToken, catchAsync(ledgerController.getLedgersByDate));
 
 router.route('/edit/:id')
-    .put(catchAsync(ledgerController.editLedger));
+    .put(authenticateToken, isSupervisor, catchAsync(ledgerController.editLedger));
 
 router.route('/scan-deliver')
-    .post(authenticateToken, catchAsync(ledgerController.deliverLedger));
+    .post(authenticateToken, isAppUser, catchAsync(ledgerController.deliverLedger));
 
 router.route('/verify-deliver/:id')
-    .put(authenticateToken, catchAsync(ledgerController.verifyLedger));
-    
+    .put(authenticateToken, isSupervisor, catchAsync(ledgerController.verifyLedger));
 
 module.exports = router;

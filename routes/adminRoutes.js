@@ -2,46 +2,46 @@ const express= require("express");
 const router= express.Router();
 const catchAsync= require("../utils/catchAsync.js");
 const adminController= require("../controllers/adminController.js")
-
+const { authenticateToken, isAdmin } = require('../middleware/auth');
 
 router.route('/get-all-employees')
-    .get(catchAsync(adminController.fetchAllEmployees));
+    .get(authenticateToken, isAdmin, catchAsync(adminController.fetchAllEmployees));
 
 router.route('/get-all-drivers')
-    .get(catchAsync(adminController.fetchAllDrivers));
+    .get(authenticateToken, isAdmin, catchAsync(adminController.fetchAllDrivers));
 
 router.route('/get-all-warehouses')
-    .get(catchAsync(adminController.fetchAllWarehouses));
+    .get(authenticateToken, isAdmin, catchAsync(adminController.fetchAllWarehouses));
 
 router.route('/manage/driver')
-    .post(catchAsync(adminController.addDriver))
-    .put(catchAsync(adminController.updateDriver))
-    .delete(catchAsync(adminController.deleteDriver));
+    .post(authenticateToken, isAdmin, catchAsync(adminController.addDriver))
+    .put(authenticateToken, isAdmin, catchAsync(adminController.updateDriver))
+    .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteDriver));
 
 router.route('/manage/employee')
-    .put(catchAsync(adminController.updateEmployee))
-    .delete(catchAsync(adminController.deleteEmployee));
+    .put(authenticateToken, isAdmin, catchAsync(adminController.updateEmployee))
+    .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteEmployee));
 
 router.route('/manage/warehouse')
-    .post(catchAsync(adminController.addWarehouse))
-    .put(catchAsync(adminController.updateWarehouse))
-    .delete(catchAsync(adminController.deleteWarehouse));
+    .post(authenticateToken, isAdmin, catchAsync(adminController.addWarehouse))
+    .put(authenticateToken, isAdmin, catchAsync(adminController.updateWarehouse))
+    .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteWarehouse));
 
 router.route('/manage/parcel')
-    .delete(catchAsync(adminController.deleteParcel));
+    .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteParcel));
 
 router.route('/manage/ledger')
-    .delete(catchAsync(adminController.deleteLedger));
+    .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteLedger));
 
 router.route('/manage/regular-item')
-    .get(catchAsync(adminController.getAllRegularItems))
-    .post(catchAsync(adminController.addNewRegularItems))
-    .delete(catchAsync(adminController.deleteRegularItem));
+    .get(authenticateToken, isAdmin, catchAsync(adminController.getAllRegularItems))
+    .post(authenticateToken, isAdmin, catchAsync(adminController.addNewRegularItems))
+    .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteRegularItem));
 
 router.route('/manage/regular-client')
-    .get(catchAsync(adminController.getAllRegularClients))
-    .post(catchAsync(adminController.addNewRegularClient))
-    .put(catchAsync(adminController.editRegularClient))
-    .delete(catchAsync(adminController.deleteRegularClient));
+    .get(authenticateToken, isAdmin, catchAsync(adminController.getAllRegularClients))
+    .post(authenticateToken, isAdmin, catchAsync(adminController.addNewRegularClient))
+    .put(authenticateToken, isAdmin, catchAsync(adminController.editRegularClient))
+    .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteRegularClient));
 
 module.exports= router;

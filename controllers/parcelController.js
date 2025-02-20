@@ -312,14 +312,13 @@ module.exports.getParcelsForApp= async(req, res)=>{
         }else{
             let temp= await Parcel.find({$and: [{status: 'dispatched'}, {destinationWarehouse: user.warehouseCode._id}]}).populate('ledgerId');
             parcels= temp.map((parcel)=>{
-                if(parcel.ledgerId.status==="dispatched"){
+                if((parcel.ledgerId.status==="dispatched") || (parcel.ledgerId.status==="verified")){
                     return parcel.trackingId;
                 }
             })
         }
 
         return res.status(200).json({message: "Successfully fetched parcels for respective warehouse", body: parcels, flag: true});
-
     }catch(err){
         return res.status(500).json({message: "Failed to get all parcel details (for app)", error: err.message, flag: false});
     }

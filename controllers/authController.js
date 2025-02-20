@@ -39,6 +39,10 @@ module.exports.login= async (req, res) => {
             return res.status(403).json({message: "Only admin and staff can access app", flag: false});
         }
 
+        if(employee.role==='staff' && !forApp){
+            return es.status(403).json({message: "Only admin and supervisor can access website", flag: false});
+        }
+
         const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
         res.status(200).json({ flag:true, token });
 

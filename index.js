@@ -4,24 +4,20 @@ if (process.env.NODE_ENV !== 'production') {
 
 const express = require('express');
 const app = express();
-const mongoose = require("mongoose")
 const cors = require('cors');
-const Warehouse = require("./models/warehouseSchema.js");
-const RegularClient= require("./models/regularClientSchema.js");
+const mongoose = require("mongoose")
 
 const dbUrl = process.env.DB_URL;
-const JWT_SECRET = process.env.JWT_SECRET;
 const PORT = process.env.PORT || 8000;
 
 const ExpressError = require('./utils/expressError.js');
 
 const authRoutes = require("./routes/authRoutes.js");
-const ledgerRoutes = require("./routes/ledgerRoutes.js");
-const parcelRoutes = require("./routes/parcelRoutes.js");
-const warehouseRoutes = require("./routes/warehouseRoutes.js")
-const driverRoutes = require("./routes/driverRoutes.js");
-const itemRoutes = require("./routes/itemRoutes.js");
 const adminRoutes = require("./routes/adminRoutes.js");
+const warehouseRoutes = require("./routes/warehouseRoutes.js")
+const parcelRoutes = require("./routes/parcelRoutes.js");
+const ledgerRoutes = require("./routes/ledgerRoutes.js");
+const driverRoutes = require("./routes/driverRoutes.js");
 
 mongoose.connect(dbUrl);
 const db = mongoose.connection;
@@ -31,7 +27,7 @@ db.once("open", () => {
 });
 
 const corsOptions = {
-    origin: '*',
+    origin: 'https://friendstransport.in',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
 }
@@ -40,36 +36,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
 
-app.post('/add-warehouse', async(req, res) => {
-    const warehouses = req.body;
-    for (let warehouse of warehouses) {
-        const w = new Warehouse(warehouse);
-        await w.save();
-    }
-    res.send("SUCCESS");
-})
-
-app.post('/add-regular-clients', async(req, res)=>{
-    try{
-        const {clients}= req.body;
-
-        for(let client of clients){
-            const temp= new RegularClient({name: client.name, phoneNo: client.phoneNo, address: client.address});
-            await temp.save();
-        }
-
-        return res.json("TRUE");
-    }catch(err){
-        res.json({message: "ERROR", err});
-    }
-});
-
 app.use('/api/auth', authRoutes);
 app.use('/api/ledger', ledgerRoutes);
 app.use('/api/parcel', parcelRoutes);
 app.use('/api/warehouse', warehouseRoutes);
 app.use('/api/driver', driverRoutes);
-app.use('/api/item', itemRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.all('*', (req, res, next) => {
