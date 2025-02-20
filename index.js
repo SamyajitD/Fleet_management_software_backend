@@ -27,7 +27,8 @@ db.once("open", () => {
 });
 
 const corsOptions = {
-    origin: 'https://friendstransport.in',
+    // origin: 'https://friendstransport.in',
+    origin: '*',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
 }
