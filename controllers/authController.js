@@ -12,7 +12,7 @@ module.exports.register = async (req, res) => {
             password, 
             name, 
             phoneNo, 
-            warehouseCode: warehouseCode._id, 
+            warehouseCode: warehouseCode._id,
             role
         });
 
