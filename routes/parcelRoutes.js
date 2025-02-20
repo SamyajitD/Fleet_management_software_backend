@@ -11,13 +11,13 @@ router.route('/track/:id')
     .get(catchAsync(parcelController.trackParcel));
 
 router.route('/generate-qr/:id')
-    .get(authenticateToken, isSupervisor, catchAsync(parcelController.generateQRCodes))
+    .get(catchAsync(parcelController.generateQRCodes))
 
 router.route('/all')
     .post(authenticateToken, isSupervisor, catchAsync(parcelController.allParcel));
 
 router.route('/generate-lr-receipt/:id')
-    .get(authenticateToken, isSupervisor, catchAsync(parcelController.generateLR))
+    .get(catchAsync(parcelController.generateLR))
 
 router.route('/edit/:id')
     .put(authenticateToken, isSupervisor, catchAsync(parcelController.editParcel))

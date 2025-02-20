@@ -8,13 +8,13 @@ router.route('/new')
     .post(authenticateToken, isAppUser, catchAsync(ledgerController.newLedger));
 
 router.route('/generate-ledger-receipt/:id')
-    .get(authenticateToken, isSupervisor, catchAsync(ledgerController.generatePDF))
+    .get(catchAsync(ledgerController.generatePDF))
 
 router.route('/track/:id')
     .get(authenticateToken, isSupervisor, catchAsync(ledgerController.trackLedger));
 
 router.route('/generate-excel/:dateRange')
-    .get(authenticateToken, isSupervisor, catchAsync(ledgerController.generateExcel))
+    .get(catchAsync(ledgerController.generateExcel))
 
 router.route('/track-all/:date')
     .get(authenticateToken, catchAsync(ledgerController.getLedgersByDate));
