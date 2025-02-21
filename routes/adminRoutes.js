@@ -11,7 +11,7 @@ router.route('/get-all-drivers')
     .get(authenticateToken, isAdmin, catchAsync(adminController.fetchAllDrivers));
 
 router.route('/get-all-warehouses')
-    .get(authenticateToken, isAdmin, catchAsync(adminController.fetchAllWarehouses));
+    .get(authenticateToken, catchAsync(adminController.fetchAllWarehouses));
 
 router.route('/manage/driver')
     .post(authenticateToken, isAdmin, catchAsync(adminController.addDriver))
@@ -34,12 +34,12 @@ router.route('/manage/ledger')
     .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteLedger));
 
 router.route('/manage/regular-item')
-    .get(authenticateToken, isAdmin, catchAsync(adminController.getAllRegularItems))
+    .get(authenticateToken, catchAsync(adminController.getAllRegularItems))
     .post(authenticateToken, isAdmin, catchAsync(adminController.addNewRegularItems))
     .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteRegularItem));
 
 router.route('/manage/regular-client')
-    .get(authenticateToken, isAdmin, catchAsync(adminController.getAllRegularClients))
+    .get(authenticateToken, catchAsync(adminController.getAllRegularClients))
     .post(authenticateToken, isAdmin, catchAsync(adminController.addNewRegularClient))
     .put(authenticateToken, isAdmin, catchAsync(adminController.editRegularClient))
     .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteRegularClient));
