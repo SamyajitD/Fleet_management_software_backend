@@ -13,7 +13,7 @@ const Employee= require("../models/employeeSchema.js");
 
 module.exports.newParcel = async (req, res) => {
     try {
-        let { items, charges, hamali, freight, senderDetails, receiverDetails, destinationWarehouse, sourceWarehouse } = req.body;
+        let { items, senderDetails, receiverDetails, destinationWarehouse, sourceWarehouse, payment, doorDelivery } = req.body;
         if (!sourceWarehouse) {
             sourceWarehouse = req.user.warehouseCode;
         }
@@ -22,11 +22,19 @@ module.exports.newParcel = async (req, res) => {
         }
 
         const destinationWarehouseId = await Warehouse.findOne({ warehouseID: destinationWarehouse });
+        let totalCharges=0 , totalHamali= 0, totalFreight = 0;
         const itemEntries = [];
         for (const item of items) {
+            totalCharges += item.statisticalCharges;
+            totalHamali += item.hamali;
+            totalFreight += item.freight;
             const newItem = new Item({
                 name: item.name,
+                type: item.type,
                 quantity: item.quantity,
+                freight: item.freight,
+                hamali: item.hamali,
+                statisticalCharges: item.statisticalCharges
             });
             const savedItem = await newItem.save();
             itemEntries.push(savedItem._id);
@@ -42,14 +50,17 @@ module.exports.newParcel = async (req, res) => {
         // sourceWarehouse
         const newParcel = new Parcel({
             items: itemEntries,
-            charges,
-            hamali,
-            freight,
             sender: newSender._id,
             receiver: newReceiver._id,
             sourceWarehouse,
             destinationWarehouse: destinationWarehouseId._id,
             trackingId,
+            payment,
+            doorDelivery,
+            status: 'arrived',
+            charges: totalCharges,
+            hamali: totalHamali,
+            freight: totalFreight,
             addedBy: req.user._id
         });
 
@@ -123,14 +134,26 @@ module.exports.generateQRCodes = async (req, res) => {
         const { id } = req.params;
         const { count = 1 } = req.query;
 
-        const parcel = await Parcel.findOne({ trackingId: id });
+        const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
         if (!parcel) {
             return res.status(404).json({ message: `Parcel not found. Tracking ID: ${id}`, flag: false });
         }
 
         const { qrCodeURL } = await generateQRCode(id);
 
-        const htmlContent = qrCodeTemplate(qrCodeURL, id, count);
+        const receiverInfo= {
+            name: parcel.receiver.name,
+            phone: parcel.receiver.phoneNo,
+            source: parcel.sourceWarehouse.name,
+            destination: parcel.destinationWarehouse.name,
+            date: parcel.placedAt.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            })
+        }
+
+        const htmlContent = qrCodeTemplate(qrCodeURL, id, count, receiverInfo);
 
         console.log('Launching Puppeteer...');
         const browser = await puppeteer.launch({
@@ -171,7 +194,7 @@ module.exports.generateQRCodes = async (req, res) => {
 module.exports.generateLR = async (req, res) => {
     try {
         const { id } = req.params;
-        const parcel = await Parcel.findOne({ trackingId: id }).populate('items sourceWarehouse destinationWarehouse sender receiver');
+        const parcel = await Parcel.findOne({ trackingId: id }).populate('items sourceWarehouse destinationWarehouse sender receiver addedBy');
 
         if (!parcel) {
             return res.status(404).json({ message: `Can't find any Parcel with Tracking ID ${id}`, flag: false });

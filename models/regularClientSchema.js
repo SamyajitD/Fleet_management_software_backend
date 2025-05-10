@@ -12,7 +12,10 @@ const regularClientchema= new mongoose.Schema({
     },
     address:{
         type: String
-    }
+    },
+    gst:{
+        type: String
+    },
 });
 
 module.exports= mongoose.model('RegularClient', regularClientchema);

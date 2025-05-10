@@ -1,97 +1,75 @@
-const qrCodeTemplate= (qrCodeURL, id, count)=>{
+const qrCodeTemplate = (qrCodeURL, id, count, receiverInfo) => {
     return `
     <!DOCTYPE html>
-            <html>
-            <head>
-                <title>QR CODES (${id})</title>
-                <style>
-                    @page { 
-                        size: A4; 
-                        margin: 5mm;
-                    }
-                    body { 
-                        margin: 0;
-                        padding: 0;
-                    }
-                    .page {
-                        position: relative;
-                        height: 287mm;
-                        page-break-after: always;
-                    }
-                    .qr-container {
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        grid-template-rows: repeat(3, 90mm);
-                        position: relative;
-                        z-index: 2;
-                        padding: 5mm;
-                    }
-                    .qr-item {
-                        text-align: center;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        justify-content: center;
-                        height: 90mm;
-                    }
-                    .qr-code {
-                        width: 70mm;
-                        height: 70mm;
-                    }
-                    .tracking-id {
-                        margin-top: 0;
-                        font-weight: bold;
-                        font-size: 12pt;
-                    }
-                    .cut-lines {
-                        position: absolute;
-                        top: 5mm;
-                        left: 5mm;
-                        right: 5mm;
-                        bottom: 5mm;
-                        z-index: 1;
-                    }
-                    .vertical-line {
-                        position: absolute;
-                        border-left: 1px dashed #000;
-                        height: 100%;
-                        left: 50%;
-                    }
-                    .horizontal-line-1 {
-                        position: absolute;
-                        border-top: 1px dashed #000;
-                        width: 100%;
-                        top: 90mm;
-                    }
-                    .horizontal-line-2 {
-                        position: absolute;
-                        border-top: 1px dashed #000;
-                        width: 100%;
-                        top: 180mm;
-                    }
-                </style>
-            </head>
-            <body>
-                ${Array.from({ length: Math.ceil(count / 6) }, (_, pageIndex) => `
-                    <div class="page">
-                        <div class="cut-lines">
-                            <div class="vertical-line"></div>
-                            ${(pageIndex * 6 + 2) <= count ? '<div class="horizontal-line-1"></div>' : ''}
-                            ${(pageIndex * 6 + 4) <= count ? '<div class="horizontal-line-2"></div>' : ''}
-                        </div>
-                        <div class="qr-container">
-                            ${Array.from({ length: Math.min(6, count - pageIndex * 6) }, () => `
-                                <div class="qr-item">
-                                    <img src="${qrCodeURL}" class="qr-code" alt="QR Code">
-                                    <div class="tracking-id">${id}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `).join('')}
-            </body>
-            </html>
+    <html>
+    <head>
+        <title>QR CODES (${id})</title>
+        <style>
+            @page { 
+                size: 50mm 50mm; 
+                margin: 0;
+            }
+            body { 
+                margin: 0;
+                padding: 2mm;
+            }
+            .label {
+                width: 46mm;
+                height: 46mm;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .qr-code {
+                width: 25mm;
+                height: 25mm;
+                margin-bottom: 1mm;
+            }
+            .tracking-id {
+                font-weight: bold;
+                font-size: 8pt;
+                margin-bottom: 1mm;
+            }
+            .receiver-info {
+                font-size: 6pt;
+                text-align: center;
+                line-height: 1.2;
+            }
+            .warehouse-info {
+                font-size: 6pt;
+                text-align: center;
+                margin-top: 1mm;
+            }
+            .date-info {
+                font-size: 6pt;
+                text-align: center;
+                margin-top: 1mm;
+            }
+        </style>
+    </head>
+    <body>
+        ${Array.from({ length: count }, () => `
+            <div class="label">
+                <img src="${qrCodeURL}" class="qr-code" alt="QR Code">
+                <div class="tracking-id">ID: ${id}</div>
+                <div class="receiver-info">
+                    ${receiverInfo.name}
+                    <br>
+                    <b>Ph:</b> ${receiverInfo.phone}
+                </div>
+                <div class="warehouse-info">
+                    <b>From:</b> ${receiverInfo.source}
+                    <br>
+                    <b>To:</b> ${receiverInfo.destination}
+                </div>
+                <div class="date-info">
+                    <b>Date: </b> ${receiverInfo.date}
+                </div>
+            </div>
+        `).join('')}
+    </body>
+    </html>
     `
 }
 
-module.exports= qrCodeTemplate;
+module.exports = qrCodeTemplate;

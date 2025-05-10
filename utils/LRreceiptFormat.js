@@ -1,13 +1,38 @@
 const formatToIST= require("../utils/dateFormatter.js");
 
 const generateLR = (parcel) => {
-
+    let index = 1;
     let allitems = parcel.items.map(item => `
         <tr>
-            <td>${item.name}</td>
+            <td>${index++}</td>
+            <td>${item.name}</td>  
+            <td>${item.type}</td>
             <td>${item.quantity}</td>
+            <td>${item.freight==0?"____":`₹${item.freight}`}</td>
+            <td>${item.hamali==0?"____":`₹${item.hamali}`}</td>
+            <td>${item.statisticalCharges==0?"____":`₹${item.statisticalCharges}`}</td>
+            <td>${item.freight+item.hamali+item.statisticalCharges==0?"____":`₹${item.freight+item.hamali+item.statisticalCharges}`}</td>
         </tr>
     `).join('');
+
+    let totalFreight = parcel.items.reduce((sum, item) => sum + item.freight, 0);
+    let totalHamali = parcel.items.reduce((sum, item) => sum + item.hamali, 0);
+    let totalCharges = parcel.items.reduce((sum, item) => sum + item.statisticalCharges, 0);
+    let totalItems = parcel.items.reduce((sum, item) => sum + item.quantity, 0);
+    let totalAmount = totalFreight + totalHamali + totalCharges;
+
+    let lastRow= `
+        <tr style="background-color: #f5f5f5; font-weight: bold;">
+            <td></td>
+            <td></td>  
+            <td></td>
+            <td>${totalItems}</td>
+            <td>${totalFreight===0?"____":'₹'+totalFreight}</td>
+            <td>${totalHamali===0?"____":'₹'+totalHamali}</td>
+            <td>${totalCharges===0?"____":'₹'+totalCharges}</td></td>
+            <td>${totalAmount===0?"____":'₹'+totalAmount}</td>
+        </tr>
+        `
 
     return `
         <!DOCTYPE html>
@@ -35,13 +60,48 @@ const generateLR = (parcel) => {
                 @media print {
                     html, body {
                         width: 210mm;
-                        height: max-content;
+                        min-height: 100%;
                         background: white;
+                        margin: 0;
+                        padding: 20px;
+                    }
+
+                    .main-wrapper {
+                        display: flex;
+                        flex-direction: column;
+                        min-height: 100%;
+                        position: relative;
+                    }
+
+                    .bill-content {
+                        flex: 1 0 auto;
+                    }
+
+                    .bottom-box {
+                        position: relative;
+                        margin-top: auto;
+                        page-break-inside: avoid;
                     }
 
                     thead {
                         display: table-header-group;
                     }
+                }
+
+                .main-wrapper {
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 100%;
+                }
+
+                .bill-content {
+                    flex: 1 0 auto;
+                }
+
+                .bottom-box {
+                    width: 100%;
+                    padding: 15px 20px;
+                    border-top: 1px solid #333;
                 }
 
                 .header {
@@ -75,7 +135,7 @@ const generateLR = (parcel) => {
                 }
 
                 .right-column {
-                    width: 220px;
+                    width: 205px;h3
                     flex: none;
                     padding: 8px;
                     border: 1px solid #ccc;
@@ -89,10 +149,7 @@ const generateLR = (parcel) => {
                 .table-container {
                     width: 100%;
                     margin: 0 auto 20px;
-                    border-radius: 8px;
                     overflow: hidden;
-                    border: 1px solid #333;
-                    break-inside: avoid-page;
                 }
 
                 table {
@@ -101,29 +158,40 @@ const generateLR = (parcel) => {
                     border-spacing: 0;
                 }
 
-                tr {
-                    break-inside: avoid;
-                }
-
                 table th,
                 table td {
                     padding: 8px;
                     text-align: left;
-                    border-bottom: 1px solid #333;
+                    border: 1px solid #333;
+                }
+
+                table thead tr th:first-child {
+                    border-top-left-radius: 8px;
+                }
+
+                table thead tr th:last-child {
+                    border-top-right-radius: 8px;
+                }
+
+                table tbody tr:last-child td:first-child {
+                    border-bottom-left-radius: 8px;
+                }
+
+                table tbody tr:last-child td:last-child {
+                    border-bottom-right-radius: 8px;
+                }
+
+                table th:not(:last-child),
+                table td:not(:last-child) {
                     border-right: 1px solid #333;
                 }
 
-                table th:last-child,
-                table td:last-child {
-                    border-right: none;
+                .totals-section {
+                    margin-top: 20px;
                 }
 
-                table tr:last-child td {
-                    border-bottom: none;
-                }
-
-                table th {
-                    background-color: #f5f5f5;
+                tr {
+                    break-inside: avoid;
                 }
 
                 .details-section {
@@ -138,7 +206,7 @@ const generateLR = (parcel) => {
 
                 hr {
                     border: none;
-                    border-top: 1px solid #ccc;
+                    border-top: 1px solid #333;
                     margin: 8px 0;
                 }
 
@@ -148,14 +216,6 @@ const generateLR = (parcel) => {
                     margin-top: 20px;
                     padding-top: 10px;
                     border-top: 1px solid #ccc;
-                    break-inside: avoid;
-                }
-
-                .bottom-box {
-                    margin-top: 30px;
-                    padding: 15px 20px;
-                    border-top: 2px solid #333;
-                    background-color: white;
                     break-inside: avoid;
                 }
 
@@ -176,23 +236,13 @@ const generateLR = (parcel) => {
                     color: #666;
                     margin-bottom: 10px;
                 }
-
-                .main-wrapper {
-                    display: flex;
-                    flex-direction: column;
-                    min-height: 100%;
-                }
-
-                .bill-content {
-                    flex: 1;
-                    margin-bottom: 30px;
-                }
             </style>
         </head>
         <body>
             <div class="main-wrapper">
                 <div class="bill-content">
                     <div class="header">
+                        <h3>SUBJECT TO HYDERABAD JURISDICTION</h3>
                         <h1>FRIENDS TRANSPORT COMPANY</h1>
                         <p class="address">H.O: 15-1-196/2, Feelkhana, Hyd. Br. O : Nallagutta, Secunderabad. <br> Br. Off Near Mir Alam Filter, Bahadurpura, Hyderabad</p>
                         <h2>LR Receipt</h2>
@@ -200,7 +250,9 @@ const generateLR = (parcel) => {
 
                     <div class="content">
                         <div class="left-column">
-                            <div>
+                            <div> 
+                                <strong>Created By:</strong> ${parcel.addedBy.name} 
+                                <br><br> 
                                 <strong>Source:</strong> ${parcel.sourceWarehouse.name} 
                                 <br> 
                                 <strong>Destination:</strong> ${parcel.destinationWarehouse.name}
@@ -211,33 +263,40 @@ const generateLR = (parcel) => {
                                 <table style="font-size: 14px">
                                     <thead>
                                         <tr>
+                                            <th>S.No.</th>
                                             <th>Item Name</th>
+                                            <th>Type</th>
                                             <th>Quantity</th>
+                                            <th>Freight</th>
+                                            <th>Hamali</th>
+                                            <th>Statistical Charges</th>
+                                            <th>Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         ${allitems}
+                                        ${lastRow}
                                     </tbody>
                                 </table>
                             </div>
 
                             <div class="charges-row">
                                 <div>
-                                    <strong>Statistical Charges: </strong> ${parcel.charges==0?"____":`₹${parcel.charges}`}
+                                    <strong>Total Hamali: </strong>${totalHamali==0?"____": `₹${totalHamali}`}
                                 </div>
                                 <div>
-                                    <strong>Signature: </strong> _________________
+                                    <strong>Signature: </strong> _______________
                                 </div>
-                                </div>
-
-                                <div>
-                                <strong>Hamali: </strong>${parcel.hamali==0?"____": `₹${parcel.hamali}`}
+                            </div>
+                                
+                            <div>
+                                <strong>Total Freight: </strong>${totalFreight==0?"____": `₹${totalFreight}`}
                                 <br>
-                                <strong>Freight: </strong>${parcel.freight==0?"____": `₹${parcel.freight}`}
-                                <br><br>
-                                <strong>Total Items: ${parcel.items.length}</strong>
+                                <strong>Total Statistical Charges: </strong> ${totalCharges==0?"____":`₹${totalCharges}`}
+                                <br> <br>
                             </div>
                         </div>
+
 
                         <div class="right-column">
                             <div class="details-section">
@@ -251,7 +310,8 @@ const generateLR = (parcel) => {
                                 <strong>Sender Details:</strong>
                                 Name: ${parcel.sender.name}<br>
                                 Phone: ${parcel.sender.phoneNo}<br>
-                                Address: ${parcel.sender.address}
+                                Address: ${parcel.sender.address} <br>
+                                GST: ${parcel.sender.gst}
                             </div>
 
                             <hr>
@@ -260,15 +320,26 @@ const generateLR = (parcel) => {
                                 <strong>Receiver Details:</strong>
                                 Name: ${parcel.receiver.name}<br>
                                 Phone: ${parcel.receiver.phoneNo}<br>
-                                Address: ${parcel.receiver.address}
+                                Address: ${parcel.receiver.address} <br>
+                                GST: ${parcel.receiver.gst}
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <hr>
+                <br>
+
+                 <div style="display: flex; justify-content: space-between; width: 95%;">
+                    <strong >Total Items: ${totalItems}</strong>
+                    <strong style="margin-left: 140px">Total Amount: </strong>${totalAmount==0?"____": `₹${totalAmount}`}
+                    <strong style="margin-left: 140px">Payment: ${parcel.payment}</strong>
+                </div>
+                <br>
+
                 <div class="bottom-box">
                     <p class="disclaimer">FTC is not responsible for leakage and breakage</p>
-                    <p><strong>GSTID:</strong> 36AAFFF2744R1ZX</p>
+                    <p><strong>FTC GST ID:</strong> 36AAFFF2744R1ZX</p>
                     <div class="locations">
                         <span class="location">▸ Karimnagar- 9908690827</span>
                         <span class="location">▸ Sultanabad- 9849701721</span>

@@ -320,8 +320,8 @@ module.exports.getAllRegularClients= async(req, res)=>{
 
 module.exports.addNewRegularClient= async(req, res)=>{
     try{
-        const {name, phoneNo, address="NA"}= req.body;
-        const client= new RegularClient({name, phoneNo, address});
+        const {name, phoneNo, address="NA", gst}= req.body;
+        const client= new RegularClient({name, phoneNo, address, gst});
         
         await client.save();
     

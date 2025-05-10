@@ -1,15 +1,30 @@
-const formatToIST = (utcDate) => {
+const formatToIST = (date) => {
     const options = {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true,
         day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'Asia/Kolkata'
+        month: '2-digit',
+        year: 'numeric'
     };
 
-    return new Intl.DateTimeFormat('en-US', options).format(new Date(utcDate));
+    const dateObj = new Date(date);
+    // Convert to IST by adding 5 hours and 30 minutes
+    dateObj.setMinutes(dateObj.getMinutes());
+    
+    const formattedTime = dateObj.toLocaleString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+    
+    const formattedDate = dateObj.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+
+    return `${formattedTime}, ${formattedDate}`;
 };
 
-module.exports= formatToIST;
+module.exports = formatToIST;

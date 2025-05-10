@@ -67,6 +67,17 @@ const parcelSchema = new mongoose.Schema({
         default: 0
     },
 
+    payment:{
+        type: String,
+        enum: ['To Pay', 'Paid'],
+        required: true
+    },
+
+    doorDelivery:{
+        type: Boolean,
+        default: false
+    },
+
     addedBy:{
         type: Schema.Types.ObjectId,
         ref: 'Employee',

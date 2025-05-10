@@ -16,6 +16,11 @@ const clientSchema = new mongoose.Schema({
         required: false
     },
 
+    gst:{
+        type: String,
+        required: false
+    },
+
     role: {
         type: String,
         enum: ['sender', 'receiver'],
