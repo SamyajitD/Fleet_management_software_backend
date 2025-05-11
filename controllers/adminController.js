@@ -276,9 +276,9 @@ module.exports.getAllRegularItems= async(req, res)=>{
 module.exports.addNewRegularItems= async(req, res)=>{
     try{
         const { items }= req.body;
-        for(let itemName of items){
-            const item= new RegularItem({name: itemName});
-            await item.save();
+        for(let item of items){
+            const newitem= new RegularItem({name: item.name, type: item.type, freight: item.freight, hamali: item.hamali});
+            await newitem.save();
         }
 
         return res.status(201).json({ message: "Successfully added all regular items", flag: true });
@@ -289,17 +289,14 @@ module.exports.addNewRegularItems= async(req, res)=>{
 
 module.exports.deleteRegularItem= async(req, res)=>{
     try{
-        const {items}= req.body;
+        const {itemId}= req.body;
 
-        for(let itemId of items){
-            const item = await RegularItem.findById(itemId);
-            if (!item) {
-                return res.status(404).json({ message: `No Regular Item found with ID: ${itemId}` , flag:false});
-            }
-            
-            await RegularItem.findByIdAndDelete(itemId);
+        const item = await RegularItem.findById(itemId);
+        if (!item) {
+            return res.status(404).json({ message: `No Regular Item found with ID: ${itemId}` , flag:false});
         }
         
+        await RegularItem.findByIdAndDelete(itemId);
         
         return res.status(200).json({message: "Successfully deleted a regular item", flag:true});
     }catch(err){

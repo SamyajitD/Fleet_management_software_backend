@@ -4,6 +4,21 @@ const regularItemSchema= new mongoose.Schema({
     name: {
         type: String,
         required: true
+    },
+    type:{
+        type: String,
+        enum: ['C/B', 'G/B', 'Bundle'],
+        required: true
+    },
+    freight:{
+        type: Number,
+        required: true,
+        default: 0
+    },
+    hamali:{
+        type: Number,
+        required: true,
+        default: 0
     }
 });
 

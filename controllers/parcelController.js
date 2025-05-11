@@ -9,11 +9,11 @@ const Warehouse = require("../models/warehouseSchema.js");
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
 const qrCodeTemplate = require("../utils/qrCodesTemplate.js");
-const Employee= require("../models/employeeSchema.js");
+const Employee = require("../models/employeeSchema.js");
 
 module.exports.newParcel = async (req, res) => {
     try {
-        let { items, senderDetails, receiverDetails, destinationWarehouse, sourceWarehouse, payment, doorDelivery } = req.body;
+        let { items, senderDetails, receiverDetails, destinationWarehouse, sourceWarehouse, freight, hamali, charges, payment, doorDelivery } = req.body;
         if (!sourceWarehouse) {
             sourceWarehouse = req.user.warehouseCode;
         }
@@ -22,19 +22,19 @@ module.exports.newParcel = async (req, res) => {
         }
 
         const destinationWarehouseId = await Warehouse.findOne({ warehouseID: destinationWarehouse });
-        let totalCharges=0 , totalHamali= 0, totalFreight = 0;
+        // let totalCharges = 0, totalHamali = 0, totalFreight = 0;
         const itemEntries = [];
         for (const item of items) {
-            totalCharges += item.statisticalCharges;
-            totalHamali += item.hamali;
-            totalFreight += item.freight;
+            // totalCharges += item.statisticalCharges;
+            // totalHamali += item.hamali;
+            // totalFreight += item.freight;
             const newItem = new Item({
                 name: item.name,
                 type: item.type,
                 quantity: item.quantity,
                 freight: item.freight,
                 hamali: item.hamali,
-                statisticalCharges: item.statisticalCharges
+                statisticalCharges: item.hamali
             });
             const savedItem = await newItem.save();
             itemEntries.push(savedItem._id);
@@ -57,16 +57,16 @@ module.exports.newParcel = async (req, res) => {
             trackingId,
             payment,
             doorDelivery,
-            status: 'arrived',
-            charges: totalCharges,
-            hamali: totalHamali,
-            freight: totalFreight,
+            status: 'arrived', 
+            freight,
+            hamali, 
+            charges,
             addedBy: req.user._id
         });
 
         await newParcel.save();
 
-        return res.status(200).json({ message: "Parcel created successfully", body: trackingId,flag:true });
+        return res.status(200).json({ message: "Parcel created successfully", body: trackingId, flag: true });
 
     } catch (err) {
         return res.status(500).json({ message: "An error occurred while creating the parcel", error: err.message, flag: false });
@@ -93,7 +93,7 @@ module.exports.allParcel = async (req, res) => {
     try {
         if ((!req.user || !req.user.warehouseCode) && !req.user.role === 'admin') {
             return res.status(401).json({
-                message: "Unauthorized: No warehouse access",flag:false
+                message: "Unauthorized: No warehouse access", flag: false
             });
         }
 
@@ -141,7 +141,7 @@ module.exports.generateQRCodes = async (req, res) => {
 
         const { qrCodeURL } = await generateQRCode(id);
 
-        const receiverInfo= {
+        const receiverInfo = {
             name: parcel.receiver.name,
             phone: parcel.receiver.phoneNo,
             source: parcel.sourceWarehouse.name,
@@ -237,16 +237,16 @@ module.exports.editParcel = async (req, res) => {
         const updateData = req.body;
 
         if (!id) {
-            return res.status(400).json({ message: 'Parcel ID is required',flag:false });
+            return res.status(400).json({ message: 'Parcel ID is required', flag: false });
         }
 
         if (!updateData || Object.keys(updateData).length === 0) {
-            return res.status(400).json({ message: 'Update data is required',flag:false });
+            return res.status(400).json({ message: 'Update data is required', flag: false });
         }
 
         let parcel = await Parcel.findOne({ trackingId: id });
         if (!parcel) {
-            return res.status(404).json({ message: `Can't find any Parcel with Tracking ID ${id}`,flag:false });
+            return res.status(404).json({ message: `Can't find any Parcel with Tracking ID ${id}`, flag: false });
         }
 
         // Update items if provided
@@ -306,43 +306,49 @@ module.exports.editParcel = async (req, res) => {
         }
 
         if (updateData.charges) {
-            parcel.charges= updateData.charges;
+            parcel.charges = updateData.charges;
         }
         if (updateData.hamali) {
-            parcel.hamali= updateData.hamali;
+            parcel.hamali = updateData.hamali;
         }
         if (updateData.freight) {
-            parcel.freight= updateData.freight;
+            parcel.freight = updateData.freight;
+        }
+        if( updateData.payment) {
+            parcel.payment = updateData.payment;
+        }
+        if (updateData.doorDelivery) {
+            parcel.doorDelivery = updateData.doorDelivery;
         }
         if (req.user.role === 'admin' && updateData.status) {
             parcel.status = updateData.status;
         }
         await parcel.save();
 
-        return res.status(200).json({ flag: true, message: "Parcel updated successfully", body: parcel ,flag:true});
+        return res.status(200).json({ flag: true, message: "Parcel updated successfully", body: parcel, flag: true });
     } catch (err) {
-        return res.status(500).json({ flag: false, message: "Failed to update parcel", error: err.message ,flag:false});
+        return res.status(500).json({ flag: false, message: "Failed to update parcel", error: err.message, flag: false });
     }
 };
 
-module.exports.getParcelsForApp= async(req, res)=>{
-    try{
-        const user= req.user;
-        let parcels= [];
-        if(user.warehouseCode.isSource){
-            let temp= await Parcel.find({$and: [{status: 'arrived'}, {sourceWarehouse: user.warehouseCode._id}]});
-            parcels= temp.map((parcel)=>parcel.trackingId)
-        }else{
-            let temp= await Parcel.find({$and: [{status: 'dispatched'}, {destinationWarehouse: user.warehouseCode._id}]}).populate('ledgerId');
-            parcels= temp.map((parcel)=>{
-                if((parcel.ledgerId.status==="dispatched") || (parcel.ledgerId.status==="verified")){
+module.exports.getParcelsForApp = async (req, res) => {
+    try {
+        const user = req.user;
+        let parcels = [];
+        if (user.warehouseCode.isSource) {
+            let temp = await Parcel.find({ $and: [{ status: 'arrived' }, { sourceWarehouse: user.warehouseCode._id }] });
+            parcels = temp.map((parcel) => parcel.trackingId)
+        } else {
+            let temp = await Parcel.find({ $and: [{ status: 'dispatched' }, { destinationWarehouse: user.warehouseCode._id }] }).populate('ledgerId');
+            parcels = temp.map((parcel) => {
+                if ((parcel.ledgerId.status === "dispatched") || (parcel.ledgerId.status === "verified")) {
                     return parcel.trackingId;
                 }
             })
         }
 
-        return res.status(200).json({message: "Successfully fetched parcels for respective warehouse", body: parcels, flag: true});
-    }catch(err){
-        return res.status(500).json({message: "Failed to get all parcel details (for app)", error: err.message, flag: false});
+        return res.status(200).json({ message: "Successfully fetched parcels for respective warehouse", body: parcels, flag: true });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to get all parcel details (for app)", error: err.message, flag: false });
     }
 }
