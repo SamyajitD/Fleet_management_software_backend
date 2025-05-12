@@ -44,4 +44,7 @@ router.route('/manage/regular-client')
     .put(authenticateToken, isAdmin, catchAsync(adminController.editRegularClient))
     .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteRegularClient));
 
+router.route('/regular-client-items/:id')
+    .get(authenticateToken, catchAsync(adminController.getItemForRegularClient));
+
 module.exports= router;

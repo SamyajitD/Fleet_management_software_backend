@@ -307,7 +307,7 @@ module.exports.deleteRegularItem= async(req, res)=>{
 //edit client
 module.exports.getAllRegularClients= async(req, res)=>{
     try{
-        const allClients= await RegularClient.find().sort({name: 1});
+        const allClients= await RegularClient.find().sort({name: 1}).populate('items.itemDetails');
 
         return res.status(200).json({message: "Successfully fetched all regular clients", body: allClients, flag:true});
     }catch(err){
@@ -317,8 +317,8 @@ module.exports.getAllRegularClients= async(req, res)=>{
 
 module.exports.addNewRegularClient= async(req, res)=>{
     try{
-        const {name, phoneNo, address="NA", gst}= req.body;
-        const client= new RegularClient({name, phoneNo, address, gst});
+        const {name, phoneNo, address="NA", gst, items= []}= req.body;
+        const client= new RegularClient({name, phoneNo, address, gst, items});
         
         await client.save();
     
@@ -358,5 +358,21 @@ module.exports.deleteRegularClient= async(req, res)=>{
         return res.status(200).json({message: "Successfully deleted a regular client", flag:true});
     }catch(err){
         return res.status(500).json({ message: "Failed to delete a regular client", error: err.message, flag: false});
+    }
+}
+
+module.exports.getItemForRegularClient= async(req, res)=>{
+    try{
+        const {id}= req.params;
+
+        const client= await RegularClient.findById(id).populate('items.itemDetails');
+
+        if(!client){
+            return res.status(404).json({message: "No client found with given Id", flag: false});
+        }
+        return res.status(200).json({ message: "Successfully fetched items for regular client", flag: true, body: client.items });
+
+    }catch(err){
+        return res.status(500).json({message: "Failed to fetch items for regular client", error: err.message, flag: false});
     }
 }

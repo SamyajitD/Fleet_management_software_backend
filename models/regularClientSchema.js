@@ -16,6 +16,21 @@ const regularClientchema= new mongoose.Schema({
     gst:{
         type: String
     },
+    items:[{
+        itemDetails:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Item',
+        },
+        hamali:{
+            type: Number,
+        },
+        freight:{
+            type: Number,
+        },
+        statisticalCharges:{
+            type: Number,
+        }
+    }]
 });
 
 module.exports= mongoose.model('RegularClient', regularClientchema);

@@ -331,9 +331,13 @@ const generateLR = (parcel) => {
                 <br>
 
                  <div style="display: flex; justify-content: space-between; width: 95%;">
-                    <strong >Total Items: ${totalItems}</strong>
-                    <strong style="margin-left: 140px">Total Amount: </strong>${totalAmount==0?"____": `₹${totalAmount}`}
-                    <strong style="margin-left: 140px">Payment: ${parcel.payment}</strong>
+                    <strong style="margin-right: -25px">Total Items: </strong>${totalItems}
+                    <strong style="margin-left: 140px; margin-right: -25px">Total Amount:</strong>${totalAmount==0?"____": `₹${totalAmount}`}
+                    <strong style="margin-left: 140px; margin-right: -25px">Payment:</strong>${parcel.payment}
+                </div>
+                <div style="display: flex; width: 95%;">
+                    <strong style="margin-right: 5px">Total Packages: </strong> ${parcel.items.length}
+                    <strong style="margin-left: ${totalItems>=100?'140px':'147px'}; margin-right: 5px">Door Delivery: </strong> ${parcel.doorDelivery?"YES":"NO"}
                 </div>
                 <br>
 
