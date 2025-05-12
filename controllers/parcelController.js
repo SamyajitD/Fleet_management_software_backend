@@ -128,7 +128,6 @@ module.exports.allParcel = async (req, res) => {
         });
     }
 };
-
 module.exports.generateQRCodes = async (req, res) => {
     try {
         const { id } = req.params;
@@ -151,11 +150,10 @@ module.exports.generateQRCodes = async (req, res) => {
                 month: '2-digit',
                 day: '2-digit'
             })
-        }
+        };
 
         const htmlContent = qrCodeTemplate(qrCodeURL, id, count, receiverInfo);
 
-        console.log('Launching Puppeteer...');
         const browser = await puppeteer.launch({
             args: chromium.args,
             executablePath: await chromium.executablePath(),
@@ -165,7 +163,6 @@ module.exports.generateQRCodes = async (req, res) => {
         const page = await browser.newPage();
         await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
 
-        console.log('Generating PDF...');
         const pdfBuffer = await page.pdf({
             format: 'A4',
             printBackground: true,
@@ -174,10 +171,8 @@ module.exports.generateQRCodes = async (req, res) => {
 
         await browser.close();
 
-        console.log('Sending PDF response...');
-        const filename = `qr-codes-${id}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Disposition', 'inline; filename="qr-codes.pdf"'); // Important change here
         res.setHeader('Content-Length', pdfBuffer.length);
         res.end(pdfBuffer);
 
@@ -190,6 +185,7 @@ module.exports.generateQRCodes = async (req, res) => {
         });
     }
 };
+
 
 module.exports.generateLR = async (req, res) => {
     try {
