@@ -5,11 +5,12 @@ const generateLedger = (ledger) => {
     let allParcels = ledger.parcels.map(parcel => `
         <tr>
             <td>${parcel.trackingId} <strong>(${parcel.items.length} ${parcel.items.length==1?"item":"items"})</strong> </td>
-            <td>${parcel.charges}</td>
-            <td>${parcel.hamali}</td>
-            <td>${parcel.freight}</td>
             <td>${parcel.sender.name || 'NA'}</td>
             <td>${parcel.receiver.name || 'NA'}</td>
+            <td>${parcel.freight}</td>
+            <td>${parcel.hamali}</td>
+            <td>${parcel.charges}</td>
+            <td>${parcel.freight+parcel.hamali+parcel.charges}</td>
         </tr>
     `).join('');
 
@@ -157,11 +158,12 @@ const generateLedger = (ledger) => {
                     <thead>
                         <tr>
                             <th>Order ID</th>
-                            <th>Hamali</th>
-                            <th>Freight</th>
-                            <th>Statistical Ch.</th>
                             <th>Sender</th>
                             <th>Receiver</th>
+                            <th>Freight</th>
+                            <th>Hamali</th>
+                            <th>Statistical Ch.</th>
+                            <th>Total</th>
                         </tr>
                     </thead>
                     <tbody>

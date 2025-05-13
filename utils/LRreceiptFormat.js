@@ -11,13 +11,13 @@ const generateLR = (parcel) => {
             <td>${item.freight==0?"____":`₹${item.freight}`}</td>
             <td>${item.hamali==0?"____":`₹${item.hamali}`}</td>
             <td>${item.statisticalCharges==0?"____":`₹${item.statisticalCharges}`}</td>
-            <td>${item.freight+item.hamali+item.statisticalCharges==0?"____":`₹${item.freight+item.hamali+item.statisticalCharges}`}</td>
+            <td>${item.freight+item.hamali+item.statisticalCharges==0?"____":`₹${(item.freight+item.hamali+item.statisticalCharges)*item.quantity}`}</td>
         </tr>
     `).join('');
 
-    let totalFreight = parcel.items.reduce((sum, item) => sum + item.freight, 0);
-    let totalHamali = parcel.items.reduce((sum, item) => sum + item.hamali, 0);
-    let totalCharges = parcel.items.reduce((sum, item) => sum + item.statisticalCharges, 0);
+    let totalFreight = parcel.freight;
+    let totalHamali = parcel.hamali;
+    let totalCharges = parcel.charges;
     let totalItems = parcel.items.reduce((sum, item) => sum + item.quantity, 0);
     let totalAmount = totalFreight + totalHamali + totalCharges;
 
