@@ -51,8 +51,6 @@ module.exports.newLedger = async(req, res) => {
     }
 };
 
-
-
 module.exports.generatePDF = async (req, res) => {
     try {
         const { id } = req.params;
@@ -74,14 +72,14 @@ module.exports.generatePDF = async (req, res) => {
             .populate('sourceWarehouse destinationWarehouse');
 
         if (!ledger) {
-            return res.status(404).json({ message: `Can't find any Ledger with ID ${id}`,flag:false });
+            return res.status(404).json({ message: `Can't find any Ledger with ID ${id}`, flag: false });
         }
 
         console.log('Launching Puppeteer...');
         const browser = await puppeteer.launch({
             args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
             executablePath: await chromium.executablePath(),
-            headless: 'new', 
+            headless: 'new',
             ignoreHTTPSErrors: true,
         });
 
@@ -101,12 +99,17 @@ module.exports.generatePDF = async (req, res) => {
 
         console.log('Sending PDF response...');
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${id}.pdf"`);
-        res.end(pdfBuffer);
-        return res.json({ message: "Successful", flag:true });
+        res.setHeader('Content-Disposition', `inline; filename="${id}.pdf"`); 
+        res.setHeader('Content-Length', pdfBuffer.length);
+        res.end(pdfBuffer); 
+
     } catch (err) {
         console.error('Error generating PDF:', err);
-        return res.status(500).json({ message: "Failed to generate Ledger PDF", error: err.message,flag:false });
+        return res.status(500).json({
+            message: "Failed to generate Ledger PDF",
+            error: err.message,
+            flag: false
+        });
     }
 };
 

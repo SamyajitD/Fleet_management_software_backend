@@ -186,7 +186,6 @@ module.exports.generateQRCodes = async (req, res) => {
     }
 };
 
-
 module.exports.generateLR = async (req, res) => {
     try {
         const { id } = req.params;
@@ -219,13 +218,20 @@ module.exports.generateLR = async (req, res) => {
 
         console.log('Sending PDF response...');
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${id}.pdf"`);
+        res.setHeader('Content-Disposition', `inline; filename="${id}.pdf"`); 
+        res.setHeader('Content-Length', pdfBuffer.length);
         res.end(pdfBuffer);
+
     } catch (err) {
         console.error('Error generating LR Receipt:', err);
-        return res.status(500).json({ message: "Failed to generate LR Receipt", error: err.message, flag: false });
+        return res.status(500).json({
+            message: "Failed to generate LR Receipt",
+            error: err.message,
+            flag: false
+        });
     }
 };
+
 
 module.exports.editParcel = async (req, res) => {
     try {

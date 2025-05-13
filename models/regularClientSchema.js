@@ -19,7 +19,7 @@ const regularClientchema= new mongoose.Schema({
     items:[{
         itemDetails:{
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Item',
+            ref: 'RegularItem',
         },
         hamali:{
             type: Number,
