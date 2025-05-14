@@ -287,20 +287,26 @@ module.exports.addNewRegularItems= async(req, res)=>{
     }
 }
 
-module.exports.deleteRegularItem= async(req, res)=>{
-    try{
-        const {itemId}= req.body;
+module.exports.deleteRegularItem = async(req, res) => {
+    try {
+        const {itemId} = req.body;
 
         const item = await RegularItem.findById(itemId);
         if (!item) {
-            return res.status(404).json({ message: `No Regular Item found with ID: ${itemId}` , flag:false});
+            return res.status(404).json({ message: `No Regular Item found with ID: ${itemId}`, flag: false });
         }
+
+        // Remove the item from all regular clients' items array
+        await RegularClient.updateMany(
+            { 'items.itemDetails': itemId },
+            { $pull: { items: { itemDetails: itemId } } }
+        );
         
         await RegularItem.findByIdAndDelete(itemId);
         
-        return res.status(200).json({message: "Successfully deleted a regular item", flag:true});
-    }catch(err){
-        return res.status(500).json({ message: "Failed to delete a regular item", error: err.message, flag: false});
+        return res.status(200).json({message: "Successfully deleted regular item and removed from all clients", flag: true});
+    } catch(err) {
+        return res.status(500).json({ message: "Failed to delete regular item", error: err.message, flag: false});
     }
 }
 
