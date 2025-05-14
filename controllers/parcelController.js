@@ -5,7 +5,6 @@ const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
 const generateLR = require("../utils/LRreceiptFormat.js");
 const Warehouse = require("../models/warehouseSchema.js");
-// const { Cluster } = require('puppeteer-cluster');
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
 const qrCodeTemplate = require("../utils/qrCodesTemplate.js");
@@ -22,12 +21,8 @@ module.exports.newParcel = async (req, res) => {
         }
 
         const destinationWarehouseId = await Warehouse.findOne({ warehouseID: destinationWarehouse });
-        // let totalCharges = 0, totalHamali = 0, totalFreight = 0;
         const itemEntries = [];
         for (const item of items) {
-            // totalCharges += item.statisticalCharges;
-            // totalHamali += item.hamali;
-            // totalFreight += item.freight;
             const newItem = new Item({
                 name: item.name,
                 type: item.type,
@@ -47,7 +42,6 @@ module.exports.newParcel = async (req, res) => {
         const newReceiver = await receiver.save();
 
         const trackingId = generateUniqueId(12);
-        // sourceWarehouse
         const newParcel = new Parcel({
             items: itemEntries,
             sender: newSender._id,
@@ -256,6 +250,10 @@ module.exports.editParcel = async (req, res) => {
             for (const item of updateData.addItems) {
                 const newItem = new Item({
                     name: item.name,
+                    type: item.type,
+                    hamali: item.hamali,
+                    freight: item.freight,
+                    statisticalCharges: item.hamali,
                     quantity: item.quantity,
                 });
                 await newItem.save();
@@ -319,7 +317,7 @@ module.exports.editParcel = async (req, res) => {
         if( updateData.payment) {
             parcel.payment = updateData.payment;
         }
-        if (updateData.doorDelivery) {
+        if (updateData.doorDelivery !== undefined) {
             parcel.doorDelivery = updateData.doorDelivery;
         }
         if (req.user.role === 'admin' && updateData.status) {
