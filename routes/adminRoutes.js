@@ -2,7 +2,7 @@ const express= require("express");
 const router= express.Router();
 const catchAsync= require("../utils/catchAsync.js");
 const adminController= require("../controllers/adminController.js")
-const { authenticateToken, isAdmin } = require('../middleware/auth');
+const { authenticateToken, isAdmin, isSupervisor } = require('../middleware/auth');
 
 router.route('/get-all-employees')
     .get(authenticateToken, isAdmin, catchAsync(adminController.fetchAllEmployees));
@@ -36,6 +36,7 @@ router.route('/manage/ledger')
 router.route('/manage/regular-item')
     .get(authenticateToken, catchAsync(adminController.getAllRegularItems))
     .post(authenticateToken, isAdmin, catchAsync(adminController.addNewRegularItems))
+    .put(authenticateToken, isAdmin, catchAsync(adminController.editRegularItems))
     .delete(authenticateToken, isAdmin, catchAsync(adminController.deleteRegularItem));
 
 router.route('/manage/regular-client')

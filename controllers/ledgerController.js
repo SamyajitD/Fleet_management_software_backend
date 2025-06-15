@@ -337,7 +337,6 @@ module.exports.editLedger = async (req, res) => {
     try {
         const { id } = req.params;
         const updateData = req.body; 
-        console.log(updateData);
         /* updateData- 
             status('pending', 'dispatched', 'completed')
             vehicleNo(string)
@@ -366,7 +365,6 @@ module.exports.editLedger = async (req, res) => {
         if(updateData.parcels){
             let delParcels= updateData.parcels.del;
             let addParcels= updateData.parcels.add;
-            console.log(delParcels);
 
             if(!delParcels && !addParcels){
                 return res.status(400).json({message: 'No parameters for updating parcels is provided',flag:false});    
@@ -468,7 +466,6 @@ module.exports.verifyLedger = async(req, res) => {
 module.exports.deliverLedger = async(req, res) => {
     try {
         const { codes, vehicleNo } = req.body;
-        // console.log(codes);
 
         let ledger= null;
         for(let parcel of codes){

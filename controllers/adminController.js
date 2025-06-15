@@ -287,6 +287,25 @@ module.exports.addNewRegularItems= async(req, res)=>{
     }
 }
 
+module.exports.editRegularItems= async(req, res)=>{
+    try{
+        const { items }= req.body;
+        for(let item of items){
+            const existingItem = await RegularItem.findById(item._id);
+            // existingItem.name = item.name;
+            existingItem.type = item.type;
+            existingItem.freight = item.freight;
+            existingItem.hamali = item.hamali;
+            // const newitem = await RegularItem.findByIdAndUpdate(item._id, existingItem, { new: true });
+            await existingItem.save();
+        }
+
+        return res.status(201).json({ message: "Successfully added all regular items", flag: true });
+    }catch(err){
+        return res.status(500).json({ message: "Failed to add new regular items", error: err.message, flag: false });
+    }
+}
+
 module.exports.deleteRegularItem = async(req, res) => {
     try {
         const {itemId} = req.body;
