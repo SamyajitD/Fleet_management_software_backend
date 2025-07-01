@@ -7,4 +7,7 @@ const { authenticateToken } = require('../middleware/auth');
 router.route('/all-truck-no')
     .get(authenticateToken, catchAsync(driverController.allTruckNo));
 
+router.route('/parcel-by-truck')
+    .get(authenticateToken, catchAsync(driverController.parcelByTruck));
+
 module.exports = router;

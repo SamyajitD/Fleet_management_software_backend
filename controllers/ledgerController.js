@@ -12,8 +12,11 @@ const Parcel= require("../models/parcelSchema.js");
 const qrCodeGenerator= require("../utils/qrCodeGenerator.js");
 const {sendDeliveryMessage}= require("../utils/whatsappMessageSender.js");
 // const { Cluster } = require('puppeteer-cluster');
-const chromium = require('@sparticuz/chromium');
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
+let chromium;
+if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+  chromium = require('@sparticuz/chromium');
+}
 
 module.exports.newLedger = async(req, res) => {
     try {
@@ -76,12 +79,22 @@ module.exports.generatePDF = async (req, res) => {
         }
 
         console.log('Launching Puppeteer...');
-        const browser = await puppeteer.launch({
-            args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
-            executablePath: await chromium.executablePath(),
-            headless: 'new',
-            ignoreHTTPSErrors: true,
-        });
+        let launchOptions = {
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        };
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+        if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
+            launchOptions = {
+                args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+                executablePath: await chromium.executablePath(),
+                headless: chromium.headless,
+                ignoreHTTPSErrors: true,
+            };
+        }
+        const browser = await puppeteer.launch(launchOptions);
 
         const page = await browser.newPage();
 

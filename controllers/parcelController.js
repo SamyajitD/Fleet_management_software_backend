@@ -5,8 +5,11 @@ const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
 const generateLR = require("../utils/LRreceiptFormat.js");
 const Warehouse = require("../models/warehouseSchema.js");
-const puppeteer = require('puppeteer-core');
-const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer');
+let chromium;
+if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+  chromium = require('@sparticuz/chromium');
+}
 const qrCodeTemplate = require("../utils/qrCodesTemplate.js");
 const Employee = require("../models/employeeSchema.js");
 
@@ -148,11 +151,21 @@ module.exports.generateQRCodes = async (req, res) => {
 
         const htmlContent = qrCodeTemplate(qrCodeURL, id, count, receiverInfo);
 
-        const browser = await puppeteer.launch({
-            args: chromium.args,
-            executablePath: await chromium.executablePath(),
-            headless: chromium.headless,
-        });
+        let launchOptions = {
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        };
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+        if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
+            launchOptions = {
+                args: chromium.args,
+                executablePath: await chromium.executablePath(),
+                headless: chromium.headless,
+            };
+        }
+        const browser = await puppeteer.launch(launchOptions);
 
         const page = await browser.newPage();
         await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
@@ -190,11 +203,21 @@ module.exports.generateLR = async (req, res) => {
         }
 
         console.log('Launching Puppeteer...');
-        const browser = await puppeteer.launch({
-            args: chromium.args,
-            executablePath: await chromium.executablePath(),
-            headless: chromium.headless,
-        });
+        let launchOptions = {
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        };
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+        if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
+            launchOptions = {
+                args: chromium.args,
+                executablePath: await chromium.executablePath(),
+                headless: chromium.headless,
+            };
+        }
+        const browser = await puppeteer.launch(launchOptions);
 
         const page = await browser.newPage();
 
@@ -334,21 +357,53 @@ module.exports.editParcel = async (req, res) => {
 module.exports.getParcelsForApp = async (req, res) => {
     try {
         const user = req.user;
+        const { q: vehicleNo } = req.query; 
         let parcels = [];
+
         if (user.warehouseCode.isSource) {
-            let temp = await Parcel.find({ $and: [{ status: 'arrived' }, { sourceWarehouse: user.warehouseCode._id }] });
-            parcels = temp.map((parcel) => parcel.trackingId)
+           
+            let temp = await Parcel.find({ 
+                $and: [
+                    { status: 'arrived' }, 
+                    { sourceWarehouse: user.warehouseCode._id }
+                ]
+            });
+            parcels = temp.map((parcel) => parcel.trackingId);
         } else {
-            let temp = await Parcel.find({ $and: [{ status: 'dispatched' }, { destinationWarehouse: user.warehouseCode._id }] }).populate('ledgerId');
+            let query = {
+                $and: [
+                    { status: 'dispatched' },
+                    { destinationWarehouse: user.warehouseCode._id }
+                ]
+            };
+
+            if (vehicleNo) {
+                query.$and.push({ vehicleNo });
+            }
+
+            let temp = await Parcel.find(query).populate('ledgerId');
+            
             parcels = temp.map((parcel) => {
-                if ((parcel.ledgerId.status === "dispatched") || (parcel.ledgerId.status === "verified")) {
+                if (parcel.ledgerId && 
+                   (parcel.ledgerId.status === "dispatched" || 
+                    parcel.ledgerId.status === "verified")) {
                     return parcel.trackingId;
                 }
-            })
+                return null; 
+            }).filter(Boolean);
         }
 
-        return res.status(200).json({ message: "Successfully fetched parcels for respective warehouse", body: parcels, flag: true });
+        return res.status(200).json({ 
+            message: "Successfully fetched parcels for respective warehouse", 
+            body: parcels, 
+            flag: true 
+        });
     } catch (err) {
-        return res.status(500).json({ message: "Failed to get all parcel details (for app)", error: err.message, flag: false });
+        console.error('Error in getParcelsForApp:', err);
+        return res.status(500).json({ 
+            message: "Failed to get all parcel details (for app)", 
+            error: err.message, 
+            flag: false 
+        });
     }
 }

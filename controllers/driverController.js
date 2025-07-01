@@ -1,4 +1,6 @@
 const Driver = require("../models/driverSchema.js");
+const Parcel= require("../models/parcelSchema.js");
+const Employee= require("../models/employeeSchema.js");
 
 module.exports.allTruckNo = async (req, res) => {
     try {

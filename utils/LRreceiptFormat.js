@@ -1,19 +1,29 @@
-const formatToIST= require("../utils/dateFormatter.js");
+const formatToIST = require("../utils/dateFormatter.js");
 
 const generateLR = (parcel) => {
     let index = 1;
-    let allitems = parcel.items.map(item => `
+    let allitems = parcel.items.map(item => {
+        const unitPrice = item.freight + item.hamali + item.statisticalCharges;
+        const totalPrice = unitPrice * item.quantity;
+        let totalCell = '';
+        if (unitPrice === 0) {
+            totalCell = '____';
+        } else {
+            totalCell = `₹${totalPrice} <br><span style=\"font-size:7px; color:#555;\">(₹${unitPrice} each)</span>`;
+        }
+        return `
         <tr>
             <td>${index++}</td>
             <td>${item.name}</td>  
             <td>${item.type}</td>
             <td>${item.quantity}</td>
-            <td>${item.freight==0?"____":`₹${item.freight}`}</td>
-            <td>${item.hamali==0?"____":`₹${item.hamali}`}</td>
-            <td>${item.statisticalCharges==0?"____":`₹${item.statisticalCharges}`}</td>
-            <td>${item.freight+item.hamali+item.statisticalCharges==0?"____":`₹${(item.freight+item.hamali+item.statisticalCharges)*item.quantity}`}</td>
+            <td>${item.freight == 0 ? "____" : `₹${item.freight}`}</td>
+            <td>${item.hamali == 0 ? "____" : `₹${item.hamali}`}</td>
+            <td>${item.statisticalCharges == 0 ? "____" : `₹${item.statisticalCharges}`}</td>
+            <td>${totalCell}</td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 
     let totalFreight = parcel.freight;
     let totalHamali = parcel.hamali;
@@ -21,336 +31,255 @@ const generateLR = (parcel) => {
     let totalItems = parcel.items.reduce((sum, item) => sum + item.quantity, 0);
     let totalAmount = totalFreight + totalHamali + totalCharges;
 
-    let lastRow= `
-        <tr style="background-color: #f5f5f5; font-weight: bold;">
+    let lastRow = `
+        <tr style=\"font-weight: bold; background: #f5f5f5;\">
             <td></td>
             <td></td>  
             <td></td>
             <td>${totalItems}</td>
-            <td>${totalFreight===0?"____":'₹'+totalFreight}</td>
-            <td>${totalHamali===0?"____":'₹'+totalHamali}</td>
-            <td>${totalCharges===0?"____":'₹'+totalCharges}</td></td>
-            <td>${totalAmount===0?"____":'₹'+totalAmount}</td>
+            <td>${totalFreight === 0 ? "____" : '₹' + totalFreight}</td>
+            <td>${totalHamali === 0 ? "____" : '₹' + totalHamali}</td>
+            <td>${totalCharges === 0 ? "____" : '₹' + totalCharges}</td>
+            <td>${totalAmount === 0 ? "____" : '₹' + totalAmount}</td>
         </tr>
-        `
+        `;
 
     return `
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Friends Transport Company</title>
+            <title>FTC LR Receipt</title>
             <style>
-                * {
+                html, body {
+                    width: 7cm;
+                    min-width: 7cm;
+                    max-width: 7cm;
+                    height: 9.9cm;
+                    min-height: 9.9cm;
+                    max-height: 9.9cm;
+                    font-family: Arial, sans-serif;
+                    font-size: 7px;
                     margin: 0;
                     padding: 0;
-                    box-sizing: border-box;
+                    background: #fff;
                 }
-
-                body {
-                    font-family: Arial, sans-serif;
-                    line-height: 1.6;
-                    padding: 20px;
-                }
-
                 @page {
-                    size: A4;
-                    margin: 6mm;
+                    size: 7cm 9.9cm;
+                    margin: 2mm;
                 }
-
                 @media print {
                     html, body {
-                        width: 210mm;
-                        min-height: 100%;
-                        background: white;
-                        margin: 0;
-                        padding: 20px;
+                        width: 7cm !important;
+                        min-width: 7cm !important;
+                        max-width: 7cm !important;
+                        height: 9.9cm !important;
+                        min-height: 9.9cm !important;
+                        max-height: 9.9cm !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: #fff !important;
+                        font-size: 7px !important;
                     }
-
                     .main-wrapper {
-                        display: flex;
-                        flex-direction: column;
-                        min-height: 100%;
-                        position: relative;
-                    }
-
-                    .bill-content {
-                        flex: 1 0 auto;
-                    }
-
-                    .bottom-box {
-                        position: relative;
-                        margin-top: auto;
-                        page-break-inside: avoid;
-                    }
-
-                    thead {
-                        display: table-header-group;
+                        box-shadow: none !important;
+                        border: none !important;
                     }
                 }
-
                 .main-wrapper {
-                    display: flex;
-                    flex-direction: column;
-                    min-height: 100%;
+                    padding: 7px 7px 5px 7px;
+                    border: 1px solid #aaa;
+                    border-radius: 5px;
+                    box-shadow: 0 1px 4px #ccc;
+                    background: #fff;
+                    width: 7cm;
+                    min-height: 9.9cm;
+                    max-width: 7cm;
+                    max-height: 9.9cm;
+                    font-size: 7px;
                 }
-
-                .bill-content {
-                    flex: 1 0 auto;
-                }
-
-                .bottom-box {
-                    width: 100%;
-                    padding: 15px 20px;
-                    border-top: 1px solid #333;
-                }
-
                 .header {
                     text-align: center;
-                    margin-bottom: 20px;
+                    margin-bottom: 6px;
+                    font-size: 7px;
                 }
-
-                .header h1 {
-                    font-size: 26px;
-                    margin-bottom: 5px;
+                .header h1, .header h2 {
+                    font-size: 7px;
+                    margin-bottom: 1px;
                 }
-
-                h2{
-                    color: #333;
-                }
-
-                .address {
-                    color: #666;
-                    font-size: 14px;
-                    margin-bottom: 10px;
-                }
-
-                .content {
-                    display: flex;
-                    gap: 15px;
-                }
-
-                .left-column {
-                    flex: 3;
-                    min-width: 0;
-                }
-
-                .right-column {
-                    width: 205px;h3
-                    flex: none;
-                    padding: 8px;
-                    border: 1px solid #ccc;
-                    border-radius: 5px;
-                    font-size: 14px;
-                    height: fit-content;
-                    position: sticky;
-                    top: 0;
-                }
-
-                .table-container {
-                    width: 100%;
-                    margin: 0 auto 20px;
-                    overflow: hidden;
-                }
-
-                table {
-                    width: 100%;
-                    border-collapse: separate;
-                    border-spacing: 0;
-                }
-
-                table th,
-                table td {
-                    padding: 8px;
-                    text-align: left;
-                    border: 1px solid #333;
-                }
-
-                table thead tr th:first-child {
-                    border-top-left-radius: 8px;
-                }
-
-                table thead tr th:last-child {
-                    border-top-right-radius: 8px;
-                }
-
-                table tbody tr:last-child td:first-child {
-                    border-bottom-left-radius: 8px;
-                }
-
-                table tbody tr:last-child td:last-child {
-                    border-bottom-right-radius: 8px;
-                }
-
-                table th:not(:last-child),
-                table td:not(:last-child) {
-                    border-right: 1px solid #333;
-                }
-
-                .totals-section {
-                    margin-top: 20px;
-                }
-
-                tr {
-                    break-inside: avoid;
-                }
-
-                .details-section {
-                    margin-bottom: 12px;
-                }
-
-                .details-section strong {
-                    color: #333;
-                    display: block;
+                .jurisdiction {
+                    text-align: center;
+                    font-size: 7px;
+                    font-weight: bold;
                     margin-bottom: 3px;
+                    letter-spacing: 0.5px;
                 }
-
-                hr {
-                    border: none;
-                    border-top: 1px solid #333;
-                    margin: 8px 0;
+                .section {
+                    border-top: 1px dashed #bbb;
+                    margin-top: 7px;
+                    padding-top: 5px;
+                    font-size: 7px;
                 }
-
-                .charges-row {
+                .section:first-of-type {
+                    border-top: none;
+                    margin-top: 0;
+                    padding-top: 0;
+                }
+                .info-row {
                     display: flex;
                     justify-content: space-between;
-                    margin-top: 20px;
-                    padding-top: 10px;
-                    border-top: 1px solid #ccc;
-                    break-inside: avoid;
+                    align-items: flex-start;
+                    margin-bottom: 4px;
+                    gap: 10px;
+                    font-size: 7px;
                 }
-
-                .locations {
+                .info-block {
+                    flex: 1;
+                    min-width: 0;
+                    font-size: 7px;
+                    padding: 1px 0 1px 0;
+                    line-height: 1.1;
+                }
+                .info-label {
+                    font-weight: bold;
+                    color: #333;
+                    min-width: 32px;
+                    margin-right: 2px;
+                    display: inline-block;
+                    font-size: 7px;
+                }
+                .date-row { display: flex; align-items: center; gap: 2px; font-size: 7px; }
+                .date-value { white-space: nowrap; display: inline-block; font-size: 7px; }
+                .section-title {
+                    font-size: 7px;
+                }
+                .fromto-row {
                     display: flex;
-                    flex-wrap: wrap;
-                    gap: 15px;
-                    margin-top: 10px;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 7px;
+                    margin-bottom: 2px;
+                    padding-left: 2px;
                 }
-
-                .location {
-                    font-size: 14px;
-                    color: #444;
+                .fromto-block {
+                    flex: 1;
                 }
-
-                .disclaimer {
-                    font-style: italic;
-                    color: #666;
-                    margin-bottom: 10px;
+                .fromto-label {
+                    font-weight: bold;
+                    color: #333;
+                    min-width: 28px;
+                    display: inline-block;
+                    font-size: 7px;
+                }
+                .fromto-value {
+                    font-weight: normal;
+                    color: #222;
+                    font-size: 7px;
+                }
+                .table-container {
+                    margin: 4px 0 4px 0;
+                    font-size: 7px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 7px;
+                }
+                th, td {
+                    border: 1px solid #333;
+                    padding: 1.5px 2px;
+                    text-align: left;
+                    font-size: 7px;
+                }
+                th {
+                    background: #eee;
+                }
+                .totals-row td {
+                    font-weight: bold;
+                    background: #f5f5f5;
+                    font-size: 7px;
+                }
+                .small {
+                    font-size: 7px;
                 }
             </style>
         </head>
         <body>
             <div class="main-wrapper">
-                <div class="bill-content">
-                    <div class="header">
-                        <h3>SUBJECT TO HYDERABAD JURISDICTION</h3>
-                        <h1>FRIENDS TRANSPORT COMPANY</h1>
-                        <p class="address">H.O: 15-1-196/2, Feelkhana, Hyd. Br. O : Nallagutta, Secunderabad. <br> Br. Off Near Mir Alam Filter, Bahadurpura, Hyderabad</p>
-                        <h2>LR Receipt</h2>
-                    </div>
-
-                    <div class="content">
-                        <div class="left-column">
-                            <div> 
-                                <strong>Created By:</strong> ${parcel.addedBy.name} 
-                                <br><br> 
-                                <strong>Source:</strong> ${parcel.sourceWarehouse.name} 
-                                <br> 
-                                <strong>Destination:</strong> ${parcel.destinationWarehouse.name}
-                            </div>
-                            <br>
-                            <p><strong>List of Item(s):</strong></p>
-                            <div class="table-container">
-                                <table style="font-size: 14px">
-                                    <thead>
-                                        <tr>
-                                            <th>S.No.</th>
-                                            <th>Item Name</th>
-                                            <th>Type</th>
-                                            <th>Quantity</th>
-                                            <th>Freight</th>
-                                            <th>Hamali</th>
-                                            <th>Statistical Charges</th>
-                                            <th>Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${allitems}
-                                        ${lastRow}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="charges-row">
-                                <div>
-                                    <strong>Total Hamali: </strong>${totalHamali==0?"____": `₹${totalHamali}`}
-                                </div>
-                                <div>
-                                    <strong>Signature: </strong> _______________
-                                </div>
-                            </div>
-                                
-                            <div>
-                                <strong>Total Freight: </strong>${totalFreight==0?"____": `₹${totalFreight}`}
-                                <br>
-                                <strong>Total Statistical Charges: </strong> ${totalCharges==0?"____":`₹${totalCharges}`}
-                                <br> <br>
-                            </div>
+                <div class="jurisdiction">SUBJECT TO HYDERABAD JURISDICTION</div>
+                <div class="header">
+                    <h1>FRIENDS TRANSPORT CO.</h1>
+                    <h2>LR Receipt</h2>
+                </div>
+                <div class="section">
+                    <div class="info-row">
+                        <div class="info-block">
+                            <span class="info-label">LR Number:</span> ${parcel.trackingId}<br>
+                            <span class="date-row"><span class="info-label">Date:</span> <span class="date-value">${formatToIST(parcel.placedAt)}</span></span>
                         </div>
-
-
-                        <div class="right-column">
-                            <div class="details-section">
-                                <strong>Tracking ID: ${parcel.trackingId}<br></strong>
-                                <strong>Date: ${formatToIST(parcel.placedAt)} </strong>
-                            </div>
-
-                            <hr>
-
-                            <div class="details-section">
-                                <strong>Sender Details:</strong>
-                                Name: ${parcel.sender.name}<br>
-                                Phone: ${parcel.sender.phoneNo}<br>
-                                Address: ${parcel.sender.address} <br>
-                                GST: ${parcel.sender.gst}
-                            </div>
-
-                            <hr>
-
-                            <div class="details-section">
-                                <strong>Receiver Details:</strong>
-                                Name: ${parcel.receiver.name}<br>
-                                Phone: ${parcel.receiver.phoneNo}<br>
-                                Address: ${parcel.receiver.address} <br>
-                                GST: ${parcel.receiver.gst}
-                            </div>
+                        <div class="info-block" style="text-align:right;">
+                            <span class="info-label">Payment:</span> ${parcel.payment}
                         </div>
                     </div>
                 </div>
-
-                <hr>
-                <br>
-
-                 <div style="display: flex; justify-content: space-between; width: 95%;">
-                    <strong style="margin-right: -25px">Total Items: </strong>${totalItems}
-                    <strong style="margin-left: 140px; margin-right: -25px">Total Amount:</strong>${totalAmount==0?"____": `₹${totalAmount}`}
-                    <strong style="margin-left: 140px; margin-right: -25px">Payment:</strong>${parcel.payment}
+                <div class="section">
+                    <div class="fromto-row">
+                        <div class="fromto-block">
+                            <span class="fromto-label">From:</span> <span class="fromto-value">${parcel.sourceWarehouse.name}</span>
+                        </div>
+                        <div class="fromto-block" style="text-align:right;">
+                            <span class="fromto-label">To:</span> <span class="fromto-value">${parcel.destinationWarehouse.name}</span>
+                        </div>
+                    </div>
                 </div>
-                <div style="display: flex; width: 95%;">
-                    <strong style="margin-right: 5px">Total Packages: </strong> ${parcel.items.length}
-                    <strong style="margin-left: ${totalItems>=100?'140px':'147px'}; margin-right: 5px">Door Delivery: </strong> ${parcel.doorDelivery?"YES":"NO"}
+                <div class="section">
+                    <div class="info-row">
+                        <div class="info-block">
+                            <span class="section-title">Sender Details</span><br>
+                            <span class="info-label">Name:</span> ${parcel.sender.name}<br>
+                            <span class="info-label">Phone:</span> ${parcel.sender.phoneNo}<br>
+                            <span class="info-label">GST:</span> ${parcel.sender.gst || "____"}<br>
+                            <span class="info-label">Address:</span> <span class="small">${parcel.sender.address}</span>
+                        </div>
+                        <div class="info-block" style="text-align:right;">
+                            <span class="section-title">Receiver Details</span><br>
+                            <span class="info-label">Name:</span> ${parcel.receiver.name}<br>
+                            <span class="info-label">Phone:</span> ${parcel.receiver.phoneNo}<br>
+                            <span class="info-label">GST:</span> ${parcel.receiver.gst || "____"}<br>
+                            <span class="info-label">Address:</span> <span class="small">${parcel.receiver.address}</span>
+                        </div>
+                    </div>
                 </div>
-                <br>
-
-                <div class="bottom-box">
-                    <p class="disclaimer">FTC is not responsible for leakage and breakage</p>
-                    <p><strong>FTC GST ID:</strong> 36AAFFF2744R1ZX</p>
-                    <div class="locations">
-                        <span class="location">▸ Karimnagar- 9908690827</span>
-                        <span class="location">▸ Sultanabad- 9849701721</span>
-                        <span class="location">▸ Peddapally- 7036323006</span>
-                        <span class="location">▸ Ramagundam- 9866239010</span>
-                        <span class="location">▸ Godavari Khani- 9949121267</span>
-                        <span class="location">▸ Mancherial- 8341249132</span>
+                <div class="section">
+                    <div class="section-title">Items</div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>S.No.</th>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Qty</th>
+                                    <th>Freight</th>
+                                    <th>Hamali</th>
+                                    <th>Stat.</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${allitems}
+                                ${lastRow}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="info-row">
+                        <div class="info-block">
+                            <span class="info-label">Door Delivery:</span> ${parcel.doorDelivery ? "YES" : "NO"}
+                        </div>
+                        <div class="info-block" style="text-align:right;">
+                            <span class="info-label">Created By:</span> ${parcel.addedBy.name}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -359,4 +288,4 @@ const generateLR = (parcel) => {
     `;
 };
 
-module.exports= generateLR;
+module.exports = generateLR;
