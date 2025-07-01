@@ -357,53 +357,28 @@ module.exports.editParcel = async (req, res) => {
 module.exports.getParcelsForApp = async (req, res) => {
     try {
         const user = req.user;
-        const { q: vehicleNo } = req.query; 
-        let parcels = [];
+        const {q}= req.query;
 
-        if (user.warehouseCode.isSource) {
-           
-            let temp = await Parcel.find({ 
-                $and: [
-                    { status: 'arrived' }, 
-                    { sourceWarehouse: user.warehouseCode._id }
-                ]
-            });
-            parcels = temp.map((parcel) => parcel.trackingId);
-        } else {
-            let query = {
-                $and: [
-                    { status: 'dispatched' },
-                    { destinationWarehouse: user.warehouseCode._id }
-                ]
-            };
-
-            if (vehicleNo) {
-                query.$and.push({ vehicleNo });
-            }
-
-            let temp = await Parcel.find(query).populate('ledgerId');
-            
-            parcels = temp.map((parcel) => {
-                if (parcel.ledgerId && 
-                   (parcel.ledgerId.status === "dispatched" || 
-                    parcel.ledgerId.status === "verified")) {
-                    return parcel.trackingId;
-                }
-                return null; 
-            }).filter(Boolean);
+        if(!q){
+            return res.status(500).json({ message: "Failed to get all parcel details (for app)", error: err.message, flag: false });
         }
 
-        return res.status(200).json({ 
-            message: "Successfully fetched parcels for respective warehouse", 
-            body: parcels, 
-            flag: true 
-        });
+        let parcels = [];
+        if (user.warehouseCode.isSource) {
+            let temp = await Parcel.find({ $and: [{ status: 'arrived' }, { sourceWarehouse: user.warehouseCode._id }] });
+            parcels = temp.map((parcel) => parcel.trackingId)
+        } else {
+            let temp = await Parcel.find({ $and: [{ status: 'dispatched' }, { destinationWarehouse: user.warehouseCode._id }] }).populate('ledgerId');
+
+            parcels = temp.map((parcel) => {
+                if ((parcel.ledgerId.vehicleNo === q) && (parcel.ledgerId.status === "dispatched") || (parcel.ledgerId.status === "verified")) {
+                    return parcel.trackingId;
+                }
+            })
+        }
+
+        return res.status(200).json({ message: "Successfully fetched parcels for respective warehouse", body: parcels, flag: true });
     } catch (err) {
-        console.error('Error in getParcelsForApp:', err);
-        return res.status(500).json({ 
-            message: "Failed to get all parcel details (for app)", 
-            error: err.message, 
-            flag: false 
-        });
+        return res.status(500).json({ message: "Failed to get all parcel details (for app)", error: err.message, flag: false });
     }
 }
