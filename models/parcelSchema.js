@@ -84,6 +84,18 @@ const parcelSchema = new mongoose.Schema({
         required: true
     },
 
+    lastModifiedBy:{
+        type: Schema.Types.ObjectId,
+        ref: 'Employee',
+        required: false
+    },
+
+    lastModifiedAt:{
+        type: Date,
+        default: Date.now,
+        required: false
+    },
+
     placedAt:{
         type: Date,
         default: Date.now,

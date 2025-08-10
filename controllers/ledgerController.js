@@ -18,6 +18,7 @@ if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
   chromium = require('@sparticuz/chromium');
 }
 
+/*
 module.exports.newLedger = async(req, res) => {
     try {
         const scannedIds = req.body.codes;
@@ -27,7 +28,7 @@ module.exports.newLedger = async(req, res) => {
             if (parcel) parcels.push(parcel._id);
         }
 
-        /* confirm about checks for admin */
+        
         const newLedger = new Ledger({
             ledgerId: generateUniqueId(14),
             vehicleNo: req.body.vehicleNo,
@@ -53,6 +54,61 @@ module.exports.newLedger = async(req, res) => {
         res.status(500).json({ message: "Failed to create new ledger", error: err.message ,flag:false});
     }
 };
+*/
+
+module.exports.createLedger = async (req, res) => {
+    try {
+        const data= req.body; //ids(parcel), vehicleNo, srcWH, destWH, lorryFreight, verifiedBySource, status
+        const parcels = [];
+
+        for (const id of data.ids) {
+            let parcel = await Parcel.findOne({ trackingId: id });
+            if (parcel) parcels.push(parcel._id);
+        }
+
+        let src= null;
+        if(data.sourceWarehouse){
+            src= await Warehouse.findOne({ warehouseID: data.sourceWarehouse });
+        }else{
+            src= req.user.warehouseCode;
+        }
+
+        let dest= await Warehouse.findOne({ warehouseID: data.destinationWarehouse });
+
+        const newLedger = new Ledger({
+            ledgerId: generateUniqueId(14),
+            vehicleNo: data.vehicleNo,
+            status: 'pending',
+            dispatchedAt: new Date(),
+            parcels,
+            scannedBySource: null,
+            scannedByDest: null,
+            verifiedBySource: req.user._id,
+            lorryFreight: data.lorryFreight || 0,   
+            sourceWarehouse: data.sourceWarehouse ? src._id : src,
+            destinationWarehouse: dest._id
+        });
+
+        // console.log('Creating new ledger:', newLedger);
+
+        
+        for (const id of parcels) {
+            let parcel = await Parcel.findById(id);
+            if (parcel) {
+                parcel.ledgerId = newLedger._id;
+                parcel.status = 'dispatched';
+                await parcel.save();
+            }
+        }
+
+        await newLedger.save();
+        
+        return res.status(200).json({message: "Ledger created successfully", body: newLedger.ledgerId, flag:true});
+        
+    }catch (err) {
+        return res.status(500).json({ message: "Failed to create new ledger", error: err.message, flag: false });
+    }
+}
 
 module.exports.generatePDF = async (req, res) => {
     try {
@@ -402,6 +458,7 @@ module.exports.editLedger = async (req, res) => {
         
         if(updateData.status) ledger.status=updateData.status;
         if(updateData.vehicleNo) ledger.vehicleNo=updateData.vehicleNo;
+        if(updateData.lorryFreight) ledger.lorryFreight=updateData.lorryFreight;
 
         if(updateData.sourceWarehouse){
             const warehouse= await Warehouse.findOne({warehouseID: updateData.sourceWarehouse});
@@ -450,6 +507,12 @@ module.exports.verifyLedger = async(req, res) => {
         const { id } = req.params;
 
         let ledger=await Ledger.findOne({ledgerId:id});
+
+        for(let id of ledger.parcels){
+            const parcel= await Parcel.findById(id);
+            parcel.status='delivered';
+            await parcel.save();
+        }
 
         ledger.status='completed';
         ledger.deliveredAt=new Date();

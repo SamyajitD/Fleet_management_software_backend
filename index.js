@@ -44,6 +44,7 @@ app.use('/api/warehouse', warehouseRoutes);
 app.use('/api/driver', driverRoutes);
 app.use('/api/admin', adminRoutes);
 
+
 app.all('*', (req, res, next) => {
     next(new ExpressError('Page Not Found', 404));
 });

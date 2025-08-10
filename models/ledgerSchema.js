@@ -15,6 +15,12 @@ const ledgerSchema = new mongoose.Schema({
         index: true
     },
 
+    lorryFreight: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+
     status: {
         type: String,
         enum: ['pending', 'dispatched', 'verified', 'completed'],
@@ -43,7 +49,7 @@ const ledgerSchema = new mongoose.Schema({
     scannedBySource: {
         type: Schema.Types.ObjectId,
         ref: 'Employee',
-        required: true
+        // required: true
     },
 
     verifiedBySource: {

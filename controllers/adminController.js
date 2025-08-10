@@ -277,7 +277,7 @@ module.exports.addNewRegularItems= async(req, res)=>{
     try{
         const { items }= req.body;
         for(let item of items){
-            const newitem= new RegularItem({name: item.name, type: item.type, freight: item.freight, hamali: item.hamali});
+            const newitem= new RegularItem({name: item.name +  ` (${item.type})`, type: item.type, freight: item.freight, hamali: item.hamali});
             await newitem.save();
         }
 
@@ -399,5 +399,18 @@ module.exports.getItemForRegularClient= async(req, res)=>{
 
     }catch(err){
         return res.status(500).json({message: "Failed to fetch items for regular client", error: err.message, flag: false});
+    }
+}
+
+module.exports.delReg= async(req, res)=>{
+    try{
+        const all= await RegularClient.find();
+        for(let client of all){
+            client.items= [];
+            client.save();
+        }
+        return res.status(200).json({ message: "Successfully deleted all regular clients' items", body: all, flag: true });
+    }catch(err){
+        return res.status(500).json({ message: "Failed to delete regular client", error: err.message, flag: false });
     }
 }

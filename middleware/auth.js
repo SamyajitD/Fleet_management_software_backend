@@ -39,8 +39,8 @@ const isSupervisor = async (req, res, next) => {
 };
 
 const isAppUser = async (req, res, next) => {
-    if (!(req.user.role === 'staff' || req.user.role === 'admin')) {
-        return res.status(201).json({ message: 'Access denied. Only Staff & Admin can access app', flag: false });
+    if (!(req.user.role === 'staff' /* || req.user.role === 'admin'*/)) {
+        return res.status(201).json({ message: 'Access denied. Only Staff can access app', flag: false });
     }
     next();
 };

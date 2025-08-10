@@ -5,7 +5,7 @@ const ledgerController = require("../controllers/ledgerController.js");
 const { authenticateToken, isAppUser, isSupervisor } = require('../middleware/auth');
 
 router.route('/new')
-    .post(authenticateToken, isAppUser, catchAsync(ledgerController.newLedger));
+    .post(authenticateToken, catchAsync(ledgerController.createLedger));
 
 router.route('/generate-ledger-receipt/:id')
     .get(catchAsync(ledgerController.generatePDF))

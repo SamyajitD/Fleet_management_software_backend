@@ -6,6 +6,7 @@ const generateQRCode = require("../utils/qrCodeGenerator.js");
 const generateLR = require("../utils/LRreceiptFormat.js");
 const Warehouse = require("../models/warehouseSchema.js");
 const puppeteer = require('puppeteer');
+const formatToIST = require("../utils/dateFormatter.js");
 let chromium;
 if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
   chromium = require('@sparticuz/chromium');
@@ -58,7 +59,8 @@ module.exports.newParcel = async (req, res) => {
             freight,
             hamali, 
             charges,
-            addedBy: req.user._id
+            addedBy: req.user._id,
+            lastModifiedBy: req.user._id,
         });
 
         await newParcel.save();
@@ -73,12 +75,16 @@ module.exports.newParcel = async (req, res) => {
 module.exports.trackParcel = async (req, res) => {
     try {
         const { id } = req.params;
-        const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
+        const parcel = await Parcel.findOne({ trackingId: id }).populate('items sender receiver sourceWarehouse destinationWarehouse addedBy lastModifiedBy');
         if (!parcel) {
             return res.status(201).json({ message: `Can't find any Parcel with Tracking Id. ${id}`, body: {}, flag: false });
         }
         const { qrCodeURL } = await generateQRCode(id);
 
+        parcel.placedAt = formatToIST(parcel.placedAt);
+        parcel.lastModifiedAt = formatToIST(parcel.lastModifiedAt);
+
+        console.log(parcel);
         return res.status(200).json({ message: "Successfully fetched your parcel", body: parcel, flag: true, qrCode: qrCodeURL });
 
     } catch (err) {
@@ -93,27 +99,71 @@ module.exports.allParcel = async (req, res) => {
                 message: "Unauthorized: No warehouse access", flag: false
             });
         }
+        
+        const src= req.query.src;
+        const dest= req.query.dest;
+        
+        // console.log("Source:", src, "Destination:", dest);
+        
+        // console.log(q);
+        let srcWh= null;
+        let destWh= null;
+        if(src){
+            srcWh = await Warehouse.findOne({ warehouseID: src });
+            if(!srcWh){
+                return res.status(404).json({ message: `Source Warehouse with ID ${src} not found`, flag: false });
+            }
+        }
+
+        if(dest){
+            destWh = await Warehouse.findOne({ warehouseID: dest });   
+            if(!destWh){
+                return res.status(404).json({ message: `Destination Warehouse with ID ${dest} not found`, flag: false });
+            }
+        }
+        
+        const employeeWHcode = req.user.warehouseCode;
+        // console.log(wh);
 
         const formattedDate = req.body.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
         const startDate = new Date(`${formattedDate}T00:00:00.000Z`);
         const endDate = new Date(`${formattedDate}T23:59:59.999Z`);
 
-        const employeeWHcode = req.user.warehouseCode;
 
         let parcels;
         if (req.user.role !== 'admin') {
-            parcels = await Parcel.find({
-                placedAt: { $gte: startDate, $lte: endDate },
-                $or: [{ sourceWarehouse: employeeWHcode }, { destinationWarehouse: employeeWHcode }]
-            })
+            if(!dest){
+                parcels = await Parcel.find({
+                    placedAt: { $gte: startDate, $lte: endDate },
+                    $or: [{ sourceWarehouse: employeeWHcode }, { destinationWarehouse: employeeWHcode }]
+                })
                 .populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
+            }else{
+                parcels = await Parcel.find({
+                    placedAt: { $gte: startDate, $lte: endDate },
+                    status: 'arrived',
+                    sourceWarehouse: employeeWHcode,
+                    destinationWarehouse: destWh._id
+                })
+                .populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
+            }
         } else {
-            parcels = await Parcel.find({
-                placedAt: { $gte: startDate, $lte: endDate },
-            })
+            if(!src && !dest){
+                parcels = await Parcel.find({
+                    placedAt: { $gte: startDate, $lte: endDate },
+                })
                 .populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
+            }else{
+                parcels = await Parcel.find({
+                    placedAt: { $gte: startDate, $lte: endDate },
+                    sourceWarehouse: srcWh._id,
+                    destinationWarehouse: destWh._id,
+                    status: 'arrived'
+                })
+                .populate('items sender receiver sourceWarehouse destinationWarehouse addedBy');
+            }
         }
-
+        // console.log(parcels);
         return res.status(200).json({ body: parcels, message: "Successfully fetched all parcels", flag: true });
 
     } catch (err) {
@@ -346,6 +396,10 @@ module.exports.editParcel = async (req, res) => {
         if (req.user.role === 'admin' && updateData.status) {
             parcel.status = updateData.status;
         }
+
+        parcel.lastModifiedBy = req.user._id;
+        parcel.lastModifiedAt = new Date();
+
         await parcel.save();
 
         return res.status(200).json({ flag: true, message: "Parcel updated successfully", body: parcel, flag: true });
