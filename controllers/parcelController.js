@@ -202,17 +202,23 @@ module.exports.generateQRCodes = async (req, res) => {
         const htmlContent = qrCodeTemplate(qrCodeURL, id, count, receiverInfo);
 
         let launchOptions = {
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            headless: "new",
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--disable-software-rasterizer'
+            ]
         };
-        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-        }
-        if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
+        
+        // Use chromium in serverless environment
+        if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
             launchOptions = {
                 args: chromium.args,
                 executablePath: await chromium.executablePath(),
                 headless: chromium.headless,
+                ignoreHTTPSErrors: true
             };
         }
         const browser = await puppeteer.launch(launchOptions);
@@ -254,17 +260,23 @@ module.exports.generateLR = async (req, res) => {
 
         console.log('Launching Puppeteer...');
         let launchOptions = {
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            headless: "new",
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--disable-software-rasterizer'
+            ]
         };
-        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-        }
-        if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
+        
+        // Use chromium in serverless environment
+        if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
             launchOptions = {
                 args: chromium.args,
                 executablePath: await chromium.executablePath(),
                 headless: chromium.headless,
+                ignoreHTTPSErrors: true
             };
         }
         const browser = await puppeteer.launch(launchOptions);
