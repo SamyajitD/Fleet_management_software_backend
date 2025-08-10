@@ -2,17 +2,22 @@ const formatToIST= require("../utils/dateFormatter.js");
 
 const generateLedger = (ledger) => {
     console.log(ledger);
-    let allParcels = ledger.parcels.map(parcel => `
+    let index = 1;
+    let allParcels = ledger.parcels.map(parcel => {
+        const totalCharges = (parcel.freight + parcel.hamali + parcel.charges) * parcel.items.reduce((sum, item) => sum + item.quantity, 0);
+        return `
         <tr>
-            <td>${parcel.trackingId} <strong>(${parcel.items.length} ${parcel.items.length==1?"item":"items"})</strong> </td>
+            <td>${index++}</td>
+            <td>${parcel.trackingId}</td>
+            <td>${parcel.items.reduce((sum, item) => sum + item.quantity, 0)}</td>
+            <td>${parcel.sourceWarehouse.name}</td>
             <td>${parcel.sender.name || 'NA'}</td>
             <td>${parcel.receiver.name || 'NA'}</td>
-            <td>${parcel.freight}</td>
-            <td>${parcel.hamali}</td>
-            <td>${parcel.charges}</td>
-            <td>${parcel.freight+parcel.hamali+parcel.charges}</td>
+            <td>${parcel.payment}</td>
+            <td>₹${parcel.hamali}</td>
+            <td>₹${totalCharges}</td>
         </tr>
-    `).join('');
+    `}).join('');
 
     let totalFreight = ledger.parcels.reduce((sum, parcel) => sum + parcel.freight, 0);
     let totalHamali = ledger.parcels.reduce((sum, parcel) => sum + parcel.hamali, 0);
@@ -105,21 +110,13 @@ const generateLedger = (ledger) => {
                 table td {
                     padding: 8px;
                     text-align: left;
-                    border-bottom: 1px solid #333;
-                    border-right: 1px solid #333;
-                }
-
-                table th:last-child,
-                table td:last-child {
-                    border-right: none;
-                }
-
-                table tr:last-child td {
-                    border-bottom: none;
+                    border: 1px solid #333;
                 }
 
                 table th {
                     background-color: #f5f5f5;
+                    border: 1px solid #333;
+                    border-collapse: collapse;
                 }
 
                 .totals {
@@ -141,7 +138,7 @@ const generateLedger = (ledger) => {
             <div class="header">
                 <h1>FRIENDS TRANSPORT COMPANY</h1>
                 <p class="address">H.O: 15-1-196/2, Feelkhana, Hyd. Br. O : Nallagutta, Secunderabad. <br> Br. Off Near Mir Alam Filter, Bahadurpura, Hyderabad</p>
-                <h2>Ledger</h2>
+                <h2>MEMO</h2>
             </div>
 
             <div id="date-time"><strong>Date and Time:</strong> ${formatToIST(ledger.dispatchedAt)}</div>
@@ -157,29 +154,63 @@ const generateLedger = (ledger) => {
                 <table style="font-size: 14px">
                     <thead>
                         <tr>
-                            <th>Order ID</th>
+                            <th>S.No.</th>
+                            <th>LR No.</th>
+                            <th>Qty</th>
+                            <th>From</th>
                             <th>Sender</th>
                             <th>Receiver</th>
-                            <th>Freight</th>
+                            <th>LR Type</th>
                             <th>Hamali</th>
-                            <th>Statistical Ch.</th>
                             <th>Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${allParcels}
+                        <tr style="font-weight: bold; background-color: #f5f5f5;">
+                            <td colspan="2">Total</td>
+                            <td>${totalItems}</td>
+                            <td colspan="4"></td>
+                            <td>₹${totalHamali}</td>
+                            <td>₹${ledger.parcels.reduce((sum, parcel) => 
+                                sum + ((parcel.freight + parcel.hamali + parcel.charges) * 
+                                parcel.items.reduce((qty, item) => qty + item.quantity, 0)), 0)
+                            }</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-
-            <div class="totals">
-            <div>Total Items: ${totalItems}</div>
-                <div>Total Statistical Charges: ₹${totalCharges}</div>
-                <div>Total Hamali: ₹${totalHamali}</div>
-                <div>Total Freight: ${totalFreight}</div>
             </div>
             <br>
-            <div><strong>Truck Hamali: </strong> ______</div>
+            <div style="margin: 20px 0;">
+                <h3 style="font-size: 16px; margin-bottom: 10px;">Summary</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 0; text-align: center;">
+                    <tr style="font-weight: bold;">
+                        <td style="padding: 5px 15px;"></td>
+                        <td style="padding: 5px 15px;">No. of LRs</td>
+                        <td style="padding: 5px 15px;">Total Articles</td>
+                        <td style="padding: 5px 15px;">Amount</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 15px;"></td>
+                        <td style="padding: 5px 15px;">${ledger.parcels.length}</td>
+                        <td style="padding: 5px 15px;">${totalItems}</td>
+                        <td style="padding: 5px 15px;">₹${ledger.parcels.reduce((sum, parcel) => 
+                            sum + ((parcel.freight + parcel.hamali + parcel.charges) * 
+                            parcel.items.reduce((qty, item) => qty + item.quantity, 0)), 0)
+                        }</td>
+                    </tr>
+                    <tr style="border-top: 1px solid #333; font-weight: bold;">
+                        <td style="padding: 10px 15px;">Total</td>
+                        <td style="padding: 10px 15px;">${ledger.parcels.length}</td>
+                        <td style="padding: 10px 15px;">${totalItems}</td>
+                        <td style="padding: 10px 15px;">₹${ledger.parcels.reduce((sum, parcel) => 
+                            sum + ((parcel.freight + parcel.hamali + parcel.charges) * 
+                            parcel.items.reduce((qty, item) => qty + item.quantity, 0)), 0)
+                        }</td>
+                    </tr>
+                </table>
+            </div>
         </body>
         </html>
     `;
