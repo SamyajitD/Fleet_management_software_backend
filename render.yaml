@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: fleet-management-backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+        value: true
+      - key: AWS_LAMBDA_FUNCTION_VERSION
+        value: true

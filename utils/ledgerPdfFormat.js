@@ -1,7 +1,7 @@
 const formatToIST= require("../utils/dateFormatter.js");
 
 const generateLedger = (ledger) => {
-    console.log(ledger);
+    // console.log(ledger);
     let index = 1;
     let allParcels = ledger.parcels.map(parcel => {
         const totalCharges = (parcel.freight + parcel.hamali + parcel.charges) * parcel.items.reduce((sum, item) => sum + item.quantity, 0);

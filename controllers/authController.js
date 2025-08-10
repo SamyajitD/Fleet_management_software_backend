@@ -85,10 +85,10 @@ module.exports.getAllUsernames= async(req, res)=>{
 module.exports.getOTP= async (req, res) => {
     try {
         const { username } = req.body;
-        console.log(username)
+        // console.log(username)
         const employee = await Employee.findOne({ username });
 
-        console.log(employee)
+        // console.log(employee)
 
         if (!employee) {
             return res.status(201).json({ message: 'User not found', flag: false });
@@ -105,7 +105,7 @@ module.exports.verifyOtp = async (req, res) => {
     try {
         const { phoneNo, otp } = req.body;
         const result = await verifyOTP(phoneNo, otp);
-        console.log(result);
+        // console.log(result);
         if (result) {
             const token = jsonwebtoken.sign(
                 { phoneNo, isOTPVerified: true },

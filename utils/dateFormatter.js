@@ -1,30 +1,20 @@
 const formatToIST = (date) => {
+    if (!date) return '';
+    
+    const dateObj = new Date(date);
+    
+    // Format the date in IST timezone
     const options = {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
+        timeZone: 'Asia/Kolkata',
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric'
-    };
-
-    const dateObj = new Date(date);
-    // Convert to IST by adding 5 hours and 30 minutes
-    dateObj.setMinutes(dateObj.getMinutes());
-    
-    const formattedTime = dateObj.toLocaleString('en-US', {
+        year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
-    });
-    
-    const formattedDate = dateObj.toLocaleString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
+    };
 
-    return `${formattedTime}, ${formattedDate}`;
+    return dateObj.toLocaleString('en-IN', options);
 };
 
 module.exports = formatToIST;
