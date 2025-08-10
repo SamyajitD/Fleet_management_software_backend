@@ -5,7 +5,7 @@ const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
 const generateLR = require("../utils/LRreceiptFormat.js");
 const Warehouse = require("../models/warehouseSchema.js");
-const puppeteer = require('puppeteer');
+const puppeteer = process.env.AWS_LAMBDA_FUNCTION_VERSION ? require('puppeteer-core') : require('puppeteer');
 const formatToIST = require("../utils/dateFormatter.js");
 let chromium;
 if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
@@ -259,24 +259,26 @@ module.exports.generateLR = async (req, res) => {
         }
 
         console.log('Launching Puppeteer...');
-        let launchOptions = {
-            headless: "new",
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--disable-software-rasterizer'
-            ]
-        };
+        let launchOptions;
         
-        // Use chromium in serverless environment
         if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+            console.log('Running in serverless environment...');
             launchOptions = {
                 args: chromium.args,
+                defaultViewport: chromium.defaultViewport,
                 executablePath: await chromium.executablePath(),
                 headless: chromium.headless,
                 ignoreHTTPSErrors: true
+            };
+        } else {
+            launchOptions = {
+                headless: "new",
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu'
+                ]
             };
         }
         const browser = await puppeteer.launch(launchOptions);
