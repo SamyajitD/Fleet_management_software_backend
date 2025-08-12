@@ -1,7 +1,7 @@
 const formatToIST= require("../utils/dateFormatter.js");
 
 const generateLedger = (ledger) => {
-    // console.log(ledger);
+    console.log(ledger);
     let index = 1;
     let allParcels = ledger.parcels.map(parcel => {
         const totalCharges = (parcel.freight + parcel.hamali + parcel.charges) * parcel.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -137,7 +137,6 @@ const generateLedger = (ledger) => {
         <body>
             <div class="header">
                 <h1>FRIENDS TRANSPORT COMPANY</h1>
-                <p class="address">H.O: 15-1-196/2, Feelkhana, Hyd. Br. O : Nallagutta, Secunderabad. <br> Br. Off Near Mir Alam Filter, Bahadurpura, Hyderabad</p>
                 <h2>MEMO</h2>
             </div>
 

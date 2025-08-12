@@ -3,9 +3,9 @@ const Client = require("../models/clientSchema.js");
 const Item = require("../models/itemSchema.js");
 const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
-const generateLR = require("../utils/LRreceiptFormat.js");
+const { generateLR, generateLRSheet } = require("../utils/LRreceiptFormat.js");
 const Warehouse = require("../models/warehouseSchema.js");
-const puppeteer = process.env.AWS_LAMBDA_FUNCTION_VERSION ? require('puppeteer-core') : require('puppeteer');
+const puppeteer = require('puppeteer');
 const formatToIST = require("../utils/dateFormatter.js");
 let chromium;
 if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
@@ -202,23 +202,17 @@ module.exports.generateQRCodes = async (req, res) => {
         const htmlContent = qrCodeTemplate(qrCodeURL, id, count, receiverInfo);
 
         let launchOptions = {
-            headless: "new",
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--disable-software-rasterizer'
-            ]
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
         };
-        
-        // Use chromium in serverless environment
-        if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+        if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
             launchOptions = {
                 args: chromium.args,
                 executablePath: await chromium.executablePath(),
                 headless: chromium.headless,
-                ignoreHTTPSErrors: true
             };
         }
         const browser = await puppeteer.launch(launchOptions);
@@ -259,26 +253,18 @@ module.exports.generateLR = async (req, res) => {
         }
 
         console.log('Launching Puppeteer...');
-        let launchOptions;
-        
-        if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-            console.log('Running in serverless environment...');
+        let launchOptions = {
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        };
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+        if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
             launchOptions = {
                 args: chromium.args,
-                defaultViewport: chromium.defaultViewport,
                 executablePath: await chromium.executablePath(),
                 headless: chromium.headless,
-                ignoreHTTPSErrors: true
-            };
-        } else {
-            launchOptions = {
-                headless: "new",
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-gpu'
-                ]
             };
         }
         const browser = await puppeteer.launch(launchOptions);
@@ -286,20 +272,26 @@ module.exports.generateLR = async (req, res) => {
         const page = await browser.newPage();
 
         console.log('Setting page content...');
-        const htmlContent = generateLR(parcel);
+        const htmlContent = generateLRSheet(parcel);
         await page.setContent(htmlContent, { waitUntil: 'load' });
 
         console.log('Generating PDF...');
         const pdfBuffer = await page.pdf({
             format: 'A4',
             printBackground: true,
+            margin: {
+                top: '0',
+                right: '0',
+                bottom: '0',
+                left: '0'
+            }
         });
 
         await browser.close();
 
         console.log('Sending PDF response...');
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="${id}.pdf"`); 
+        res.setHeader('Content-Disposition', `attachment; filename="FTC LR RECEIPT ${id}.pdf"`); 
         res.setHeader('Content-Length', pdfBuffer.length);
         res.end(pdfBuffer);
 

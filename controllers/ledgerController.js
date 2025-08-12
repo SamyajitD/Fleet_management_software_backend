@@ -12,7 +12,7 @@ const Parcel= require("../models/parcelSchema.js");
 const qrCodeGenerator= require("../utils/qrCodeGenerator.js");
 const {sendDeliveryMessage}= require("../utils/whatsappMessageSender.js");
 // const { Cluster } = require('puppeteer-cluster');
-const puppeteer = process.env.AWS_LAMBDA_FUNCTION_VERSION ? require('puppeteer-core') : require('puppeteer');
+const puppeteer = require('puppeteer');
 let chromium;
 if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
   chromium = require('@sparticuz/chromium');
@@ -135,26 +135,19 @@ module.exports.generatePDF = async (req, res) => {
         }
 
         console.log('Launching Puppeteer...');
-        let launchOptions;
-        
-        if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-            console.log('Running in serverless environment...');
+        let launchOptions = {
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        };
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+        if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
             launchOptions = {
-                args: chromium.args,
-                defaultViewport: chromium.defaultViewport,
+                args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
                 executablePath: await chromium.executablePath(),
                 headless: chromium.headless,
-                ignoreHTTPSErrors: true
-            };
-        } else {
-            launchOptions = {
-                headless: "new",
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-gpu'
-                ]
+                ignoreHTTPSErrors: true,
             };
         }
         const browser = await puppeteer.launch(launchOptions);
@@ -449,7 +442,7 @@ module.exports.editLedger = async (req, res) => {
             if(delParcels && delParcels.length>0) {
                 for(let pId of delParcels){
                     const temp= await Ledger.findOneAndUpdate({ledgerId: id}, {$pull: {parcels: pId}}, {new: true}); 
-                    // console.log(temp);
+                    console.log(temp);
                     await temp.save();
                 }
             }
