@@ -274,17 +274,14 @@ module.exports.generateLR = async (req, res) => {
         console.log('Setting page content...');
         const htmlContent = generateLRSheet(parcel);
         await page.setContent(htmlContent, { waitUntil: 'load' });
+        await page.emulateMediaType('print');
 
         console.log('Generating PDF...');
         const pdfBuffer = await page.pdf({
-            format: 'A4',
+            width: '4in',
+            height: '6in',
             printBackground: true,
-            margin: {
-                top: '0',
-                right: '0',
-                bottom: '0',
-                left: '0'
-            }
+            margin: { top: '0', right: '0', bottom: '0', left: '0' }
         });
 
         await browser.close();
