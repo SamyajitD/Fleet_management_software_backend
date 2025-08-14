@@ -1,13 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
+echo "============================"
+echo " 🚀 build.sh is RUNNING 🚀 "
+echo "============================"
 
-# Install Chromium if in serverless environment
-if [ "$AWS_LAMBDA_FUNCTION_VERSION" = "true" ]; then
-    echo "Setting up for serverless environment..."
-    export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+# Skip Puppeteer's bundled Chromium download in server environments
+set -x
+export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
+if [ "$RENDER" = "true" ]; then
+    echo "Render environment detected..."
+    npm install puppeteer-core @sparticuz/chromium
 else
-    echo "Setting up for local environment..."
-    npx puppeteer browsers install chrome
+    echo "Local environment detected..."
+    # Install full Puppeteer locally for convenience
+    npm install puppeteer
 fi
-
-# Install dependencies
-npm install

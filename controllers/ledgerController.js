@@ -12,11 +12,13 @@ const Parcel= require("../models/parcelSchema.js");
 const qrCodeGenerator= require("../utils/qrCodeGenerator.js");
 const {sendDeliveryMessage}= require("../utils/whatsappMessageSender.js");
 // const { Cluster } = require('puppeteer-cluster');
-const puppeteer = require('puppeteer');
-let chromium;
-if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-  chromium = require('@sparticuz/chromium');
-}
+const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
+// const puppeteer = require('puppeteer');
+// let chromium;
+// if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+//   chromium = require('@sparticuz/chromium');
+// }
 
 /*
 module.exports.newLedger = async(req, res) => {
@@ -139,17 +141,35 @@ module.exports.generatePDF = async (req, res) => {
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
         };
-        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-        }
-        if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
+
+        if (process.env.RENDER) {
+            // Render environment — use @sparticuz/chromium
             launchOptions = {
-                args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+                args: chromium.args,
                 executablePath: await chromium.executablePath(),
                 headless: chromium.headless,
-                ignoreHTTPSErrors: true,
+            };
+        } else {
+            // Local development — use installed full Puppeteer
+            const puppeteerLocal = require('puppeteer');
+            launchOptions = {
+                headless: true,
+                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                executablePath: puppeteerLocal.executablePath(),
             };
         }
+
+        // if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+        //     launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        // }
+        // if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
+        //     launchOptions = {
+        //         args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+        //         executablePath: await chromium.executablePath(),
+        //         headless: chromium.headless,
+        //         ignoreHTTPSErrors: true,
+        //     };
+        // }
         const browser = await puppeteer.launch(launchOptions);
 
         const page = await browser.newPage();

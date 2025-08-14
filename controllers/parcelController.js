@@ -5,12 +5,12 @@ const generateUniqueId = require("../utils/uniqueIdGenerator.js");
 const generateQRCode = require("../utils/qrCodeGenerator.js");
 const { generateLR, generateLRSheet } = require("../utils/LRreceiptFormat.js");
 const Warehouse = require("../models/warehouseSchema.js");
-const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer');
 const formatToIST = require("../utils/dateFormatter.js");
-let chromium;
-if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-  chromium = require('@sparticuz/chromium');
-}
+const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
+// if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+// }
 const qrCodeTemplate = require("../utils/qrCodesTemplate.js");
 const Employee = require("../models/employeeSchema.js");
 
@@ -84,7 +84,7 @@ module.exports.trackParcel = async (req, res) => {
         parcel.placedAt = formatToIST(parcel.placedAt);
         parcel.lastModifiedAt = formatToIST(parcel.lastModifiedAt);
 
-        console.log(parcel);
+        // console.log(parcel);
         return res.status(200).json({ message: "Successfully fetched your parcel", body: parcel, flag: true, qrCode: qrCodeURL });
 
     } catch (err) {
@@ -257,16 +257,46 @@ module.exports.generateLR = async (req, res) => {
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
         };
-        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-        }
-        if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
+
+        if (process.env.RENDER) {
+            // Render environment — use @sparticuz/chromium
             launchOptions = {
                 args: chromium.args,
                 executablePath: await chromium.executablePath(),
                 headless: chromium.headless,
             };
+        } else {
+            // Local development — use installed full Puppeteer
+            const puppeteerLocal = require('puppeteer');
+            launchOptions = {
+                headless: true,
+                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                executablePath: puppeteerLocal.executablePath(),
+            };
         }
+
+        // if (process.env.RENDER) {
+        //     launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser';
+    //   launchOptions.executablePath = "/opt/render/.cache/puppeteer/chrome/linux-139.0.7258.66/chrome-linux64/chrome";
+    // }
+
+        // if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+        //     console.log("pipputess");
+        //     // launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        //     launchOptions.executablePath = '/opt/render/.cache/puppeteer/chrome/linux-139.0.7258.66/chrome-linux64/chrome';
+        // }
+        // if (process.env.AWS_LAMBDA_FUNCTION_VERSION && chromium) {
+        //     console.log("\nawssss");
+        //     launchOptions = {
+        //         args: chromium.args,
+        //         executablePath: await chromium.executablePath(),
+        //         headless: chromium.headless,
+        //     };
+        // }
+        // console.log("Testing puppeteer launch options:\n\n\n");
+        // console.log('Executable Path:', process.env.PUPPETEER_EXECUTABLE_PATH);
+        // console.log('Chromium Path from aws-lambda:', await chromium.executablePath());
+
         const browser = await puppeteer.launch(launchOptions);
 
         const page = await browser.newPage();

@@ -5,9 +5,11 @@ services:
     buildCommand: chmod +x build.sh && ./build.sh
     startCommand: npm start
     envVars:
+      - key: RENDER
+        value: "true"
+        env: runtime
+      - key: RENDER
+        value: "true"
+        env: build 
       - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
         value: "true"
-      - key: AWS_LAMBDA_FUNCTION_VERSION
-        value: "true"
-      - key: PUPPETEER_EXECUTABLE_PATH
-        value: "/usr/bin/chromium-browser"
