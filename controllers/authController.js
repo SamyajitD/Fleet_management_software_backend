@@ -25,6 +25,23 @@ module.exports.register = async (req, res) => {
     }
 }
 
+module.exports.changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const employee = await Employee.findById(req.user._id);
+        if (!employee || !(await employee.comparePassword(oldPassword))) {
+            return res.status(401).json({ message: 'Invalid credentials', flag: false });
+        }
+        employee.password = newPassword;
+        await employee.save();
+        const token = jsonwebtoken.sign({ id: employee._id }, process.env.JWT_SECRET);
+        return res.status(201).json({ token, flag: true});
+    }
+    catch (error) {
+        return res.status(500).json({ message: error.message, flag: false });
+    }
+}
+
 module.exports.login= async (req, res) => {
     try {
         const { username, password } = req.body;

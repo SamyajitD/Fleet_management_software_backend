@@ -7,6 +7,9 @@ const authController= require("../controllers/authController.js");
 router.route('/register')
     .post(catchAsync(authController.register));
 
+router.route('/change-password')
+    .post(authenticateToken, catchAsync(authController.changePassword));
+
 router.route('/login')
     .post(catchAsync(authController.login));
 
