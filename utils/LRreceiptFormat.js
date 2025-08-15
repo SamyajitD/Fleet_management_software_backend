@@ -77,7 +77,7 @@ const generateLR = (parcel, auto = 0) => {
                     <div class="header">
                 <div class="company-row">
                     <div class="route-from">From: ${parcel.sourceWarehouse.name}</div>
-                    <h1>FRIENDS TRANSPORT CO</h1>
+                    <h1>FRIENDS TRANSPORT COMPANY</h1>
                     <div class="route-to">To: ${parcel.destinationWarehouse.name}</div>
                 </div>
                 <div class="address">H.O.: 15-1-196/2, Feelkhana, Hyd. Br. O.: Nallagutta, Secunderabad. Br. Off. Near Mir Alam Filter, Bahadurpura, Hyd.</div>

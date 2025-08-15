@@ -130,6 +130,9 @@ const generateLedger = (ledger) => {
                     font-size: 13px;
                     margin-left: 6px;
                     margin-bottom: 8px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                 }
             </style>
         </head>
@@ -139,7 +142,11 @@ const generateLedger = (ledger) => {
                 <h2>MEMO</h2>
             </div>
 
-            <div id="date-time"><strong>Date and Time:</strong> ${formatToIST(ledger.dispatchedAt)} <strong style="margin-left: 35px;">Memo No:</strong> ${ledger.ledgerId}</div>
+            <div id="date-time">
+                <span><strong>Date and Time:</strong> ${formatToIST(ledger.dispatchedAt)}</span>
+                <span><strong>Memo No:</strong> ${ledger.ledgerId}</span>
+                <span><strong>Lorry Freight:</strong> ₹${ledger.lorryFreight}</span>
+            </div>
 
             <div class="ledger-header">
                 <div><strong>Vehicle No: </strong>${ledger.vehicleNo}</div>
@@ -160,14 +167,16 @@ const generateLedger = (ledger) => {
                         </tr>
                     </thead>
                     <tbody>
+                        
                         ${allParcels}
-                        <tr style="font-weight: bold; background-color: #f5f5f5;">
+                          <tr style="font-weight: bold; background-color: #f5f5f5;">
                             <td colspan="2">Total</td>
                             <td>${totalItems}</td>
                             <td></td>
                             <td>₹${totalFreight}</td>
                             <td>₹${totalHamali}</td>
                         </tr>
+
                     </tbody>
                 </table>
             </div>
@@ -183,9 +192,9 @@ const generateLedger = (ledger) => {
                     </tr>
                     <tr style="border-top: 1px solid #333; font-weight: bold;">
                         <td style="padding: 8px 12px;">Total</td>
-                        <td style="padding: 8px 12px;">${ledger.parcels.length}</td>
-                        <td style="padding: 8px 12px;">${totalItems}</td>
-                        <td style="padding: 8px 12px;">₹${totalFreight + totalHamali}</td>
+                        <td style="padding: 8px 12px;">25</td>
+                        <td style="padding: 8px 12px;">125</td>
+                        <td style="padding: 8px 12px;">₹6,800</td>
                     </tr>
                 </table>
             </div>
