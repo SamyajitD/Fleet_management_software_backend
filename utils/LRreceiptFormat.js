@@ -7,7 +7,7 @@ const generateLR = (parcel, auto = 0) => {
             return `
             <tr>
                 <td>${index++}</td>
-                <td>${item.name}</td>
+                <td>${item.name}</td>  
                 <td>${item.quantity}</td>
             </tr>
             `;
@@ -15,7 +15,7 @@ const generateLR = (parcel, auto = 0) => {
             return `
             <tr>
                 <td>${index++}</td>
-                <td>${item.name}</td>
+                <td>${item.name}</td>  
                 <td>${item.quantity}</td>
                 <td>${item.freight == 0 ? "____" : `₹${item.freight}`}</td>
                 <td>${item.hamali == 0 ? "____" : `₹${item.hamali}`}</td>
@@ -47,7 +47,7 @@ const generateLR = (parcel, auto = 0) => {
                 <td colspan="2">Total</td>
                 <td>${totalItems}</td>
             </tr>
-        `;
+            `;
     } else {
         tableHeaders = `
             <tr>
@@ -67,127 +67,171 @@ const generateLR = (parcel, auto = 0) => {
                 <td>${totalHamali === 0 ? "____" : `₹${totalHamali}`}</td>
                 <td>${totalCharges === 0 ? "____" : `₹${totalCharges}`}</td>
             </tr>
-        `;
+            `;
     }
 
     return `
-    <div class="lr-receipt">
-        <div class="jurisdiction">SUBJECT TO HYDERABAD JURISDICTION</div>
-        <div class="header">
-            <h1>FRIENDS TRANSPORT CO</h1>
-            <div class="address">H.O.: 15-1-196/2, Feelkhana, Hyd. Br. O.: Nallagutta, Secunderabad.</div>
-            <div class="address">Br. Off. Near Mir Alam Filter, Bahadurpura, Hyd.</div>
-            <div class="route">
-                <span class="label">From:</span> <span class="value">${parcel.sourceWarehouse.name}</span>
-                <span class="sep">→</span>
-                <span class="label">To:</span> <span class="value">${parcel.destinationWarehouse.name}</span>
-            </div>
-            <div class="lr-header-row">
-                <div class="date">Date: ${formatToIST(parcel.placedAt)}</div>
-                <div class="lr-no">LR No: ${parcel.trackingId}</div>
-                <div class="payment">${parcel.payment.toUpperCase()}</div>
-            </div>
-        </div>
+            <div class="lr-receipt">
+                <div class="content-wrapper">
+                    <div class="jurisdiction">SUBJECT TO HYDERABAD JURISDICTION</div>
+                    <div class="header">
+                <div class="company-row">
+                    <div class="route-from">From: ${parcel.sourceWarehouse.name}</div>
+                    <h1>FRIENDS TRANSPORT CO</h1>
+                    <div class="route-to">To: ${parcel.destinationWarehouse.name}</div>
+                </div>
+                <div class="address">H.O.: 15-1-196/2, Feelkhana, Hyd. Br. O.: Nallagutta, Secunderabad. Br. Off. Near Mir Alam Filter, Bahadurpura, Hyd.</div>
+                        <div class="lr-header-row">
+                    <div class="date">Date: ${formatToIST(parcel.placedAt)}</div>
+                    <div class="lr-no">LR No: <b>${parcel.trackingId}</b></div>
+                    <div class="payment">${parcel.payment.toUpperCase()}</div>
+                        </div>
+                    </div>
 
-        <div class="consignor-consignee">
-            <div class="consignor">
-                <span class="label">Consignor:</span>
-                <span class="value">${parcel.sender.name}</span>
+            <div class="consignor-consignee">
+                <div class="consignor">
+                    <span class="label">Consignor:</span>
+                    <span class="value">${parcel.sender.name}</span>
+                    <span class="phone">ph: ${parcel.sender.phoneNo || "____"}</span>
+                </div>
+                <div class="consignee">
+                    <span class="label">Consignee:</span>
+                    <span class="value">${parcel.receiver.name}</span>
+                    <span class="phone">ph: ${parcel.receiver.phoneNo || "____"}</span>
+                </div>
             </div>
-            <div class="consignee">
-                <span class="label">Consignee:</span>
-                <span class="value">${parcel.receiver.name}</span>
+
+            <table class="main-table ${auto == 1 ? 'auto-table' : 'normal-table'}">
+                                <thead>
+                    ${tableHeaders}
+                                </thead>
+                                <tbody>
+                                    ${allitems}
+                    ${totalRow}
+                                </tbody>
+                            </table>
+
+            ${auto == 0 ? `<div class="total-value">Total Value: ₹${totalAmount === 0 ? "____" : totalAmount}</div>` : ''}
+            <div class="meta">
+                <span>Declared goods value ₹${parcel.declaredValue || "____"}</span>
+                <span>Goods are at owner's risk</span>
+                <span>GSTIN: 36AAFFF2744R12X</span>
+                        </div>
+            
+                    </div>
+        
+        <div class="footer">
+            <div class="branches">◆ Karimnagar-9908690827 ◆ Sultanabad-Ph: 9849701721 ◆ Peddapally-Cell: 7036323006 ◆ Ramagundam-Cell: 9866239010 ◆ Godavari Khani-Cell: 9949121267 ◆ Mancherial-Cell: 8977185376</div>
+                </div>
             </div>
-        </div>
-
-        <table class="main-table ${auto == 1 ? 'auto-table' : 'normal-table'}">
-            <thead>
-                ${tableHeaders}
-            </thead>
-            <tbody>
-                ${allitems}
-                ${totalRow}
-            </tbody>
-        </table>
-
-        <div class="meta">
-            <span>Declared goods value ₹${parcel.declaredValue || "____"}</span>
-            <span>Goods are at owner's risk</span>
-            <span>GSTIN: 36AAFFF2744R12X</span>
-        </div>
-        <div class="branches">◆ Karimnagar-9908690827 ◆ Sultanabad-Ph: 9849701721 ◆ Peddapally-Cell: 7036323006 ◆ Ramagundam-Cell: 9866239010 ◆ Godavari Khani-Cell: 9949121267 ◆ Mancherial-Cell: 8977185376</div>
-    </div>
     `;
 };
 
 const generateLRSheet = (parcel) => {
     return `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>FTC LR Receipt</title>
-    <style>
-        @page {
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>FTC LR Receipt</title>
+            <style>
+                @page {
             size: 4in 6in;
-            margin: 0;
-        }
+                    margin: 0;
+                }
         body { width: 4in; height: 6in; margin: 0; padding: 1.5mm; font-family: Arial, sans-serif; font-size: 6px; }
-        .sheet {
+                .sheet {
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        .lr-receipt {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .lr-receipt {
             width: 100%;
             height: 100%;
             border: 1px dotted #000;
-            padding: 2mm;
-            display: flex;
-            flex-direction: column;
+                    padding: 2mm;
+                    display: flex;
+                    flex-direction: column;
             box-sizing: border-box;
             page-break-after: always;
+                }
+                .content-wrapper {
+            flex-grow: 1;
+                    display: flex;
+                    flex-direction: column;
+                }
+        .footer {
+            margin-top: auto; /* Push footer to the bottom */
         }
-        .jurisdiction {
-            text-align: center;
+                .jurisdiction {
+                    text-align: center;
             font-weight: bold;
-            font-size: 7px;
+                    font-size: 6px;
             margin-bottom: 1mm;
-        }
-        .header {
-            text-align: center;
+                }
+                .header {
+                    text-align: center;
             margin-bottom: 1mm;
-        }
-        .header h1 {
-            margin: 0;
+                }
+                .company-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 1mm;
+                    position: relative;
+                }
+                .route-from, .route-to {
+                    font-size: 5px;
+                    font-weight: bold;
+                    position: absolute;
+                }
+                .route-from {
+                    left: 0;
+                }
+                .route-to {
+                    right: 0;
+                }
+                .header h1 {
+                    margin: 0;
             padding: 0;
-            font-size: 10px;
+            font-size: 8px;
             font-weight: bold;
+            text-align: center;
+            width: 100%;
         }
         .address {
-            font-size: 7px;
-            margin: 0.5mm 0;
+            font-size: 5px;
+            margin: 0.3mm 0;
         }
         .route { display: flex; justify-content: center; gap: 2mm; font-size: 6px; margin: 0.5mm 0; }
         .route .sep { margin: 0 1mm; }
-        .lr-header-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 7px;
-            margin: 1mm 0;
-        }
+                .lr-header-row {
+                    display: flex;
+                    justify-content: space-between;
+            font-size: 6px;
+            margin: 0.5mm 0 0.3mm 0;
+                }
         .consignor-consignee {
-            display: flex;
-            justify-content: space-between;
-            font-size: 7px;
-            margin: 1mm 0;
+                    display: flex;
+                    justify-content: space-between;
+            font-size: 5px;
+            margin: 0.5mm 0;
+            margin-top: -4px;
+        }
+        .consignor, .consignee {
+                    display: flex;
+                    gap: 1mm;
+                    align-items: center;
         }
         .label {
-            font-weight: bold;
+                    font-weight: bold;
+        }
+        .phone {
+                    color: #666;
         }
         .main-table {
-            width: 100%;
-            border-collapse: collapse;
+                    width: 100%;
+                    border-collapse: collapse;
             font-size: 6px;
             margin: 0.7mm 0;
             table-layout: fixed;
@@ -215,19 +259,26 @@ const generateLRSheet = (parcel) => {
         .total-row {
             font-weight: bold;
             background-color: #f0f0f0;
-        }
-        .meta { display: flex; align-items: center; justify-content: space-between; font-size: 6px; margin: 0.5mm 0; }
-        .branches { font-size: 4px; text-align: center; line-height: 1.1; margin: 0.5mm 0; }
-    </style>
-</head>
-<body>
-    <div class="sheet">
+            }
+            .meta { display: flex; align-items: center; justify-content: space-between; font-size: 6px; margin: 0.5mm 0; }
+            .branches { font-size: 4px; text-align: center; line-height: 1.1; margin: 0.5mm 0; }
+            .total-value {
+                font-weight: bold;
+                text-align: right;
+                font-size: 6px;
+                margin-top: 0.1mm;
+
+                }
+            </style>
+        </head>
+        <body>
+            <div class="sheet">
         ${generateLR(parcel)}
         ${generateLR(parcel)}
-        ${generateLR(parcel, 1)}
-    </div>
-</body>
-</html>
+                ${generateLR(parcel, 1)}
+            </div>
+        </body>
+        </html>
     `;
 };
 
