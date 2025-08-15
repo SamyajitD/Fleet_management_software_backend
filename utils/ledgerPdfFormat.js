@@ -1,25 +1,41 @@
-const formatToIST= require("../utils/dateFormatter.js");
+const formatToIST = require('../utils/dateFormatter.js')
 
-const generateLedger = (ledger) => {
-    console.log(ledger);
-    let index = 1;
-    let allParcels = ledger.parcels.map(parcel => {
-        return `
+const generateLedger = ledger => {
+  console.log(ledger)
+  let index = 1
+  let allParcels = ledger.parcels
+    .map(parcel => {
+      return `
         <tr>
             <td>${index++}</td>
             <td>${parcel.trackingId}</td>
-            <td>${parcel.items.reduce((sum, item) => sum + item.quantity, 0)}</td>
+            <td>${parcel.items.reduce(
+              (sum, item) => sum + item.quantity,
+              0
+            )}</td>
             <td>${parcel.receiver.name || 'NA'}</td>
             <td>₹${parcel.freight}</td>
             <td>₹${parcel.hamali}</td>
         </tr>
-    `}).join('');
+    `
+    })
+    .join('')
 
-    let totalFreight = ledger.parcels.reduce((sum, parcel) => sum + parcel.freight, 0);
-    let totalHamali = ledger.parcels.reduce((sum, parcel) => sum + parcel.hamali, 0);
-    let totalItems = ledger.parcels.reduce((sum, parcel) => sum + parcel.items.reduce((qty, item) => qty + item.quantity, 0), 0);
+  let totalFreight = ledger.parcels.reduce(
+    (sum, parcel) => sum + parcel.freight,
+    0
+  )
+  let totalHamali = ledger.parcels.reduce(
+    (sum, parcel) => sum + parcel.hamali,
+    0
+  )
+  let totalItems = ledger.parcels.reduce(
+    (sum, parcel) =>
+      sum + parcel.items.reduce((qty, item) => qty + item.quantity, 0),
+    0
+  )
 
-    return `
+  return `
         <!DOCTYPE html>
         <html>
         <head>
@@ -143,15 +159,23 @@ const generateLedger = (ledger) => {
             </div>
 
             <div id="date-time">
-                <span><strong>Date and Time:</strong> ${formatToIST(ledger.dispatchedAt)}</span>
+                <span><strong>Date and Time:</strong> ${formatToIST(
+                  ledger.dispatchedAt
+                )}</span>
                 <span><strong>Memo No:</strong> ${ledger.ledgerId}</span>
-                <span><strong>Lorry Freight:</strong> ₹${ledger.lorryFreight}</span>
+                <span><strong>Lorry Freight:</strong> ₹${
+                  ledger.lorryFreight
+                }</span>
             </div>
 
             <div class="ledger-header">
                 <div><strong>Vehicle No: </strong>${ledger.vehicleNo}</div>
-                <div><strong>Source Station: </strong>${ledger.sourceWarehouse.name}</div>
-                <div><strong>Delivery Station: </strong>${ledger.destinationWarehouse.name}</div>
+                <div><strong>Source Station: </strong>${
+                  ledger.sourceWarehouse.name
+                }</div>
+                <div><strong>Delivery Station: </strong>${
+                  ledger.destinationWarehouse.name
+                }</div>
             </div>
 
             <div class="table-container">
@@ -192,15 +216,19 @@ const generateLedger = (ledger) => {
                     </tr>
                     <tr style="border-top: 1px solid #333; font-weight: bold;">
                         <td style="padding: 8px 12px;">Total</td>
-                        <td style="padding: 8px 12px;">25</td>
-                        <td style="padding: 8px 12px;">125</td>
-                        <td style="padding: 8px 12px;">₹6,800</td>
+                        <td style="padding: 8px 12px;">${
+                          ledger.parcels.length
+                        }</td>
+                        <td style="padding: 8px 12px;">${totalItems}</td>
+                        <td style="padding: 8px 12px;">₹${
+                          totalFreight + totalHamali
+                        }</td>
                     </tr>
                 </table>
             </div>
         </body>
         </html>
-    `;
-};
+    `
+}
 
-module.exports = generateLedger;
+module.exports = generateLedger
