@@ -8,6 +8,7 @@ const formatToIST = require("../utils/dateFormatter.js");
 const ExcelJS = require('exceljs');
 const Employee= require("../models/employeeSchema.js");
 const Warehouse= require("../models/warehouseSchema.js");
+const Driver = require("../models/driverSchema.js");
 const Parcel= require("../models/parcelSchema.js");
 const qrCodeGenerator= require("../utils/qrCodeGenerator.js");
 const {sendDeliveryMessage}= require("../utils/whatsappMessageSender.js");
@@ -62,7 +63,7 @@ module.exports.createLedger = async (req, res) => {
     try {
         const data= req.body; //ids(parcel), vehicleNo, srcWH, destWH, lorryFreight, verifiedBySource, status
         const parcels = [];
-
+        console.log(data.ids);
         for (const id of data.ids) {
             let parcel = await Parcel.findOne({ trackingId: id });
             if (parcel) parcels.push(parcel._id);
@@ -135,6 +136,7 @@ module.exports.generatePDF = async (req, res) => {
         if (!ledger) {
             return res.status(404).json({ message: `Can't find any Ledger with ID ${id}`, flag: false });
         }
+        const driver = await Driver.findOne({vehicleNo: ledger.vehicleNo}); 
 
         console.log('Launching Puppeteer...');
         let launchOptions = {
@@ -175,7 +177,7 @@ module.exports.generatePDF = async (req, res) => {
         const page = await browser.newPage();
 
         console.log('Setting page content...');
-        const htmlContent = generateLedger(ledger);
+        const htmlContent = generateLedger(ledger, driver);
         await page.setContent(htmlContent, { waitUntil: 'load' });
 
         console.log('Generating PDF...');

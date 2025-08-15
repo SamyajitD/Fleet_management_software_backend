@@ -1,41 +1,60 @@
 const formatToIST = require('../utils/dateFormatter.js')
 
-const generateLedger = ledger => {
-  console.log(ledger)
-  let index = 1
-  let allParcels = ledger.parcels
-    .map(parcel => {
-      return `
+const generateLedger = (ledger, driver) => {
+    console.log(ledger)
+    let index = 1
+    let allParcels = ledger.parcels
+        .map(parcel => {
+            return `
         <tr>
             <td>${index++}</td>
             <td>${parcel.trackingId}</td>
             <td>${parcel.items.reduce(
-              (sum, item) => sum + item.quantity,
-              0
+                (sum, item) => sum + item.quantity,
+                0
             )}</td>
             <td>${parcel.receiver.name || 'NA'}</td>
             <td>₹${parcel.freight}</td>
             <td>₹${parcel.hamali}</td>
         </tr>
     `
-    })
-    .join('')
+        })
+        .join('');
 
-  let totalFreight = ledger.parcels.reduce(
-    (sum, parcel) => sum + parcel.freight,
-    0
-  )
-  let totalHamali = ledger.parcels.reduce(
-    (sum, parcel) => sum + parcel.hamali,
-    0
-  )
-  let totalItems = ledger.parcels.reduce(
-    (sum, parcel) =>
-      sum + parcel.items.reduce((qty, item) => qty + item.quantity, 0),
-    0
-  )
+    let details =
+        driver ? 
+            `
+            <div class="ledger-header">
+                <div><strong>Vehicle No: </strong>${driver.vehicleNo}</div>
+                <div><strong>Driver Name: </strong>${driver.name}</div>
+                <div><strong>Driver Phone: </strong>${driver.phoneNo}</div>
+            </div>
+            <div class="ledger-header" style="margin-top: -10px">
+                <div><strong>Source Station: </strong>${ledger.sourceWarehouse.name}</div>
+                <div><strong>Delivery Station: </strong>${ledger.destinationWarehouse.name}</div>
+            </div>
+            ` : 
+            `<div class="ledger-header">
+                <div><strong>Vehicle No: </strong>${ledger.vehicleNo}</div>
+                <div><strong>Source Station: </strong>${ledger.sourceWarehouse.name}</div>
+                <div><strong>Delivery Station: </strong>${ledger.destinationWarehouse.name}</div>
+            </div>` ;
 
-  return `
+    let totalFreight = ledger.parcels.reduce(
+        (sum, parcel) => sum + parcel.freight,
+        0
+    )
+    let totalHamali = ledger.parcels.reduce(
+        (sum, parcel) => sum + parcel.hamali,
+        0
+    )
+    let totalItems = ledger.parcels.reduce(
+        (sum, parcel) =>
+            sum + parcel.items.reduce((qty, item) => qty + item.quantity, 0),
+        0
+    )
+
+    return `
         <!DOCTYPE html>
         <html>
         <head>
@@ -160,23 +179,14 @@ const generateLedger = ledger => {
 
             <div id="date-time">
                 <span><strong>Date and Time:</strong> ${formatToIST(
-                  ledger.dispatchedAt
-                )}</span>
+        ledger.dispatchedAt
+    )}</span>
                 <span><strong>Memo No:</strong> ${ledger.ledgerId}</span>
-                <span><strong>Lorry Freight:</strong> ₹${
-                  ledger.lorryFreight
-                }</span>
+                <span><strong>Lorry Freight:</strong> ₹${ledger.lorryFreight
+        }</span>
             </div>
 
-            <div class="ledger-header">
-                <div><strong>Vehicle No: </strong>${ledger.vehicleNo}</div>
-                <div><strong>Source Station: </strong>${
-                  ledger.sourceWarehouse.name
-                }</div>
-                <div><strong>Delivery Station: </strong>${
-                  ledger.destinationWarehouse.name
-                }</div>
-            </div>
+            ${details}
 
             <div class="table-container">
                 <table>
@@ -216,16 +226,15 @@ const generateLedger = ledger => {
                     </tr>
                     <tr style="border-top: 1px solid #333; font-weight: bold;">
                         <td style="padding: 8px 12px;">Total</td>
-                        <td style="padding: 8px 12px;">${
-                          ledger.parcels.length
-                        }</td>
+                        <td style="padding: 8px 12px;">${ledger.parcels.length
+        }</td>
                         <td style="padding: 8px 12px;">${totalItems}</td>
-                        <td style="padding: 8px 12px;">₹${
-                          totalFreight + totalHamali
-                        }</td>
+                        <td style="padding: 8px 12px;">₹${totalFreight + totalHamali
+        }</td>
                     </tr>
                 </table>
             </div>
+            <div style="text-align: right; display: absolute; bottom: 0;">Created by: ${ledger.verifiedBySource.name}</div>
         </body>
         </html>
     `

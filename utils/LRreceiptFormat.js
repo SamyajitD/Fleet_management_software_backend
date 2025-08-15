@@ -110,12 +110,14 @@ const generateLR = (parcel, auto = 0) => {
                     ${totalRow}
                                 </tbody>
                             </table>
-
-            ${auto == 0 ? `<div class="total-value">Total Value: ₹${totalAmount === 0 ? "____" : totalAmount}</div>` : ''}
+            <div style="display: flex; justify-content: space-between;">
+                <div style="text-align: left;">Door Delivery: ${parcel.isDoorDelivery ? auto ? 'Yes' : parcel.doorDeliveryCharge : 'No'}</div>
+                ${auto == 0 ? `<div class="total-value">Total Value: ₹${totalAmount === 0 ? "____" : totalAmount}</div>` : ''}
+            </div>
             <div class="meta">
                 <span>Declared goods value ₹${parcel.declaredValue || "____"}</span>
                 <span>Goods are at owner's risk</span>
-                <span>GSTIN: 36AAFFF2744R12X</span>
+                <span>GSTID: 36AAFFF2744R12X</span>
                         </div>
             
                     </div>
@@ -123,6 +125,7 @@ const generateLR = (parcel, auto = 0) => {
         <div class="footer">
             <div class="branches">◆ Karimnagar-9908690827 ◆ Sultanabad-Ph: 9849701721 ◆ Peddapally-Cell: 7036323006 ◆ Ramagundam-Cell: 9866239010 ◆ Godavari Khani-Cell: 9949121267 ◆ Mancherial-Cell: 8977185376</div>
                 </div>
+            <div style="text-align: right; display: absolute; bottom: 0;">Created by: ${parcel.addedBy.name}</div>
             </div>
     `;
 };
@@ -273,8 +276,8 @@ const generateLRSheet = (parcel) => {
         </head>
         <body>
             <div class="sheet">
-        ${generateLR(parcel)}
-        ${generateLR(parcel)}
+                ${generateLR(parcel)}
+                ${generateLR(parcel)}
                 ${generateLR(parcel, 1)}
             </div>
         </body>

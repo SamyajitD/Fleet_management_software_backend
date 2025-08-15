@@ -73,7 +73,7 @@ const parcelSchema = new mongoose.Schema({
         required: true
     },
 
-    doorDelivery:{
+    isDoorDelivery:{
         type: Boolean,
         default: false
     },
@@ -100,6 +100,12 @@ const parcelSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
         required: true
+    },
+
+    doorDeliveryCharge: {
+        type: Number,
+        required: true,
+        default: 0
     }
 });
 

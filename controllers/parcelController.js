@@ -16,7 +16,7 @@ const Employee = require("../models/employeeSchema.js");
 
 module.exports.newParcel = async (req, res) => {
     try {
-        let { items, senderDetails, receiverDetails, destinationWarehouse, sourceWarehouse, freight, hamali, charges, payment, doorDelivery } = req.body;
+        let { items, senderDetails, receiverDetails, destinationWarehouse, sourceWarehouse, freight, hamali, charges, payment, isDoorDelivery, doorDeliveryCharge } = req.body;
         if (!sourceWarehouse) {
             sourceWarehouse = req.user.warehouseCode;
         }
@@ -54,13 +54,14 @@ module.exports.newParcel = async (req, res) => {
             destinationWarehouse: destinationWarehouseId._id,
             trackingId,
             payment,
-            doorDelivery,
+            isDoorDelivery,
             status: 'arrived', 
             freight,
             hamali, 
             charges,
             addedBy: req.user._id,
             lastModifiedBy: req.user._id,
+            doorDeliveryCharge: isDoorDelivery ? doorDeliveryCharge : 0
         });
 
         await newParcel.save();
@@ -423,8 +424,9 @@ module.exports.editParcel = async (req, res) => {
         if( updateData.payment) {
             parcel.payment = updateData.payment;
         }
-        if (updateData.doorDelivery !== undefined) {
-            parcel.doorDelivery = updateData.doorDelivery;
+        if (updateData.isDoorDelivery !== undefined) {
+            parcel.isDoorDelivery = updateData.isDoorDelivery;
+            parcel.doorDeliveryCharge = updateData.isDoorDelivery ? (updateData.doorDeliveryCharge || 0) : 0;
         }
         if (req.user.role === 'admin' && updateData.status) {
             parcel.status = updateData.status;
