@@ -13,7 +13,9 @@ const generateLedger = (ledger, driver) => {
                 (sum, item) => sum + item.quantity,
                 0
             )}</td>
+            <td>${parcel.sender.name || 'NA'}</td>
             <td>${parcel.receiver.name || 'NA'}</td>
+            <td>${parcel.payment}</td>
             <td>₹${parcel.freight}</td>
             <td>₹${parcel.hamali}</td>
         </tr>
@@ -195,7 +197,9 @@ const generateLedger = (ledger, driver) => {
                             <th>S.No.</th>
                             <th>LR No.</th>
                             <th>Pkgs (Qty)</th>
-                            <th>Consignee (Receiver)</th>
+                            <th>Sender</th>
+                            <th>Receiver</th>
+                            <th>Type</th>
                             <th>Freight</th>
                             <th>Hamali</th>
                         </tr>
@@ -206,6 +210,8 @@ const generateLedger = (ledger, driver) => {
                           <tr style="font-weight: bold; background-color: #f5f5f5;">
                             <td colspan="2">Total</td>
                             <td>${totalItems}</td>
+                            <td></td>
+                            <td></td>
                             <td></td>
                             <td>₹${totalFreight}</td>
                             <td>₹${totalHamali}</td>
