@@ -92,12 +92,14 @@ const generateLR = (parcel, auto = 0) => {
                 <div class="consignor">
                     <span class="label">Consignor:</span>
                     <span class="value">${parcel.sender.name}</span>
-                    <span class="phone">ph: ${parcel.sender.phoneNo || "____"}</span>
+                    <span class="label">Ph: </span>
+                    <span class="value">${parcel.sender.phoneNo || "____"}</span>
                 </div>
                 <div class="consignee">
                     <span class="label">Consignee:</span>
                     <span class="value">${parcel.receiver.name}</span>
-                    <span class="phone">ph: ${parcel.receiver.phoneNo || "____"}</span>
+                    <span class="label">Ph: </span>
+                    <span class="value">${parcel.receiver.phoneNo || "____"}</span>
                 </div>
             </div>
 

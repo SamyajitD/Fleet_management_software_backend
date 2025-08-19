@@ -3,7 +3,9 @@ const formatToIST = require('../utils/dateFormatter.js')
 const generateLedger = (ledger, driver) => {
     console.log(ledger)
     let index = 1
-    let allParcels = ledger.parcels
+    let parcels = ledger.parcels;
+    parcels.sort((a,b) => a.payment == 'Paid' ? b : a);
+    let allParcels = parcels
         .map(parcel => {
             return `
         <tr>
@@ -13,7 +15,6 @@ const generateLedger = (ledger, driver) => {
                 (sum, item) => sum + item.quantity,
                 0
             )}</td>
-            <td>${parcel.sender.name || 'NA'}</td>
             <td>${parcel.receiver.name || 'NA'}</td>
             <td>${parcel.payment}</td>
             <td>₹${parcel.freight}</td>
@@ -197,7 +198,6 @@ const generateLedger = (ledger, driver) => {
                             <th>S.No.</th>
                             <th>LR No.</th>
                             <th>Pkgs (Qty)</th>
-                            <th>Sender</th>
                             <th>Receiver</th>
                             <th>Type</th>
                             <th>Freight</th>
@@ -210,7 +210,6 @@ const generateLedger = (ledger, driver) => {
                           <tr style="font-weight: bold; background-color: #f5f5f5;">
                             <td colspan="2">Total</td>
                             <td>${totalItems}</td>
-                            <td></td>
                             <td></td>
                             <td></td>
                             <td>₹${totalFreight}</td>
