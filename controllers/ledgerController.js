@@ -6,6 +6,7 @@ const generateLedger = require("../utils/ledgerPdfFormat.js");
 const generateLedgerReport = require("../utils/ledgerReportFormat.js");
 const formatToIST = require("../utils/dateFormatter.js");
 const ExcelJS = require('exceljs');
+const JSZip = require('jszip');
 const Employee= require("../models/employeeSchema.js");
 const Warehouse= require("../models/warehouseSchema.js");
 const Driver = require("../models/driverSchema.js");
@@ -332,6 +333,7 @@ module.exports.generateExcel = async (req, res) => {
 
         if (!destination || !month) {
             return res.status(400).json({ message: "Destination warehouse and month are required", flag: false });
+
         }
 
         // Parse month (expects YYYY-MM or YYYYMM)
@@ -356,9 +358,12 @@ module.exports.generateExcel = async (req, res) => {
         const ledgers = await Ledger.find({
             destinationWarehouse: destWarehouse._id,
             dispatchedAt: { $gte: startDate, $lte: endDate }
-        }).populate('sourceWarehouse destinationWarehouse');
-
-        const workbook = new ExcelJS.Workbook();
+        })
+            .populate('sourceWarehouse destinationWarehouse')
+            .populate({
+                path: 'parcels',
+                select: 'freight payment hamali'
+            });
 
         // Group ledgers by source warehouse
         const grouped = {};
@@ -380,20 +385,27 @@ module.exports.generateExcel = async (req, res) => {
             .toLocaleString('en-US', { month: 'short', year: '2-digit' })
             .replace(' ', '-');
 
-        for (const [srcId, ledgerArr] of Object.entries(grouped)) {
-            const ws = workbook.addWorksheet(srcId);
+        const files = [];
 
-            ws.addRow([srcId, monthLabel, destination]);
+        for (const [srcId, ledgerArr] of Object.entries(grouped)) {
+            const workbook = new ExcelJS.Workbook();
+            const ws = workbook.addWorksheet('Sheet1');
+
+            ws.addRow(['SCBD', srcId]);
+            ws.addRow(['MONTH', monthLabel]);
+            ws.addRow(['PDPL', destination]);
+
             ws.addRow([]);
             ws.addRow(['DATE', 'MEMO', 'LORRY NO', 'TO PAY', 'PAID', 'COMSN', 'HAMALI', 'FREIGHT']);
 
             let totalToPay = 0, totalPaid = 0, totalComsn = 0, totalHamali = 0, totalFreight = 0;
 
             for (const ledger of ledgerArr) {
-                const parcels = await Parcel.find({ _id: { $in: ledger.parcels } });
+
                 let toPay = 0, paid = 0, hamali = 0;
 
-                for (const parcel of parcels) {
+                for (const parcel of ledger.parcels) {
+
                     if (parcel.payment === 'To Pay') {
                         toPay += parcel.freight;
                     } else if (parcel.payment === 'Paid') {
@@ -424,17 +436,40 @@ module.exports.generateExcel = async (req, res) => {
             ws.addRow([]);
             ws.addRow(['', '', 'Total', totalToPay, totalPaid, totalComsn, totalHamali, totalFreight]);
             ws.addRow([]);
-            ws.addRow(['TO PAY', destination, totalToPay]);
+            ws.addRow(['TO PAY', `PDPL ${destination}`, totalToPay]);
             ws.addRow(['HAMALI', '', totalHamali]);
-            ws.addRow(['STATICAL', '', 0]);
+            const statical = 0;
+            ws.addRow(['STATICAL', '', statical]);
+            const addTotal = totalToPay + totalHamali + statical;
+            ws.addRow(['TOTAL', '', addTotal]);
             ws.addRow(['COMSN', '', totalComsn]);
             ws.addRow(['FREIGHT', '', totalFreight]);
-            ws.addRow(['TOTAL', '', totalToPay + totalHamali + totalComsn + totalFreight]);
+            const finalTotal = addTotal - totalComsn - totalFreight;
+            ws.addRow(['TOTAL', '', finalTotal]);
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            files.push({ name: `Ledger_Report_${srcId}_${destination}_${month}.xlsx`, buffer });
         }
 
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename="Ledger_Report_${destination}_${month}.xlsx"`);
-        await workbook.xlsx.write(res);
+        if (files.length === 0) {
+            return res.status(404).json({ message: 'No ledgers found for given criteria', flag: false });
+        }
+
+        if (files.length === 1) {
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename="${files[0].name}"`);
+            return res.send(files[0].buffer);
+        }
+
+        const zip = new JSZip();
+        for (const file of files) {
+            zip.file(file.name, file.buffer);
+        }
+        const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', `attachment; filename="Ledger_Reports_${destination}_${month}.zip"`);
+        return res.send(zipBuffer);
+
     } catch (err) {
         return res.status(500).json({ message: "Failed to generate ledger report", error: err.message, flag:false });
     }
