@@ -391,9 +391,9 @@ module.exports.generateExcel = async (req, res) => {
             const workbook = new ExcelJS.Workbook();
             const ws = workbook.addWorksheet('Sheet1');
 
-            ws.addRow(['SCBD', srcId]);
+            ws.addRow(['Source Warehouse', srcId]);
             ws.addRow(['MONTH', monthLabel]);
-            ws.addRow(['PDPL', destination]);
+            ws.addRow(['Destination Warehouse', destination]);
 
             ws.addRow([]);
             ws.addRow(['DATE', 'MEMO', 'LORRY NO', 'TO PAY', 'PAID', 'COMSN', 'HAMALI', 'FREIGHT']);
@@ -436,16 +436,16 @@ module.exports.generateExcel = async (req, res) => {
             ws.addRow([]);
             ws.addRow(['', '', 'Total', totalToPay, totalPaid, totalComsn, totalHamali, totalFreight]);
             ws.addRow([]);
-            ws.addRow(['TO PAY', `PDPL ${destination}`, totalToPay]);
-            ws.addRow(['HAMALI', '', totalHamali]);
+            ws.addRow(['TO PAY', ` ${srcId}`,'=', totalToPay]);
+            ws.addRow(['HAMALI','', '(+)=', totalHamali]);
             const statical = 0;
-            ws.addRow(['STATICAL', '', statical]);
+            ws.addRow(['STATICAL','', '(+)=', statical]);
             const addTotal = totalToPay + totalHamali + statical;
-            ws.addRow(['TOTAL', '', addTotal]);
-            ws.addRow(['COMSN', '', totalComsn]);
-            ws.addRow(['FREIGHT', '', totalFreight]);
+            ws.addRow(['TOTAL','', '=', addTotal]);
+            ws.addRow(['COMSN','', '(-)=', totalComsn]);
+            ws.addRow(['FREIGHT','', '(-)=', totalFreight]);
             const finalTotal = addTotal - totalComsn - totalFreight;
-            ws.addRow(['TOTAL', '', finalTotal]);
+            ws.addRow(['TOTAL','', '=', finalTotal]);
 
             const buffer = await workbook.xlsx.writeBuffer();
             files.push({ name: `Ledger_Report_${srcId}_${destination}_${month}.xlsx`, buffer });
