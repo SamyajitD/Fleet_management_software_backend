@@ -333,6 +333,7 @@ module.exports.generateExcel = async (req, res) => {
 
         if (!destination || !month) {
             return res.status(400).json({ message: "Destination warehouse and month are required", flag: false });
+
         }
 
         // Parse month (expects YYYY-MM or YYYYMM)
@@ -393,15 +394,18 @@ module.exports.generateExcel = async (req, res) => {
             ws.addRow(['SCBD', srcId]);
             ws.addRow(['MONTH', monthLabel]);
             ws.addRow(['PDPL', destination]);
+
             ws.addRow([]);
             ws.addRow(['DATE', 'MEMO', 'LORRY NO', 'TO PAY', 'PAID', 'COMSN', 'HAMALI', 'FREIGHT']);
 
             let totalToPay = 0, totalPaid = 0, totalComsn = 0, totalHamali = 0, totalFreight = 0;
 
             for (const ledger of ledgerArr) {
+
                 let toPay = 0, paid = 0, hamali = 0;
 
                 for (const parcel of ledger.parcels) {
+
                     if (parcel.payment === 'To Pay') {
                         toPay += parcel.freight;
                     } else if (parcel.payment === 'Paid') {
@@ -465,6 +469,7 @@ module.exports.generateExcel = async (req, res) => {
         res.setHeader('Content-Type', 'application/zip');
         res.setHeader('Content-Disposition', `attachment; filename="Ledger_Reports_${destination}_${month}.zip"`);
         return res.send(zipBuffer);
+
     } catch (err) {
         return res.status(500).json({ message: "Failed to generate ledger report", error: err.message, flag:false });
     }
